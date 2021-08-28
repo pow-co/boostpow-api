@@ -1,6 +1,6 @@
 {
   "name": "proofofwork-miner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/miner.js",
   "scripts": {
