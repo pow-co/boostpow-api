@@ -1,5 +1,5 @@
 {
-  "name": "proofofwork",
+  "name": "proofofwork-miner",
   "version": "0.1.0",
   "description": "",
   "main": "dist/miner.js",

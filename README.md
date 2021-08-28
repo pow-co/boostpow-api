@@ -6,13 +6,13 @@ CPU Miner for Generating Expensive Hashes of Content
 ## Installation
 
 ```
-npm install --save proofofwork
+npm install --save proofofwork-miner
 ```
 
 ## Usage
 
 ```
-import { Miner } from 'proofofwork'
+import { Miner } from 'proofofwork-miner'
 
 
 let miner = new Miner()
