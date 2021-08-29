@@ -22,8 +22,13 @@ const socket_1 = require("./socket");
         //console.log('besthash', payload)
         channel.push('besthash', payload);
     });
+    miner.on('solution', (payload) => {
+        console.log('solution', payload);
+        channel.push('solution', payload);
+    });
+    miner.on('hashrate', (payload) => {
+        console.log(payload);
+        channel.push('hashrate', payload);
+    });
 }))();
-setInterval(() => {
-    //console.log('HASHRATE', miner.getHashrate()) 
-}, 10000);
 //# sourceMappingURL=main.js.map

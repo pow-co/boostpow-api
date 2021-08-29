@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Miner = void 0;
 require('dotenv').config();
@@ -8,6 +17,7 @@ const path_1 = require("path");
 const os_1 = require("os");
 const bsv = require("bsv");
 const os = require("os");
+const publicIp = require('public-ip');
 function getBoostMiner() {
     switch (os_1.platform()) {
         case 'darwin':
@@ -25,6 +35,8 @@ class Miner extends EventEmitter {
         super(...arguments);
         this.stop = false;
         this.hashrate = 0; // hashes per second
+        this._ipv4 = null;
+        this._ipv6 = null;
     }
     getHashrate() {
         return this.hashrate;
@@ -34,14 +46,36 @@ class Miner extends EventEmitter {
         let pubkey = new bsv.PubKey().fromPrivKey(privkey);
         return pubkey.toString();
     }
+    getIPv4() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this._ipv4) {
+                // currently undefined behavior in mainland china
+                this._ipv4 = yield publicIp.v4();
+            }
+            return this._ipv4;
+        });
+    }
+    getIPv6() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this._ipv6) {
+                this._ipv6 = yield publicIp.v6();
+            }
+            return this._ipv6;
+        });
+    }
     setHashrate({ hashes }) {
         let newHashes = hashes - this.besthashes;
         let duration = (new Date().getTime() - this.besthashtime) / 1000;
         let hashrate = newHashes / duration;
         this.hashrate = hashrate;
         this.besthashtime = new Date().getTime();
-    }
-    resetHashrate() {
+        this.emit('hashrate', {
+            hashrate: this.hashrate,
+            publickey: this.publickey,
+            ipv4: this._ipv4,
+            content: this.content,
+            difficulty: this.difficulty
+        });
     }
     mine(params) {
         this.hashrate = 0;
@@ -54,11 +88,9 @@ class Miner extends EventEmitter {
                 'MINER_SECRET_KEY_WIF': process.env.MINER_SECRET_KEY_WIF
             }
         });
-        ls.stdout.on('data', (data) => {
-            //console.log(data)
+        ls.stdout.on('data', (data) => __awaiter(this, void 0, void 0, function* () {
             let content = data.toString();
-            //console.log('CONTENT', content)
-            if (content.match(/^ hashes/)) {
+            if (content.match(/^hashes/)) {
                 let [hashes, besthash] = data.toString().split("\n").map(line => {
                     let parts = line.split(':');
                     return parts[parts.length - 1].trim();
@@ -74,19 +106,31 @@ class Miner extends EventEmitter {
                         cpus: os.cpus(),
                         platform: os.platform(),
                         network: os.networkInterfaces()
-                    }
+                    },
+                    ipv4: yield this.getIPv4()
                 });
                 this.setHashrate({ hashes });
             }
-            else if (content.match(/^Here is the redeem script/)) {
-                console.log('REDEEM', content);
+            else if (content.match(/^solution/)) {
+                let solution = content.split(' ')[1].trim().replace('"', "");
+                this.emit('solution', {
+                    content: this.content,
+                    difficulty: this.difficulty,
+                    publickey: this.publickey,
+                    solution,
+                    os: {
+                        arch: os.arch(),
+                        cpus: os.cpus(),
+                        platform: os.platform(),
+                        network: os.networkInterfaces()
+                    },
+                    ipv4: yield this.getIPv4()
+                });
             }
             else {
-                console.log(content);
             }
-        });
+        }));
         ls.stderr.on('data', (data) => {
-            //console.log('ERRCONTENT', data)
             this.emit('error', data);
             if (!this.stop) {
                 this.mine({ content: this.content });
@@ -101,18 +145,4 @@ class Miner extends EventEmitter {
     }
 }
 exports.Miner = Miner;
-function getHashrate() {
-    /*
-     * The hashrate or hashes per second starts at zero and can be computed theoretically every second but
-     * given the existing boost cpu miner it can only be calculated every time there is a new best hash.
-     *
-     * Whenever there is a new best hash we take the current timestamp and the timestamp of the last best
-     * hash to determine the time that has expired. Then we take the number of hashes for the current best
-     * hash versus the number of hashes on the latest best hash.
-     *
-     * Whenever a job is complete the timer has to restart unfortunately, but theoretically the rate will
-     * be the same.
-     *
-     */
-}
 //# sourceMappingURL=miner.js.map

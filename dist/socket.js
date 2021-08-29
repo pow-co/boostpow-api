@@ -16,7 +16,7 @@ var socket, channel;
 exports.channel = channel;
 function connectChannel() {
     return __awaiter(this, void 0, void 0, function* () {
-        const WEBSOCKET_SERVER_URL = process.env.WEBSOCKET_SERVER_URL || "ws://pow.co/worker/socket";
+        const WEBSOCKET_SERVER_URL = process.env.WEBSOCKET_SERVER_URL || "ws://54.174.184.168:4455/worker/socket";
         socket = new Socket(WEBSOCKET_SERVER_URL);
         log_1.log.info('pool.socket.connect', WEBSOCKET_SERVER_URL);
         socket.connect();
