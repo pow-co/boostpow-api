@@ -1,8 +1,11 @@
 {
   "name": "proofofwork-miner",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "",
   "main": "dist/miner.js",
+  "bin": {
+    "proofofwork": "dist/bin/proofofwork.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +13,11 @@
   "author": "Steven Zeiler",
   "license": "BSV",
   "dependencies": {
+    "bsv": "^2.0.10",
     "dotenv": "^10.0.0",
+    "externalip": "^1.0.2",
+    "phoenix-channels": "^1.0.0",
+    "public-ip": "^4.0.4",
     "tsc": "^2.0.3",
     "typescript": "^4.4.2",
     "winston": "^3.3.3",
