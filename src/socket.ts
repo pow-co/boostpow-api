@@ -18,8 +18,8 @@ async function connectChannel() {
   channel = socket.channel("cpuworkers:jobs", {})
 
   channel.join()
-    .receive("ok", resp => { console.log("pool.socket.connected", resp) })
-    .receive("error", resp => { console.log("pool.socket.error", resp) })
+    .receive("ok", resp => { log.info("pool.socket.connected", resp) })
+    .receive("error", resp => { log.info("pool.socket.error", resp) })
 
   return channel
 

@@ -3,7 +3,7 @@ import { Miner } from './miner'
 
 let miner = new Miner()
 
-import { connectChannel} from './socket'
+import { connectChannel } from './socket'
 
 (async () => {
 

@@ -38,7 +38,7 @@ interface MiningParams {
 
 export class Miner extends EventEmitter {
 
-  stop = false
+  _stop = false
 
   hashrate = 0 // hashes per second
 
@@ -50,9 +50,13 @@ export class Miner extends EventEmitter {
     return this.hashrate
   }
 
+  stop() {
+    this._stop = true
+  }
+
   get publickey() {
-    let privkey = new bsv.PrivKey().fromWif(process.env.MINER_SECRET_KEY_WIF) 
-    let pubkey = new bsv.PubKey().fromPrivKey(privkey)
+    let privkey = new bsv.PrivateKey(process.env.MINER_SECRET_KEY_WIF) 
+    let pubkey = privkey.publicKey
     return pubkey.toString()
   }
 
@@ -100,6 +104,8 @@ export class Miner extends EventEmitter {
     this.besthashtime = new Date().getTime()
     this.content = params.content
     this.difficulty = params.difficulty || 0.001
+
+    log.info('miner.start', params)
 
     const ls = spawn(getBoostMiner(), [`--content=${this.content}`, `--difficulty=${this.difficulty}`], {
       env: {
@@ -159,15 +165,15 @@ export class Miner extends EventEmitter {
 
     ls.stderr.on('data', (data) => {
       this.emit('error', data)
-      if (!this.stop) {
+      if (!this._stop) {
         this.mine({ content: this.content })
       }
     });
 
     ls.on('close', (code) => {
       this.emit('complete', code)
-      if (!this.stop) {
-        this.mine({ content: this.content })
+      if (!this._stop) {
+        this.mine(params)
       }
     });
 
