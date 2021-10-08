@@ -1,0 +1,40 @@
+version: 2.1
+jobs:
+  build_docker:
+    docker:
+      - image: circleci/node:14
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build docker image
+          command: docker build -t proofofwork-node . 
+      - run:
+          name: Push to Docker Hub
+          command: |
+            docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+            docker tag proofofwork-node proofofwork/proofofwork-node:$CIRCLE_BRANCH
+            docker push proofofwork/proofofwork-node:$CIRCLE_BRANCH
+
+  deploy:
+    machine:
+      image: ubuntu-1604:202007-01
+    steps:
+      - run:
+          name: Chef Client Update Live Container
+          command: echo "no deploy"
+
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build_docker
+      - deploy:
+          requires:
+            - build_docker
+          filters:
+            branches:
+              only:
+                - master
+

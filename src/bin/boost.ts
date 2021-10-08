@@ -5,20 +5,30 @@ require('dotenv').config()
 var bitcoin = require('bitcoinjs-lib') // v4.x.x
 var bitcoinMessage = require('bitcoinjs-message')
 
+import * as filepay from 'filepay'
+
+const delay = require('delay');
+
 import * as program from 'commander'
 
 import pg from '../database'
 
-import * as boost from 'boostpow-js';
+import * as boost from '/Users/zyler/github/ProofOfWorkCompany/boostpow-js';
 //import * as boost from 'boostpow';
 
 import * as bsv from 'bsv'
 
 import { Miner } from '../miner'
 
-import { getTransaction } from '../jsonrpc'
+import { getTransaction, call } from '../jsonrpc'
 
 import * as Minercraft from 'minercraft'
+
+const mapi = new Minercraft({
+  "url": "https://merchantapi.taal.com"
+})
+
+import { getBoostJob, checkBoostSpent, BoostJob, importBoostJob } from '../boost'
 
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
 
@@ -27,10 +37,120 @@ let miner = new Miner()
 import { connectChannel } from '../socket'
 
 program
+  .command('minerd <address> [wif]')
+  .action(async (address, wif) => {
+
+    wif = wif || process.env.MINER_SECRET_KEY_WIF
+
+
+    for (;;) {
+
+      try {
+
+        let [job] = await pg('boost_jobs').where({
+          spent: false
+        }).orderBy('difficulty', 'asc').select('*').limit(1)
+
+        if (!job) {
+          await delay(1000)
+        }
+
+        console.log('miner.job', job)
+
+        //let _job = await getBoostJob(job.txid)
+
+        /*if (_job.spent) {
+
+          await pg('boost_jobs').where({
+            txid: job.txid
+          })
+          .update({ spent: true })
+          
+          continue;
+        }
+        */
+
+        let result = await mine(job.txid, address, wif, job)
+
+        console.log('mining result', result)
+
+      } catch(error) {
+
+        console.log(error)
+
+        await delay(1000)
+
+      }
+
+    }
+
+  })
+
+async function mine(txid, address, wif, job) {
+
+  if (!job) {
+
+    job = await getBoostJob(txid)
+
+  }
+
+  console.log('job', job)
+
+  if (job.spent) {
+    throw new Error('job already mined')
+  }
+
+  let solution: any = await miner.mine({
+    script: job.script,
+    value: job.value,
+    vout: job.vout,
+    txid,
+    address,
+    wif
+  })
+
+  miner.on('*', event => {
+    console.log(event)
+  })
+
+  console.log(solution)
+
+  let result = await mapi.tx.push(solution.hex, { verbose: true })
+
+  console.log('transaction.publish.result', result)
+
+  if (result.payload.returnResult === 'success') {
+
+    let txid = result.payload.txid
+
+    await pg('boost_jobs').where({
+      txid: job.txid
+    })
+    .update({ spent: true, spend_txid: txid })
+
+  }
+
+}
+
+program
+  .command('mine <txid> <address> [wif]')
+  .action(async (txid, address, wif) => {
+
+    wif = wif || process.env.MINER_SECRET_KEY_WIF
+
+    await mine(txid,address,wif, null)
+
+    process.exit(0)
+
+  })
+
+/*program
   .command('solve <rawtx>')
   .action(async (rawtx) => {
 
     let job = boost.BoostPowJob.fromRawTransaction(rawtx)
+
+    console.log('job', job.toObject())
 
     const channel = await connectChannel()
 
@@ -71,6 +191,7 @@ program
 
   })
 
+*/
 function redeem(solutionDummySignature: string): bsv.Script {
 
   let script = new bsv.Script(solutionDummySignature) 
@@ -170,59 +291,58 @@ program
   })
 
 program
-  .command('newjob <content> <tag> <category> <difficulty> <satoshis>')
-  .action(async (content, tag, category, diff, satoshis) => {
+  .command('newjob <content> <difficulty> <satoshis>')
+  .action(async (content, diff, satoshis) => {
+
+    satoshis = parseInt(satoshis)
+
     diff = parseFloat(diff)
-
-    let job = boost.BoostPowJob.fromObject({
-      content,
-      tag,
-      category,
-      diff
-    })
-
-    console.log('JOB', job)
-
-    console.log('ASM', job.toASM())
-    console.log('HEX', job.toHex())
-
-    let tx = new bsv.Transaction()
-
-    const wallet = new SimpleWallet(new bsv.PrivateKey(process.env.BSV_SIMPLE_WALLET_WIF));
-
-    await wallet.sync();
-
-    let inputs = await SimpleWallet.getUtxos(satoshis, wallet.utxos)
-
-    tx.from(inputs)
-
-    tx.addOutput(new bsv.Transaction.Output({
-      script: bsv.Script(new bsv.Script(job.toHex())),
-      satoshis: satoshis
-    }))
-
-    tx.change(wallet.getAddress())
-
-    tx.sign(wallet.getPrivateKey())
-
-    let hex = tx.serialize(true)
-
-    const miner = new Minercraft({
-      "url": "https://merchantapi.taal.com"
-    })
-
-    console.log('tx', hex)
 
     try {
 
-      let response = await miner.tx.push(hex)
+      let obj = {
+        content,
+        diff
+      }
 
-      console.log(response)
-      console.log('boost job published')
+      console.log('obj', obj)
+
+      let job = boost.BoostPowJob.fromObject(obj)
+
+      console.log('JOB', job)
+
+      console.log('ASM', job.toASM())
+      console.log('HEX', job.toHex())
+      console.log('TO SCRIPT', job.toScript())
+
+      console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
+
+      var config = {
+        pay: {
+          key: process.env.BSV_SIMPLE_WALLET_WIF,
+          rpc: "",
+          to: [{
+            script: job.toHex(),
+            value: satoshis
+          }],
+          changeAddress: process.env.BSV_SIMPLE_WALLET_ADDRESS
+        }
+      }
+
+      console.log(config)
+
+      filepay.send(config, async (err, result) => {
+        if (err) { throw err }
+        let [txid] = result.split(' ')
+        console.log('job.created', { txid })
+
+        await delay(5000)
+        let newRecord = await importBoostJob(txid)
+        console.log('job.imported', newRecord)
+      })
 
     } catch(error) {
-
-      console.error(error)
+      console.log(error)
 
     }
 
@@ -294,13 +414,57 @@ program
   .command('parseboosttx <txid>')
   .action(async (txid) => {
 
-    let tx = await getTransaction(txid)
+    let job = await getBoostJob(txid)
 
-    let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
+    console.log(job)
 
-    console.log(job.toObject())
+  })
 
-    console.log('content', job.toObject().content.toString())
+program
+  .command('checkboostspends')
+  .action(async () => {
+
+    console.log('import')
+
+    let records = await pg('boost_jobs').where({
+      spent: false
+    }).select('*')
+
+    for (let job of records) {
+      console.log(job)
+
+      let {result}: any = await checkBoostSpent(job.txid, job.vout)
+
+      if (!result) {
+        await pg('boost_jobs').where({
+          txid: job.txid
+        })
+        .update({ spent: true })
+      }
+
+      console.log(result)
+    }
+
+    process.exit(0)
+
+  })
+
+program
+  .command('importboosttx <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let newRecord = await importBoostJob(txid)
+
+      console.log(newRecord)
+
+    } catch(error) {
+
+      console.error(error)
+
+      process.exit(1)
+    }
   })
 
 program
@@ -311,53 +475,47 @@ program
 
     for (let record of records) {
 
-      if (record.tx) {
+      try {
 
-        //console.log(record)
+        let job = await importBoostJob(record.txid)
 
+        console.log(job)
 
-        try {
+      } catch(error) {
 
-          let j = boost.BoostPowJob.fromRawTransaction(record.tx.hex)
+        console.log(error)
 
-          let job = j.toObject()
-
-          let params = Object.assign(job, {
-            difficulty: job.diff,
-            content: job.content,
-            category: job.category,
-            tag: job.tag,
-            additionalData: job.additionalData,
-            userNonce: job.userNonce,
-            inserted_at: new Date(),
-            updated_at: new Date(),
-            //txid: job.txid,
-            //vout: job.vout,
-            //value: job.value,
-            //timestamp: record.time
-          })
-
-          //delete params['diff']
-
-          if (params.diff < 1) {
-
-            //console.log('job', params)
-
-            //let job_record = await pg('boost_jobs').insert(params).returning('*')
-
-            //console.log(job_record)
-
-          }
-
-        } catch(error) {
-
-          console.error(error.message)
-
-        }
       }
 
     }
   
+  })
+
+program
+  .command('reimportboosttxns')
+  .action(async (txid) => {
+
+    let records = await pg('boost_jobs').where({
+      script: null,
+    }).whereNotNull('txid').select('*')
+
+    for (let record of records) {
+
+      try {
+
+        console.log('record', record)
+
+        let job = await importBoostJob(record.txid)
+
+        console.log('job', job)
+
+      } catch(error) {
+
+        console.log(error)
+
+      }
+
+    }
   })
 
 program

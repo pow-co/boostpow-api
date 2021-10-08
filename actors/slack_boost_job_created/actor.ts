@@ -40,9 +40,9 @@ export async function start() {
   })
   .start(async (channel, msg, json) => {
 
-    log.info(msg.content.toString());
+    log.info('boost.job.slack', msg.content.toString());
 
-    log.info(json);
+    log.info('boost.job.slack.json', json);
 
     notify(`A New Boost Job Was Published\n\nhttps://whatsonchain.com/tx/${json.txid}`)
 

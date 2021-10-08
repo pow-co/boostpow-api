@@ -20,7 +20,8 @@ function getBoostMiner(): string {
 
   switch(platform()) {
     case 'darwin':
-      return join(__dirname, '../includes/boost_miner_mac')
+      return `/Users/zyler/github/ProofOfWorkCompany/BoostMiner/BoostMiner`
+      //return join(__dirname, '../includes/boost_miner_mac')
     case 'linux':
       return join(__dirname, '../includes/boost_miner_linux')
     case 'win32':
@@ -32,8 +33,14 @@ function getBoostMiner(): string {
 }
 
 interface MiningParams {
-  content: string;
+  txid: string;
+  script: string;
+  vout: number;
+  value: number;
+  address: string;
   difficulty?: number;
+  wif: string;
+  content?: string;
 }
 
 export class Miner extends EventEmitter {
@@ -98,85 +105,128 @@ export class Miner extends EventEmitter {
   }
 
   mine(params: MiningParams) {
+    return new Promise((resolve, reject) => {
 
-    this.hashrate = 0
-    this.besthashes = 0
-    this.besthashtime = new Date().getTime()
-    this.content = params.content
-    this.difficulty = params.difficulty || 0.001
+      this.miningParams = params;
 
-    log.info('miner.start', params)
+      this.hashrate = 0
+      this.besthashes = 0
+      this.besthashtime = new Date().getTime()
+      this.content = params.content
+      this.difficulty = params.difficulty || 0.001
 
-    const ls = spawn(getBoostMiner(), [`--content=${this.content}`, `--difficulty=${this.difficulty}`], {
-      env: {
-        'MINER_SECRET_KEY_WIF': process.env.MINER_SECRET_KEY_WIF
-      }
-    });
+      log.info('miner.start', params)
 
-    ls.stdout.on('data', async (data) => {
-      let content = data.toString() 
+      const p = [
+        'redeem',
+        params.script,
+        params.value,
+        `0x${params.txid}`,
+        params.vout,
+        params.wif,
+        params.address
+      ]
 
-      if (content.match(/^hashes/)) {
+      const ls = spawn(getBoostMiner(), p, {
+      });
 
-        let [ hashes, besthash ] = data.toString().split("\n").map(line => {
-          let parts = line.split(':')
-          return parts[parts.length - 1].trim()
-        })
+      ls.stdout.on('data', async (data) => {
 
-        this.emit('besthash', {
-          hashes,
-          besthash,
-          content: this.content,
-          difficulty: this.difficulty,
-          publickey: this.publickey,
-          os: {
-            arch: os.arch(),
-            cpus: os.cpus(),
-            platform: os.platform(),
-            network: os.networkInterfaces()
-          },
-          ipv4: await this.getIPv4()
-        })
+        try {
 
-        this.setHashrate({ hashes })
+          let content = data.toString() 
 
-      } else if (content.match(/^solution/)) {
+          let json = JSON.parse(content)
 
-        let solution = content.split(' ')[1].trim().replace('"', "")
+          console.log(json)
+          this.emit(json.event, json);
+           
+          switch (json.event) {
+            case 'job.complete.transaction':
+              //console.log(json)
+              let buffer = Buffer.from(json.txhex)
+              let hex = buffer.toString('hex')
+              let payload = Object.assign(json, { hex })
+              this.emit('job.complete.transaction', payload)
+              resolve(payload)
+              break;
+            default:
+              this.emit(json.event, json);
+              break;
+          }
 
-        this.emit('solution', {
-          content: this.content,
-          difficulty: this.difficulty,
-          publickey: this.publickey,
-          solution,
-          os: {
-            arch: os.arch(),
-            cpus: os.cpus(),
-            platform: os.platform(),
-            network: os.networkInterfaces()
-          },
-          ipv4: await this.getIPv4()
-        })
+          if (content.match(/^hashes/)) {
 
-      } else {
-      }
+            let [ hashes, besthash ] = data.toString().split("\n").map(line => {
+              let parts = line.split(':')
+              return parts[parts.length - 1].trim()
+            })
 
-    });
+            this.emit('besthash', {
+              hashes,
+              besthash,
+              content: this.content,
+              difficulty: this.difficulty,
+              publickey: this.publickey,
+              os: {
+                arch: os.arch(),
+                cpus: os.cpus(),
+                platform: os.platform(),
+                network: os.networkInterfaces()
+              },
+              ipv4: await this.getIPv4()
+            })
 
-    ls.stderr.on('data', (data) => {
-      this.emit('error', data)
-      if (!this._stop) {
-        this.mine({ content: this.content })
-      }
-    });
+            this.setHashrate({ hashes })
 
-    ls.on('close', (code) => {
-      this.emit('complete', code)
-      if (!this._stop) {
-        this.mine(params)
-      }
-    });
+          } else if (content.match(/^solution/)) {
 
+            let solution = content.split(' ')[1].trim().replace('"', "")
+
+            this.emit('solution', {
+              content: this.content,
+              difficulty: this.difficulty,
+              publickey: this.publickey,
+              solution,
+              os: {
+                arch: os.arch(),
+                cpus: os.cpus(),
+                platform: os.platform(),
+                network: os.networkInterfaces()
+              },
+              ipv4: await this.getIPv4()
+            })
+
+          } else {
+
+          }
+
+        } catch(error) {
+
+        }
+
+      });
+
+      ls.stderr.on('data', (data) => {
+        console.log('ERROR', data)
+        this.emit('error', data)
+        if (!this._stop) {
+          this.mine(this.miningParams)
+        }
+      });
+
+      ls.on('close', (code) => {
+        console.log('CLOSE', code)
+        this.emit('complete', code)
+        this._stop = true
+        if (!this._stop) {
+          this.mine(params)
+        }
+        resolve({ code })
+      });
+
+
+    })
   }
 }
 

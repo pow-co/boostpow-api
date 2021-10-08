@@ -6,7 +6,7 @@ class JsonRpc {
   call(method, params) {
 
     return new Promise((resolve, reject) => {
-      http
+      let request = http
         .post(`54.174.1.24:9332`)
         .auth('CHANGE_ME', 'CHANGE_ME')
         /*.timeout({
@@ -19,8 +19,10 @@ class JsonRpc {
           params: params || [],
           id: 0
         })
+      request
         .end((error, resp) => {
           if (error) { return reject(error) }
+
           resolve(resp.body);
         });
     });
@@ -29,7 +31,7 @@ class JsonRpc {
 
 let rpc = new JsonRpc();
 
-async function call(method, params=[]) {
+export async function call(method, params=[]) {
 
   return rpc.call(method, params)
 
@@ -43,6 +45,8 @@ interface RawTx {
 export async function getTransaction(txid: string): Promise<RawTx> {
 
   let rawtx: any = await call('getrawtransaction', [txid])
+
+  if (!rawtx.result) { throw new Error('transaction not found') }
 
   let decoded: any = await call('decoderawtransaction', [rawtx.result])
 

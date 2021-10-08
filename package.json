@@ -3,11 +3,8 @@
   "version": "0.2.2",
   "description": "",
   "main": "dist/miner.js",
-  "bin": {
-    "proofofwork": "dist/bin/proofofwork.js"
-  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require=ts-node/register --timeout=10000 test/*test.ts"
   },
   "keywords": [],
   "author": "Steven Zeiler",
@@ -16,16 +13,19 @@
     "@twetch/sdk": "^0.2.12",
     "amqp-lib": "^0.3.4",
     "amqplib": "^0.8.0",
+    "bitcoinfiles-sdk": "^2.4.17",
     "bitcoinjs-lib": "^5.2.0",
     "bitcoinjs-message": "^2.2.0",
     "bitcore-lib": "^8.25.10",
     "bitcore-message": "^1.0.4",
-    "boostpow": "^1.3.0",
+    "boostpow": "^1.3.3",
     "boostpow-js": "^1.2.22",
     "bsv": "^1.5.5",
     "btoa": "^1.2.1",
+    "delay": "^5.0.0",
     "dotenv": "^10.0.0",
     "externalip": "^1.0.2",
+    "filepay": "^2.2.12",
     "knex": "^0.95.11",
     "minercraft": "0.0.8",
     "node-fetch": "^3.0.0",
@@ -33,13 +33,18 @@
     "pg": "^8.7.1",
     "phoenix-channels": "^1.0.0",
     "public-ip": "^4.0.4",
-    "rabbi": "^1.16.1",
+    "rabbi": "^1.16.2",
     "split2": "^3.2.2",
     "telegraf": "^4.4.2",
     "through2": "^4.0.2",
     "tsc": "^2.0.3",
     "typescript": "^4.4.2",
     "winston": "^3.3.3",
-    "ws": "^8.2.0"
+    "ws": "^8.2.0",
+    "zeromq": "^6.0.0-beta.6"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.2",
+    "ts-node": "^10.2.1"
   }
 }
