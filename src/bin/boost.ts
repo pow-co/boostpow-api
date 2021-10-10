@@ -28,13 +28,102 @@ const mapi = new Minercraft({
   "url": "https://merchantapi.taal.com"
 })
 
-import { getBoostJob, checkBoostSpent, BoostJob, importBoostJob } from '../boost'
+import { getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob } from '../boost'
+
+async function importBoostProof(proof: any): Promise<any> {
+
+  let where = {
+    txid: proof.SpentTxid,
+    //spend_txid: null
+  }
+
+  console.log('find boost job', where)
+
+  let [job] = await pg('boost_jobs').where(where).select('*').limit(1)
+
+  console.log('job', job)
+
+  if (!job) {
+
+    console.log('no job found')
+    return
+  }
+
+  if (job.spend_txid) {
+
+    console.log('job already has spend txid')
+
+  } else {
+
+    let [proof_record] = await pg('boost_job_proofs').where({
+      job_txid: proof.SpentTxid,
+    }).select('*').limit(1)
+
+    console.log('proof found')
+
+    if (!proof_record) {
+
+      console.log('no proof found')
+
+      let record = await pg('boost_job_proofs').insert({
+        job_txid: proof.SpentTxid,
+        job_vout: proof.SpentVout,
+        spend_txid: proof.Txid,
+        spend_vout: proof.Vin,
+        inserted_at: new Date(),
+        updated_at: new Date()
+      })
+      .returning('*')
+
+      console.log('job proof record', record)
+
+    } else {
+
+      let result = await pg('boost_jobs').where('txid').update({
+        spend_txid: proof.SpentTxid,
+        spent: true
+      })
+
+      console.log(result)
+
+    }
+
+  }
+
+}
 
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
 
 let miner = new Miner()
 
 import { connectChannel } from '../socket'
+
+program
+  .command('importproof <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let proof = await getBoostProof(txid)
+
+      console.log('proof', proof.toObject())
+
+      let record = await importBoostProof(proof)
+
+      if (record) {
+
+        console.log('proof record', record)
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+    process.exit(0)
+
+  })
 
 program
   .command('minerd <address> [wif]')

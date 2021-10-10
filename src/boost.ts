@@ -3,7 +3,7 @@ import { getTransaction, call } from './jsonrpc'
 
 import pg from './database'
 
-import * as boost from '/Users/zyler/github/ProofOfWorkCompany/boostpow-js';
+import * as boost from 'boostpow';
 
 export interface BoostJob {
   txid: string;
@@ -19,9 +19,20 @@ export interface BoostJob {
   spent: boolean;
 }
 
+export async function getBoostProof(txid: string) {
+
+  let tx = await getTransaction(txid)
+
+  let proof = boost.BoostPowJobProof.fromRawTransaction(tx.hex)
+
+  return proof
+
+}
 export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   let tx = await getTransaction(txid)
+
+  console.log(tx)
 
   let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
 

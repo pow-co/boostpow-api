@@ -27,9 +27,43 @@ export async function start() {
 
       let result = await importBoostJob(txid)
 
-      channel.publish('proofofwork', 'boost_job_created', Buffer.from(JSON.stringify(result)))
+      channel.publish('jobofwork', 'boost_job_created', Buffer.from(JSON.stringify(result)))
 
       console.log('boost.job.imported', JSON.stringify(result))
+
+      channel.ack(msg);
+
+    } catch(error) {
+
+      console.error(error.message)
+
+    }
+
+  });
+
+  Actor.create({
+
+    exchange: 'proofofwork',
+
+    routingkey: 'boost_proof_found',
+
+    queue: 'import_boost_proof',
+
+  })
+  .start(async (channel, msg) => {
+
+    try {
+
+      const txid = msg.content.toString()
+
+      log.info('boost.proof.found', txid);
+
+      /*let result = await importBoostProof(txid)
+
+      channel.publish('proofofwork', 'boost_proof_created', Buffer.from(JSON.stringify(result)))
+
+      console.log('boost.proof.imported', JSON.stringify(result))
+      */
 
       channel.ack(msg);
 

@@ -93,12 +93,23 @@ export async function start() {
     for (let input of tx.inputs) {
       //console.log(input)
       console.log(input.prevTxId.toString('hex'), input.outputIndex)
-      let boosttx = boost.BoostPowJob.fromRawTransaction(rawtx)
+      let boostjob = boost.BoostPowJob.fromRawTransaction(rawtx)
 
-      if (boosttx) {
+      if (boostjob) {
 
         console.log('boost.job.found.publish', tx.hash)
         channel.publish('proofofwork', 'boost_job_found', Buffer.from(tx.hash))
+      }
+
+      let boostproof = boost.BoostPowJobProof.fromRawTransaction(rawtx)
+
+      if (boostproof) {
+
+        console.log('BOOST PROOF', boostproof)
+
+        console.log('boost.proof.found.publish', tx.hash)
+        channel.publish('proofofwork', 'boost_proof_found', Buffer.from(tx.hash))
+
       }
 
     }
