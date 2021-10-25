@@ -20,8 +20,8 @@ function getBoostMiner(): string {
 
   switch(platform()) {
     case 'darwin':
-      return `/Users/zyler/github/ProofOfWorkCompany/BoostMiner/BoostMiner`
-      //return join(__dirname, '../includes/boost_miner_mac')
+      //return `/Users/zyler/github/ProofOfWorkCompany/BoostMiner/BoostMiner`
+      return join(__dirname, '../includes/boost_miner_mac')
     case 'linux':
       return join(__dirname, '../includes/boost_miner_linux')
     case 'win32':
@@ -127,6 +127,8 @@ export class Miner extends EventEmitter {
         params.address
       ]
 
+      console.log(p.join(" "))
+
       const ls = spawn(getBoostMiner(), p, {
       });
 
@@ -136,20 +138,26 @@ export class Miner extends EventEmitter {
 
           let content = data.toString() 
 
+          console.log(content)
+
           let json = JSON.parse(content)
 
           console.log(json)
+
           this.emit(json.event, json);
+          console.log("EVENT", json.event)
            
           switch (json.event) {
+            case 'job.complete.redeemscript':
+              this.emit('job.complete.redeemscript', json)
+              //resolve(json)
+              break;
+
             case 'job.complete.transaction':
               //console.log(json)
-              let buffer = Buffer.from(json.txhex)
-              let hex = buffer.toString('hex')
-              let payload = Object.assign(json, { hex })
-              this.emit('job.complete.transaction', payload)
-              resolve(payload)
-              break;
+              console.log('JOB COMPLETE')
+              this.emit('job.complete.transaction', json)
+              return resolve(json)
             default:
               this.emit(json.event, json);
               break;
@@ -203,6 +211,8 @@ export class Miner extends EventEmitter {
 
         } catch(error) {
 
+          console.error(error)
+
         }
 
       });
@@ -216,13 +226,12 @@ export class Miner extends EventEmitter {
       });
 
       ls.on('close', (code) => {
-        console.log('CLOSE', code)
         this.emit('complete', code)
         this._stop = true
         if (!this._stop) {
           this.mine(params)
         }
-        resolve({ code })
+        //resolve({ code })
       });
 
 

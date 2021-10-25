@@ -28,69 +28,8 @@ const mapi = new Minercraft({
   "url": "https://merchantapi.taal.com"
 })
 
-import { getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob } from '../boost'
+import { getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob, importBoostProof } from '../boost'
 
-async function importBoostProof(proof: any): Promise<any> {
-
-  let where = {
-    txid: proof.SpentTxid,
-    //spend_txid: null
-  }
-
-  console.log('find boost job', where)
-
-  let [job] = await pg('boost_jobs').where(where).select('*').limit(1)
-
-  console.log('job', job)
-
-  if (!job) {
-
-    console.log('no job found')
-    return
-  }
-
-  if (job.spend_txid) {
-
-    console.log('job already has spend txid')
-
-  } else {
-
-    let [proof_record] = await pg('boost_job_proofs').where({
-      job_txid: proof.SpentTxid,
-    }).select('*').limit(1)
-
-    console.log('proof found')
-
-    if (!proof_record) {
-
-      console.log('no proof found')
-
-      let record = await pg('boost_job_proofs').insert({
-        job_txid: proof.SpentTxid,
-        job_vout: proof.SpentVout,
-        spend_txid: proof.Txid,
-        spend_vout: proof.Vin,
-        inserted_at: new Date(),
-        updated_at: new Date()
-      })
-      .returning('*')
-
-      console.log('job proof record', record)
-
-    } else {
-
-      let result = await pg('boost_jobs').where('txid').update({
-        spend_txid: proof.SpentTxid,
-        spent: true
-      })
-
-      console.log(result)
-
-    }
-
-  }
-
-}
 
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
 
@@ -137,8 +76,9 @@ program
       try {
 
         let [job] = await pg('boost_jobs').where({
-          spent: false
-        }).orderBy('difficulty', 'asc').select('*').limit(1)
+          spent: false,
+          difficulty: 1
+        }).orderBy('value', 'desc').select('*').limit(1)
 
         if (!job) {
           await delay(1000)
@@ -189,6 +129,10 @@ async function mine(txid, address, wif, job) {
     throw new Error('job already mined')
   }
 
+  miner.on('*', event => {
+    console.log(event)
+  })
+
   let solution: any = await miner.mine({
     script: job.script,
     value: job.value,
@@ -198,13 +142,9 @@ async function mine(txid, address, wif, job) {
     wif
   })
 
-  miner.on('*', event => {
-    console.log(event)
-  })
-
   console.log(solution)
 
-  let result = await mapi.tx.push(solution.hex, { verbose: true })
+  let result = await mapi.tx.push(solution.txhex, { verbose: true })
 
   console.log('transaction.publish.result', result)
 
@@ -377,6 +317,38 @@ program
     var signature = bitcoinMessage.sign(message, privateKey, keyPair.compressed)
     console.log(signature.toString('base64'))
 
+  })
+
+program
+  .command('newjobscript <content> <difficulty> <satoshis>')
+  .action(async (content, diff, satoshis) => {
+
+
+    satoshis = parseInt(satoshis)
+
+    diff = parseFloat(diff)
+
+    try {
+
+      let obj = {
+        content,
+        diff
+      }
+
+      console.log('obj', obj)
+
+      let job = boost.BoostPowJob.fromObject(obj)
+
+      console.log('JOB', job)
+
+      console.log('ASM', job.toASM())
+      console.log('HEX', job.toHex())
+      console.log('TO SCRIPT', job.toScript())
+
+      console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
+    } catch(error) {
+      console.error(error)
+    }
   })
 
 program

@@ -4,7 +4,7 @@ require('dotenv').config();
 
 import { Actor, Joi, log } from 'rabbi';
 
-import { importBoostJob } from '../../src/boost'
+import { importBoostJob, importBoostProof } from '../../src/boost'
 
 export async function start() {
 
@@ -27,7 +27,7 @@ export async function start() {
 
       let result = await importBoostJob(txid)
 
-      channel.publish('jobofwork', 'boost_job_created', Buffer.from(JSON.stringify(result)))
+      channel.publish('proofofwork', 'boost_job_created', Buffer.from(JSON.stringify(result)))
 
       console.log('boost.job.imported', JSON.stringify(result))
 

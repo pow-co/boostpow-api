@@ -6,6 +6,8 @@ import * as boost from 'boostpow';
 
 import { Actor, Joi, log, getChannel } from 'rabbi';
 
+import { importBoostProof } from '../../src/boost';
+
 import * as bsv from 'bsv'
 
 const zmq = require("zeromq")
@@ -92,23 +94,28 @@ export async function start() {
 
     for (let input of tx.inputs) {
       //console.log(input)
-      console.log(input.prevTxId.toString('hex'), input.outputIndex)
+      //console.log(input.prevTxId.toString('hex'), input.outputIndex)
       let boostjob = boost.BoostPowJob.fromRawTransaction(rawtx)
 
       if (boostjob) {
 
         console.log('boost.job.found.publish', tx.hash)
         channel.publish('proofofwork', 'boost_job_found', Buffer.from(tx.hash))
-      }
 
-      let boostproof = boost.BoostPowJobProof.fromRawTransaction(rawtx)
+      } else {
 
-      if (boostproof) {
+        let boostproof = boost.BoostPowJobProof.fromRawTransaction(rawtx)
 
-        console.log('BOOST PROOF', boostproof)
+        if (boostproof) {
 
-        console.log('boost.proof.found.publish', tx.hash)
-        channel.publish('proofofwork', 'boost_proof_found', Buffer.from(tx.hash))
+          console.log('BOOST PROOF', boostproof)
+
+          console.log('boost.proof.found.publish', tx.hash)
+          channel.publish('proofofwork', 'boost_proof_found', Buffer.from(tx.hash))
+
+          importBoostProof(boostproof)
+
+        }
 
       }
 
