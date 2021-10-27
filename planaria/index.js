@@ -68,19 +68,22 @@ async function getTransaction(txid) {
 
 var btoa = require('btoa');
 
-module.exports.sync = async () => {
+async function sync() {
 
-  let block = await pg('planaria_records').orderBy('block_height', 'desc').limit(1).returning('block_height')
+  console.log("SYNC")
 
-  const block_height_start = !!block[0] ? block[0]['block_height'] - 100 : 0;
-  //const block_height_start = 0
+  //let block = await pg('planaria_records').orderBy('block_height', 'desc').limit(1).returning('block_height')
+
+  //const block_height_start = !!block[0] ? block[0]['block_height'] - 100 : 0;
+  const block_height_start = 0
 
   const query = {
     q: {
       find: { "out.s0": "boostpow", "blk.i": { "$gt": block_height_start } },
+      //find: { "out.s2": "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAutN", "blk.i": { "$gt": block_height_start } },
       //find: { "out.s0": "boostpow", "blk.i": { "$gt": 100000 } },
       //sort: { "blk.i": 1 },
-      project: { "blk": 1, "tx.h": 1, "out.s4": 1, "out.o1": 1 }
+      //project: { "blk": 1, "tx.h": 1, "out.s4": 1, "out.o1": 1 }
     }
   };
   fetch("https://txo.bitbus.network/block", {
@@ -95,19 +98,19 @@ module.exports.sync = async () => {
     res.body
       .pipe(split2())
       .pipe(through2(async (chunk, enc, callback) => {
-        console.log(chunk.toString())
+        //console.log(chunk.toString())
 
         let json = JSON.parse(chunk.toString())
-        console.log(json) 
+        console.log(json['tx']['h']) 
 
         try {
-
 
           let record = await pg('planaria_records').where({
             'txid': json['tx']['h']
           }).select('_id')
 
           if (record.length === 0) {
+            console.log('record not found')
 
             let params = {
               _id: json['_id'],
@@ -122,9 +125,9 @@ module.exports.sync = async () => {
 
             try {
 
-              let tx = await getTransaction(json['tx']['h'])
+              //let tx = await getTransaction(json['tx']['h'])
 
-              params['rawtx'] = Buffer.from(tx.hex)
+              //params['rawtx'] = Buffer.from(tx.hex)
 
             } catch(error) {
 
@@ -157,3 +160,10 @@ module.exports.sync = async () => {
 
 }
 
+(async () => {
+
+  await sync()
+
+})()
+
+module.exports.sync = sync

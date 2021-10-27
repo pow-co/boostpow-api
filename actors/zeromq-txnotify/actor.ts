@@ -6,7 +6,7 @@ import * as boost from 'boostpow';
 
 import { Actor, Joi, log, getChannel } from 'rabbi';
 
-import { importBoostProof } from '../../src/boost';
+import { importBoostJob, importBoostProof } from '../../src/boost';
 
 import * as bsv from 'bsv'
 
@@ -92,9 +92,9 @@ export async function start() {
 
     let tx = new bsv.Transaction(rawtx)
 
+    await importBoostJob(tx.hash)
+
     for (let input of tx.inputs) {
-      //console.log(input)
-      //console.log(input.prevTxId.toString('hex'), input.outputIndex)
       let boostjob = boost.BoostPowJob.fromRawTransaction(rawtx)
 
       if (boostjob) {

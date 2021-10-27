@@ -19,6 +19,24 @@ export interface BoostJob {
   spent: boolean;
 }
 
+export async function getBoostJobsFromTxid(txid:string) {
+
+  let {hex, json} = await getTransaction(txid)
+
+  let jobs = json.vout.reduce((_jobs, vout) => {
+
+    let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
+
+    if (job) { _jobs.push(job) }
+
+    return _jobs
+
+  }, [])
+
+  return jobs
+
+}
+
 export async function getBoostProof(txid: string) {
 
   let tx = await getTransaction(txid)
@@ -28,6 +46,36 @@ export async function getBoostProof(txid: string) {
   return proof
 
 }
+
+export async function persistBoostJob(job: any): Promise<BoostJob> {
+
+  let [record] = await pg('boost_jobs').where('txid', job.txid).returning('*')
+
+  if (record) {
+    return record
+  }
+
+  let params = {
+    txid: job.txid,
+    content: job.toObject().content.toString(),
+    //script: tx.json.vout[job.vout].scriptPubKey.hex,
+    vout: job.vout,
+    value: job.value,
+    difficulty: job.difficulty,
+    category: job.toObject().category.toString(),
+    tag: job.toObject().tag.toString(),
+    userNonce: job.toObject().userNonce.toString(),
+    additionalData: job.toObject().additionalData.toString(),
+    inserted_at: new Date(),
+    updated_at: new Date()
+  }
+
+  record = await pg('boost_jobs').insert(params).returning('*')
+
+  return record
+
+}
+
 export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   let tx = await getTransaction(txid)
@@ -138,39 +186,26 @@ export async function importBoostProof(proof: any): Promise<any> {
 
 export async function importBoostProofFromTxid(txid: string) {
 
+  
+
 }
 
 export async function importBoostJob(txid: string) {
 
-  let [job_record] = await pg('boost_jobs').where({ txid }).returning('*')
+  let jobs: BoostJob[] = await getBoostJobsFromTxid(txid)
 
-  if (job_record && job_record.script) {
+  return Promise.all(jobs.map(async job => {
+    console.log('job', job)
 
-    return job_record
-  }
+    let [job_record] = await pg('boost_jobs').where({ txid }).returning('*')
 
-  let job: BoostJob = await getBoostJob(txid)
+    if (job_record && job_record.script) {
 
-  let params = Object.assign(job, {
-    updated_at: new Date(),
-  })
+      return job_record
+    }
 
-  var newRecord;
+    return persistBoostJob(job)
 
-  if (!job_record) {
-
-    params['inserted_at'] = new Date()
-
-    newRecord = await pg('boost_jobs').insert(params).returning('*')
-
-  } else {
-
-    newRecord = await pg('boost_jobs').update(params).where({
-      txid
-    }).returning('*')
-
-
-  }
-
-  return newRecord
+  }))
 }
+

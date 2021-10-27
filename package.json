@@ -10,6 +10,7 @@
   "author": "Steven Zeiler",
   "license": "BSV",
   "dependencies": {
+    "@koa/cors": "^3.1.0",
     "@twetch/sdk": "^0.2.12",
     "amqp-lib": "^0.3.4",
     "amqplib": "^0.8.0",
@@ -27,6 +28,10 @@
     "externalip": "^1.0.2",
     "filepay": "^2.2.12",
     "knex": "^0.95.11",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "koa-json": "^2.0.2",
+    "koa-router": "^10.1.1",
     "minercraft": "0.0.8",
     "node-fetch": "^3.0.0",
     "node-json-rpc": "0.0.1",

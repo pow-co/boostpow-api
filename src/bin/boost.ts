@@ -28,8 +28,7 @@ const mapi = new Minercraft({
   "url": "https://merchantapi.taal.com"
 })
 
-import { getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob, importBoostProof } from '../boost'
-
+import { getBoostJobsFromTxid, getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob, importBoostProof } from '../boost'
 
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
 
@@ -511,7 +510,7 @@ program
   })
 
 program
-  .command('importboosttx <txid>')
+  .command('importboostjob <txid>')
   .action(async (txid) => {
 
     try {
@@ -536,6 +535,8 @@ program
 
     for (let record of records) {
 
+      console.log('record', record)
+
       try {
 
         let job = await importBoostJob(record.txid)
@@ -550,6 +551,17 @@ program
 
     }
   
+  })
+
+
+program
+  .command('getboostjob <txid>')
+  .action(async (txid) => {
+
+    let jobs = await getBoostJobsFromTxid(txid)
+
+    console.log(jobs)
+
   })
 
 program
