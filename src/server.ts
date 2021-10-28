@@ -14,7 +14,7 @@ app.use(cors())
 app.use(bodyParser())
 app.use(router.routes())
 
-router.post('/boost_jobs', (ctx, next) => {
+router.post('/node/api/boost_jobs', (ctx, next) => {
 
   console.log("format job", ctx.request.body)
 
@@ -32,5 +32,24 @@ router.post('/boost_jobs', (ctx, next) => {
 
 })
 
-app.listen(process.env.PORT || 4001)
+router.post('/node/api/boost_job_transactions', (ctx, next) => {
+
+  console.log("format job", ctx.request.body)
+
+  let params = {
+    txhex: ctx.request.body.txhex,
+    txid: parseFloat(ctx.request.body.txid)
+  }
+
+  let job = boost.BoostPowJob.fromRawTransaction(params.txhex)
+
+  const asm = job.toASM()
+  const hex = job.toHex()
+
+  ctx.body = Object.assign(params, { asm, hex })
+
+})
+
+export { app }
+
 

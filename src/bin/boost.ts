@@ -76,7 +76,7 @@ program
 
         let [job] = await pg('boost_jobs').where({
           spent: false,
-          difficulty: 1
+          //difficulty: 1
         }).orderBy('value', 'desc').select('*').limit(1)
 
         if (!job) {
