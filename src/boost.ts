@@ -19,6 +19,26 @@ export interface BoostJob {
   spent: boolean;
 }
 
+/*
+export async function getBoostJobsFromRawTx(hex:string) {
+
+  let tx = new bsv.Transaction(hex)
+
+  let jobs = tx.vout.reduce((_jobs, vout) => {
+
+    let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
+
+    if (job) { _jobs.push(job) }
+
+    return _jobs
+
+  }, [])
+
+  return jobs
+
+}
+*/
+
 export async function getBoostJobsFromTxid(txid:string) {
 
   let {hex, json} = await getTransaction(txid)
@@ -181,12 +201,6 @@ export async function importBoostProof(proof: any): Promise<any> {
     }
 
   }
-
-}
-
-export async function importBoostProofFromTxid(txid: string) {
-
-  
 
 }
 
