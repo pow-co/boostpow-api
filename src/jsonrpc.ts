@@ -1,14 +1,19 @@
+require('dotenv').config()
 
 import * as http from 'superagent'
 
+interface RpcResponse {
+  result: any;
+}
+
 class JsonRpc {
 
-  call(method, params) {
+  call(method, params): Promise<RpcResponse> {
 
     return new Promise((resolve, reject) => {
       let request = http
-        .post(`54.174.1.24:9332`)
-        .auth('CHANGE_ME', 'CHANGE_ME')
+        .post(`${process.env.BITCOIND_RPC_HOST}:${process.env.BITCOIND_RPC_PORT}`)
+        .auth(process.env.BITCOIND_RPC_USER, process.env.BITCOIND_RPC_PASSWORD)
         /*.timeout({
           response: 5000,  // Wait 5 seconds for the server to start sending,
           deadline: 10000, // but allow 1 minute for the file to finish loading.

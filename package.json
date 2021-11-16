@@ -14,6 +14,7 @@
     "@twetch/sdk": "^0.2.12",
     "amqp-lib": "^0.3.4",
     "amqplib": "^0.8.0",
+    "async-redis": "^2.0.0",
     "bitcoinfiles-sdk": "^2.4.17",
     "bitcoinjs-lib": "^5.2.0",
     "bitcoinjs-message": "^2.2.0",
@@ -39,17 +40,19 @@
     "phoenix-channels": "^1.0.0",
     "public-ip": "^4.0.4",
     "rabbi": "^1.16.2",
+    "redis": "^3.1.2",
+    "sequelize": "^6.9.0",
     "split2": "^3.2.2",
     "telegraf": "^4.4.2",
     "through2": "^4.0.2",
     "tsc": "^2.0.3",
-    "typescript": "^4.4.2",
+    "typescript": "^4.4.4",
     "winston": "^3.3.3",
     "ws": "^8.2.0",
     "zeromq": "^6.0.0-beta.6"
   },
   "devDependencies": {
     "mocha": "^9.1.2",
-    "ts-node": "^10.2.1"
+    "ts-node": "^10.4.0"
   }
 }
