@@ -1,8 +1,6 @@
 
 import * as boost from 'boostpow'
 
-import { awaitConnection } from './typeorm/database'
-
 import * as boostpow from 'boostpow'
 
 import * as bsv from 'bsv'
@@ -126,8 +124,6 @@ router.get('/v1/main/boost/id/:id', (ctx, next) => {
 // END BOOSTPOW_API HANDLERS
 
 export async function startServer() {
-
-  await awaitConnection()
 
   return { app }
 
