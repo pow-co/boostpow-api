@@ -77,7 +77,7 @@ program
         let [job] = await pg('boost_jobs').where({
           spent: false,
           //difficulty: 1
-        }).orderBy('value', 'desc').select('*').limit(1)
+        }).orderBy('difficulty', 'asc').orderBy('value', 'desc').select('*').limit(1)
 
         if (!job) {
           await delay(1000)
@@ -85,9 +85,13 @@ program
 
         console.log('miner.job', job)
 
-        //let _job = await getBoostJob(job.txid)
+        await importBoostJob(job.txid)
 
-        /*if (_job.spent) {
+        let _job = await getBoostJob(job.txid)
+
+        console.log('_job', _job)
+
+        if (_job.spent) {
 
           await pg('boost_jobs').where({
             txid: job.txid
@@ -96,9 +100,8 @@ program
           
           continue;
         }
-        */
 
-        let result = await mine(job.txid, address, wif, job)
+        let result = await mine(job.txid, address, wif, _job)
 
         console.log('mining result', result)
 
@@ -552,6 +555,26 @@ program
     }
   
   })
+
+program
+  .command('backfillwork <txid>')
+  .action(async (txid) => {
+
+    let [work] = await pg('boost_job_proofs').select('*').where({ spend_txid: txid })
+
+    console.log(work)
+
+    // get job proof
+    // get job
+    // get tx json
+    // add content, difficulty, timestamp
+
+    let jobs = await getBoostJobsFromTxid(txid)
+
+    console.log(jobs)
+
+  })
+
 
 
 program

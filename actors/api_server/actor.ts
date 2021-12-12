@@ -2,9 +2,11 @@
 
 require('dotenv').config();
 
-import { app } from '../../src/server'
+import { startServer } from '../../src/server'
 
 export async function start() {
+ 
+  const { app } = await startServer()
 
   app.listen(process.env.PORT || 4001)
 

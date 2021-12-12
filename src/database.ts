@@ -19,7 +19,7 @@ function getConnectionUrl() {
     case 'production':
       return process.env.DATABASE_URL
     default:
-      return process.env.DEV_DATABASE_URL
+      return process.env.DATABASE_URL
   }
 
 }

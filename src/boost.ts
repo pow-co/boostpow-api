@@ -3,6 +3,10 @@ import { getTransaction, call } from './jsonrpc'
 
 import pg from './database'
 
+import * as filepay from 'filepay'
+
+const delay = require('delay');
+
 import * as boost from 'boostpow';
 
 export interface BoostJob {
@@ -106,9 +110,13 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   console.log('record', record)
 
-  let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
+  let job = boost.BoostPowJob.fromRawTransaction(tx.hex, record.vout)
 
   console.log('job', job)
+
+  if (record && !job) {
+    return record
+  }
 
   let spent = await checkBoostSpent(txid, job.vout)
 
@@ -222,4 +230,66 @@ export async function importBoostJob(txid: string) {
 
   }))
 }
+
+interface NewJob {
+  content: string;
+  difficulty: number;
+  satoshis: number;
+}
+
+export async function postNewJob(newJob: NewJob) {
+
+  try {
+
+    let job = boost.BoostPowJob.fromObject({
+      content: newJob.content,
+      diff: newJob.difficulty
+    })
+
+    var config = {
+      pay: {
+        key: process.env.BSV_SIMPLE_WALLET_WIF,
+        rpc: "",
+        to: [{
+          script: job.toHex(),
+          value: newJob.satoshis
+        }],
+        changeAddress: process.env.BSV_SIMPLE_WALLET_ADDRESS
+      }
+    }
+
+    filepay.send(config, async (err, result) => {
+      if (err) { throw err }
+      let [txid] = result.split(' ')
+      console.log('job.created', { txid })
+
+      await delay(2000)
+
+      try {
+
+        let {hex} = await getTransaction(txid)
+
+        let result = await boost.Graph().submitBoostJob(hex);
+
+        console.log('boost.job.submitted', result)
+
+        let newRecord = await importBoostJob(txid)
+
+        console.log('job.imported', newRecord)
+
+      } catch(error) {
+
+        console.error(error)
+
+      }
+
+    })
+
+  } catch(error) {
+    console.log(error)
+
+  }
+
+}
+
 
