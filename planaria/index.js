@@ -101,7 +101,7 @@ async function sync() {
         //console.log(chunk.toString())
 
         let json = JSON.parse(chunk.toString())
-        console.log(json['tx']['h']) 
+        //console.log(json['tx']['h']) 
 
         try {
 
@@ -125,7 +125,6 @@ async function sync() {
 
             try {
 
-              //let tx = await getTransaction(json['tx']['h'])
 
               //params['rawtx'] = Buffer.from(tx.hex)
 
@@ -144,6 +143,10 @@ async function sync() {
             channel.publish('proofofwork', 'boost_job_created', Buffer.from(JSON.stringify(params)))
 
           }
+
+          let tx = await getTransaction(json['tx']['h'])
+
+          console.log(tx)
 
           console.log('record', record)
 

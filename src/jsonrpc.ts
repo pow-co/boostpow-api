@@ -12,7 +12,7 @@ class JsonRpc {
 
     return new Promise((resolve, reject) => {
       let request = http
-        .post(`${process.env.BITCOIND_RPC_HOST}:${process.env.BITCOIND_RPC_PORT}`)
+        .post(`https://${process.env.BITCOIND_RPC_HOST}:${process.env.BITCOIND_RPC_PORT}`)
         .auth(process.env.BITCOIND_RPC_USER, process.env.BITCOIND_RPC_PASSWORD)
         /*.timeout({
           response: 5000,  // Wait 5 seconds for the server to start sending,
@@ -48,6 +48,7 @@ interface RawTx {
 }
 
 export async function getTransaction(txid: string): Promise<RawTx> {
+  console.log('getrawtransaction', txid)
 
   let rawtx: any = await call('getrawtransaction', [txid])
 
@@ -59,5 +60,14 @@ export async function getTransaction(txid: string): Promise<RawTx> {
     hex: rawtx.result,
     json: decoded.result
   }
+}
+
+
+export async function getTransactionJson(txid: string): Promise<any> {
+
+  let {result}: any = await call('getrawtransaction', [txid, true])
+
+  return result
+
 }
 
