@@ -9,6 +9,8 @@ const delay = require('delay');
 
 import * as boost from 'boostpow';
 
+import * as models from '../models'
+
 export interface BoostJob {
   txid: string;
   content: string;
@@ -154,9 +156,11 @@ export async function checkBoostSpent(txid: string, vout: number): Promise<boole
 
 export async function importBoostProof(proof: any): Promise<any> {
 
+  console.log('import boost proof')
+
   let where = {
     txid: proof.SpentTxid,
-    //spend_txid: null
+    vout: proof.SpentVout
   }
 
   console.log('find boost job', where)
@@ -190,6 +194,8 @@ export async function importBoostProof(proof: any): Promise<any> {
         job_vout: proof.SpentVout,
         spend_txid: proof.Txid,
         spend_vout: proof.Vin,
+        content: job.content,
+        difficulty: job.difficulty,
         inserted_at: new Date(),
         updated_at: new Date()
       })
@@ -197,16 +203,22 @@ export async function importBoostProof(proof: any): Promise<any> {
 
       console.log('job proof record', record)
 
-    } else {
-
-      let result = await pg('boost_jobs').where('txid').update({
-        spend_txid: proof.SpentTxid,
-        spent: true
-      })
-
-      console.log(result)
-
     }
+
+    let jobRecord = await models.BoostJob.findOne({
+      where: {
+        txid: proof.SpentTxid,
+        vout: proof.SpentVout
+      }
+    })
+
+    jobRecord.spend_txid = proof.SpentTxid
+    jobRecord.spend_vout = proof.SpentVout
+    jobRecord.spent = true
+
+    await jobRecord.save()
+
+    console.log('job record updated', jobRecord.toJSON())
 
   }
 

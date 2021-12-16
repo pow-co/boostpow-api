@@ -5,7 +5,11 @@ require('dotenv').config()
 var bitcoin = require('bitcoinjs-lib') // v4.x.x
 var bitcoinMessage = require('bitcoinjs-message')
 
-import * as filepay from 'filepay'
+import { Op } from 'sequelize'
+
+import * as http from 'superagent'
+
+import * as boostpow from 'boostpow'
 
 const delay = require('delay');
 
@@ -13,14 +17,16 @@ import * as program from 'commander'
 
 import pg from '../database'
 
-import * as boost from '/Users/zyler/github/ProofOfWorkCompany/boostpow-js';
-//import * as boost from 'boostpow';
+import * as models from '../../models'
+
+import * as boost from 'boostpow';
 
 import * as bsv from 'bsv'
 
-import { Miner } from '../miner'
+import * as whatsonchain from '../whatsonchain'
+import * as powco from '../powco'
 
-import { getTransaction, call } from '../jsonrpc'
+import { getTransaction, getTransactionJson, call } from '../jsonrpc'
 
 import * as Minercraft from 'minercraft'
 
@@ -28,11 +34,11 @@ const mapi = new Minercraft({
   "url": "https://merchantapi.taal.com"
 })
 
+import { postNewJob } from '../boost'
+
 import { getBoostJobsFromTxid, getBoostProof, getBoostJob, checkBoostSpent, BoostJob, importBoostJob, importBoostProof } from '../boost'
 
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
-
-let miner = new Miner()
 
 import { connectChannel } from '../socket'
 
@@ -348,6 +354,7 @@ program
       console.log('TO SCRIPT', job.toScript())
 
       console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
+
     } catch(error) {
       console.error(error)
     }

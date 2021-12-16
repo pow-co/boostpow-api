@@ -47,6 +47,7 @@
       "reflect-metadata": "^0.1.10",
       "sequelize": "^6.9.0",
       "split2": "^3.2.2",
+      "superagent": "^6.1.0",
       "telegraf": "^4.4.2",
       "through2": "^4.0.2",
       "tsc": "^2.0.3",
