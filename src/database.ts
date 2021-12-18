@@ -8,6 +8,7 @@ const pg = knex({
 });
 
 export default pg
+export { pg }
 
 function getConnectionUrl() {
 

@@ -26,8 +26,6 @@ interface Job {
 
 export async function listAvailableJobs(): Promise<Job[]> {
 
-  console.log('LIST AVAILABLE')
-
   let { body } = await http.get('https://pow.co/api/v1/jobs')
 
   console.log(body)

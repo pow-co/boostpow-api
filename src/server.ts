@@ -5,6 +5,8 @@ import * as boostpow from 'boostpow'
 
 import * as bsv from 'bsv'
 
+import { pg } from './database'
+
 const json = require('koa-json')
 const Koa = require('koa')
 const app = new Koa()
@@ -112,6 +114,26 @@ interface BoostSearchParams {
   debug?: boolean;
   expanded?: boolean;
 }
+
+router.get('/v1/ranking', async (ctx, next) => {
+
+  let {rows: content} = await pg.raw('select content, sum(difficulty) as difficulty from "boost_job_proofs" where content is not null group by content order by difficulty desc;')
+
+  var i = 0;
+  content = content.map(content => {
+    i++
+    return Object.assign(content, { rank: i })
+  })
+
+  /*let content = await pg('boost_job_proofs')
+    .select('content', 'sum(difficulty)')
+    .sum('difficulty')
+    .groupBy('content')
+    */
+  
+  ctx.body = { content }
+
+})
 
 router.get('/v1/main/boost/search', (ctx, next) => {
 
