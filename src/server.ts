@@ -15,6 +15,9 @@ const bodyParser = require('koa-bodyparser')
 const Router = require('koa-router');
 const router = new Router();
 
+import * as http from 'superagent'
+import * as models from '../models'
+
 import { importBoostJob, importBoostProof } from './boost'
 
 app.use(json())
@@ -55,6 +58,8 @@ router.post('/node/api/boost_proof_transactions', async (ctx, next) => {
   console.log("import boost proof transaction", ctx.request.body)
 
   let tx = new bsv.Transaction(ctx.request.body.transaction)
+  
+  console.log('tx', tx)
 
   let graph = boostpow.Graph({})
 
@@ -115,6 +120,75 @@ interface BoostSearchParams {
   expanded?: boolean;
 }
 
+router.get('/v1/ranking/value', async (ctx, next) => {
+
+  let {rows: content} = await pg.raw('select content, sum(value) as value, sum(difficulty) as difficulty from "boost_jobs" where content is not null group by content order by value desc limit 10;')
+
+  var i = 0;
+  content = content.map(content => {
+    i++
+    return Object.assign(content, { rank: i })
+  })
+
+  content = await Promise.all(content.map(async item => {
+
+    let record = await models.Content.findOne({ where: {
+      txid: item.content
+    }})
+
+    if (!record) {
+
+      try {
+        console.log('get content type')
+
+        let resp = await http.head(`https://media.bitcoinfiles.org/${item.content}`)
+
+        let content_type = resp.headers['content-type']
+
+        record = await models.Content.create({
+          
+          txid: item.content,
+
+          content_type
+
+        })
+
+      } catch(error) {
+
+        return null
+
+        //console.log(error)
+
+      }
+
+    }
+
+    item.content_type = record.content_type
+
+    return item
+
+  }))
+
+  content = content.filter(item => !!item)
+  
+  ctx.body = { content }
+
+})
+
+router.get('/v1/ranking', async (ctx, next) => {
+
+  let {rows: content} = await pg.raw('select content, sum(difficulty) as difficulty from "boost_job_proofs" where content is not null group by content order by difficulty desc limit 10;')
+
+  var i = 0;
+  content = content.map(content => {
+    i++
+    return Object.assign(content, { rank: i })
+  })
+  
+  ctx.body = { content }
+
+})
+
 router.get('/v1/ranking', async (ctx, next) => {
 
   let {rows: content} = await pg.raw('select content, sum(difficulty) as difficulty from "boost_job_proofs" where content is not null group by content order by difficulty desc;')
@@ -124,16 +198,11 @@ router.get('/v1/ranking', async (ctx, next) => {
     i++
     return Object.assign(content, { rank: i })
   })
-
-  /*let content = await pg('boost_job_proofs')
-    .select('content', 'sum(difficulty)')
-    .sum('difficulty')
-    .groupBy('content')
-    */
   
   ctx.body = { content }
 
 })
+
 
 router.get('/v1/main/boost/search', (ctx, next) => {
 
@@ -152,5 +221,4 @@ export async function startServer() {
 }
 
 export { app }
-
 

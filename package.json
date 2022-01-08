@@ -5,7 +5,7 @@
    "main": "dist/miner.js",
    "scripts": {
       "test": "NODE_ENV=test mocha --require=ts-node/register --timeout=10000 test/*test.ts",
-      "start": "ts-node src/index.ts",
+      "start": "ts-node src/server.ts",
       "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
    },
    "keywords": [],
@@ -42,7 +42,7 @@
       "pg": "^8.4.0",
       "phoenix-channels": "^1.0.0",
       "public-ip": "^4.0.4",
-      "rabbi": "^1.16.2",
+      "rabbi": "^1.17.1",
       "redis": "^3.1.2",
       "reflect-metadata": "^0.1.10",
       "sequelize": "^6.9.0",

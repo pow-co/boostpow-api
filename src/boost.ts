@@ -3,6 +3,8 @@ import { getTransaction, call } from './jsonrpc'
 
 import pg from './database'
 
+import { events } from 'rabbi'
+
 import * as filepay from 'filepay'
 
 const delay = require('delay');
@@ -183,13 +185,15 @@ export async function importBoostProof(proof: any): Promise<any> {
 
     console.log(`job already has spend txid ${job.spend_txid}`)
 
+    return proof_record
+
   } else {
 
     if (!proof_record) {
 
       console.log('no proof found')
 
-      let record = await pg('boost_job_proofs').insert({
+      proof_record = await pg('boost_job_proofs').insert({
         job_txid: proof.SpentTxid,
         job_vout: proof.SpentVout,
         spend_txid: proof.Txid,
@@ -201,7 +205,9 @@ export async function importBoostProof(proof: any): Promise<any> {
       })
       .returning('*')
 
-      console.log('job proof record', record)
+      console.log('job proof record', proof_record)
+
+      events.emit('work.published', proof_record)
 
     }
 
@@ -221,6 +227,8 @@ export async function importBoostProof(proof: any): Promise<any> {
     console.log('job record updated', jobRecord.toJSON())
 
   }
+
+  return proof_record
 
 }
 
