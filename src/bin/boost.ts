@@ -30,6 +30,8 @@ import { getTransaction, getTransactionJson, call } from '../jsonrpc'
 
 import * as Minercraft from 'minercraft'
 
+import { cacheContent } from '../content'
+
 const mapi = new Minercraft({
   "url": "https://merchantapi.taal.com"
 })
@@ -41,6 +43,32 @@ import { getBoostJobsFromTxid, getBoostProof, getBoostJob, checkBoostSpent, Boos
 const SimpleWallet = require('../../../../stevenzeiler/bsv-simple-wallet/lib')
 
 import { connectChannel } from '../socket'
+
+program
+  .command('cacheallcontent')
+  .action(async () => {
+
+    try {
+
+      let {rows: allcontent} = await pg.raw('select content from "boost_jobs" where content is not null group by content')
+
+      for (let item of allcontent) {
+
+        let record = await cacheContent(item.content)
+
+        console.log(record.toJSON())
+  
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+    process.exit(0)
+
+  })
 
 program
   .command('importproof <txid>')
@@ -66,251 +94,6 @@ program
     }
 
     process.exit(0)
-
-  })
-
-program
-  .command('minerd <address> [wif]')
-  .action(async (address, wif) => {
-
-    wif = wif || process.env.MINER_SECRET_KEY_WIF
-
-
-    for (;;) {
-
-      try {
-
-        let [job] = await pg('boost_jobs').where({
-          spent: false,
-          //difficulty: 1
-        }).orderBy('difficulty', 'asc').orderBy('value', 'desc').select('*').limit(1)
-
-        if (!job) {
-          await delay(1000)
-        }
-
-        console.log('miner.job', job)
-
-        await importBoostJob(job.txid)
-
-        let _job = await getBoostJob(job.txid)
-
-        console.log('_job', _job)
-
-        if (_job.spent) {
-
-          await pg('boost_jobs').where({
-            txid: job.txid
-          })
-          .update({ spent: true })
-          
-          continue;
-        }
-
-        let result = await mine(job.txid, address, wif, _job)
-
-        console.log('mining result', result)
-
-      } catch(error) {
-
-        console.log(error)
-
-        await delay(1000)
-
-      }
-
-    }
-
-  })
-
-async function mine(txid, address, wif, job) {
-
-  if (!job) {
-
-    job = await getBoostJob(txid)
-
-  }
-
-  console.log('job', job)
-
-  if (job.spent) {
-    throw new Error('job already mined')
-  }
-
-  miner.on('*', event => {
-    console.log(event)
-  })
-
-  let solution: any = await miner.mine({
-    script: job.script,
-    value: job.value,
-    vout: job.vout,
-    txid,
-    address,
-    wif
-  })
-
-  console.log(solution)
-
-  let result = await mapi.tx.push(solution.txhex, { verbose: true })
-
-  console.log('transaction.publish.result', result)
-
-  if (result.payload.returnResult === 'success') {
-
-    let txid = result.payload.txid
-
-    await pg('boost_jobs').where({
-      txid: job.txid
-    })
-    .update({ spent: true, spend_txid: txid })
-
-  }
-
-}
-
-program
-  .command('mine <txid> <address> [wif]')
-  .action(async (txid, address, wif) => {
-
-    wif = wif || process.env.MINER_SECRET_KEY_WIF
-
-    await mine(txid,address,wif, null)
-
-    process.exit(0)
-
-  })
-
-/*program
-  .command('solve <rawtx>')
-  .action(async (rawtx) => {
-
-    let job = boost.BoostPowJob.fromRawTransaction(rawtx)
-
-    console.log('job', job.toObject())
-
-    const channel = await connectChannel()
-
-    miner.mine({
-      content: `0x${job.toObject().content}`,
-      difficulty: job.toObject().diff
-    })
-
-    miner.on('besthash', (payload) => {
-      //console.log('besthash', payload)
-      channel.push('besthash', payload)
-    })
-
-    miner.on('error', (payload) => {
-      console.error(payload)
-      process.exit(1)
-    })
-
-    miner.on('solution', (payload) => {
-      console.log('solution', payload)
-      channel.push('solution', payload)
-
-      miner.stop()
-
-      console.log('stopping miner..')
-
-      let script = redeem(payload.solution.replace('"', ''))
-
-      console.log('SCRIPT', script)
-
-      setTimeout(process.exit, 1000)
-    })
-
-    miner.on('hashrate', (payload) => {
-      //console.log(payload)
-      channel.push('hashrate', payload)
-    })
-
-  })
-
-*/
-function redeem(solutionDummySignature: string): bsv.Script {
-
-  let script = new bsv.Script(solutionDummySignature) 
-
-  let asm = script.toASM()
-
-  let parts = asm.split(" ")
-
-  parts.shift()
-
-  console.log('parts', parts)
-
-  let newScript = new bsv.Script.fromASM(parts.join(" "))
-
-  console.log('newscript', newScript.toHex())
-
-  let secret = process.env.MINER_SECRET_KEY_WIF
-
-  console.log('secret', secret)
-
-  var keyPair = bitcoin.ECPair.fromWIF(secret)
-
-  console.log("privkey", keyPair)
-
-  console.log('hex', newScript.toHex())
-
-  var signature = bitcoinMessage.sign(newScript.toHex(), keyPair.privateKey, keyPair.compressed)
-
-  let base64 = signature.toString('base64')
-
-  console.log('base64', base64)
-
-  let hex = new Buffer(base64, 'base64').toString('hex')
-
-  console.log('signature', hex)
-
-  parts.unshift(hex)
-
-  let finalScript = bsv.Script.fromASM(parts.join(' '))
-
-  return finalScript
-
-}
-
-program
-  .command('redeem <txid> <vout> <script>')
-  .action(async (txid, vout, script) => {
-
-    try {
-
-      let tx = new bsv.Transaction()
-
-
-    } catch(error) {
-
-      console.error(error)
-
-    }
-
-  })
-
-program
-  //.command('validateproof <script> <txid> <vout>')
-  .command('validateproof')
-  .action(async (_script) => {
-
-    let script = bsv.Script.fromHex("3045022100F4F9BAFC52C5AF26DF573FD4EC6BE70A428E6FDB8006AACD7FD66A2BB39A95330220685D0FF0728DD9280FDE0D215ABADFEE1774CDCD4197C2D491CB7665CE230BDC41 033BF18508719DC8BCB425138A72809D89F82A4B64473688104310A3CB03A5AE94 96570000 87274D61 9BA13AE2CBEA9A2F 681B3C8C 55E2CD15FB1F68CD3A746DBA045D15B3DB329B0F")
-
-    console.log(script.chunks.length, script)
-
-    let proof = boost.BoostPowJobProof.fromScript(script)
-
-    try {
-
-      let tx = new bsv.Transaction()
-
-
-    } catch(error) {
-
-      console.error(error)
-
-    }
 
   })
 
@@ -362,59 +145,13 @@ program
 
 program
   .command('newjob <content> <difficulty> <satoshis>')
-  .action(async (content, diff, satoshis) => {
+  .action(async (content, difficulty, satoshis) => {
 
     satoshis = parseInt(satoshis)
 
-    diff = parseFloat(diff)
+    difficulty = parseFloat(difficulty)
 
-    try {
-
-      let obj = {
-        content,
-        diff
-      }
-
-      console.log('obj', obj)
-
-      let job = boost.BoostPowJob.fromObject(obj)
-
-      console.log('JOB', job)
-
-      console.log('ASM', job.toASM())
-      console.log('HEX', job.toHex())
-      console.log('TO SCRIPT', job.toScript())
-
-      console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
-
-      var config = {
-        pay: {
-          key: process.env.BSV_SIMPLE_WALLET_WIF,
-          rpc: "",
-          to: [{
-            script: job.toHex(),
-            value: satoshis
-          }],
-          changeAddress: process.env.BSV_SIMPLE_WALLET_ADDRESS
-        }
-      }
-
-      console.log(config)
-
-      filepay.send(config, async (err, result) => {
-        if (err) { throw err }
-        let [txid] = result.split(' ')
-        console.log('job.created', { txid })
-
-        await delay(5000)
-        let newRecord = await importBoostJob(txid)
-        console.log('job.imported', newRecord)
-      })
-
-    } catch(error) {
-      console.log(error)
-
-    }
+    await postNewJob({ content, satoshis, difficulty })
 
   })
 
@@ -434,6 +171,32 @@ program
     console.log('HEX', job.toHex())
 
   })
+
+program
+  .command('submitproofbytxid <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let { hex } = await getTransaction(txid)
+      
+      console.log(hex)
+
+      let resp = await http.post('https://pow.co/node/api/boost_proof_transactions')
+      .send({ transaction: hex })
+
+      console.log(resp)
+
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  })
+
+
 
 program
   .command('getrawtx <txid>')
@@ -564,25 +327,85 @@ program
   })
 
 program
-  .command('backfillwork <txid>')
+  .command('backfillallwork')
   .action(async (txid) => {
 
-    let [work] = await pg('boost_job_proofs').select('*').where({ spend_txid: txid })
+    let works = await pg('boost_job_proofs').select('*').whereNull('timestamp').returning('*')
 
-    console.log(work)
+    for (let work of works) {
 
-    // get job proof
-    // get job
-    // get tx json
-    // add content, difficulty, timestamp
+      console.log(await backfillWork(work.spend_txid))
 
-    let jobs = await getBoostJobsFromTxid(txid)
+    }
 
-    console.log(jobs)
+    process.exit(0)
+
+
+  })
+
+program
+  .command('backfillproofvalues')
+  .action(async () => {
+
+    let works = await models.BoostWork.findAll({
+      where: {
+        value: {
+          [Op.eq]: null
+        }
+      }
+    })
+
+    for (let work of works) {
+
+      let job = await models.BoostJob.findOne({
+        where: { txid: work.job_txid }
+      })
+
+      work.value = job.value;
+
+      await work.save()
+
+      console.log(work.toJSON())
+
+    }
+
+    process.exit(0)
+
 
   })
 
 
+
+async function backfillWork(txid) {
+
+  let [work] = await pg('boost_job_proofs').select('*').where({ spend_txid: txid })
+
+  console.log(work)
+
+  let [job] = await pg('boost_jobs').select('*').where({ txid: work.job_txid, vout: work.job_vout })
+
+  console.log(job)
+
+  let tx = await getTransactionJson(txid)
+
+  console.log(tx)
+
+
+  let timestamp = new Date(tx.time * 1000)
+  let content = job.content
+  let difficulty = job.difficulty
+  let signature = tx.vin[work.spend_vout].scriptSig.hex
+
+  let update = await pg('boost_job_proofs').update({
+    timestamp, content, difficulty
+  })
+  .where({ id: work.id })
+
+  work = await pg('boost_job_proofs').select('*').where({ spend_txid: txid })
+
+  return work[0]
+
+}
 
 program
   .command('getboostjob <txid>')
@@ -591,6 +414,203 @@ program
     let jobs = await getBoostJobsFromTxid(txid)
 
     console.log(jobs)
+
+  })
+
+program
+  .command('backfilltimestamps')
+  .action(async () => {
+
+    try {
+
+      let jobs = await models.BoostJob.findAll({
+        where: {
+          timestamp: { [Op.eq]: null }
+        }
+      })
+
+      for (let job of jobs) {
+
+        let tx = await whatsonchain.getTransaction(job.txid)
+
+        let date = new Date(tx.time * 1000)
+
+        job.timestamp = date
+
+        await job.save()
+
+        console.log(job.toJSON())
+
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+
+  })
+
+program
+  .command('backfilltimestamp <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let job = await models.BoostJob.findOne({
+        where: {
+          timestamp: { [Op.eq]: null },
+          txid
+        }
+      })
+
+      let tx = await whatsonchain.getTransaction(job.txid)
+
+      console.log('TX', tx)
+      let date = new Date(tx.time * 1000)
+      console.log(date)
+
+      console.log(job.toJSON(), tx)
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  })
+
+program
+  .command('backfillwork')
+  .action(async () => {
+
+    try {
+
+      let works = await models.BoostWork.findAll({
+        where: {
+          content: { [Op.eq]: null }
+        }
+      })
+
+      for (let work of works) {
+        console.log(work.toJSON())
+
+        let job = await models.BoostJob.findOne({
+          where: {
+            txid: work.job_txid,
+            vout: work.job_vout
+          }
+
+        })
+
+        work.content = job.content
+        work.difficulty = job.difficulty
+
+        await work.save()
+
+        console.log(work.toJSON())
+
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  })
+
+program
+  .command('findworkforjob <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let work = await findWorkForJob(txid)
+
+      console.log(work)
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  })
+
+export async function findWorkForJob(txid: string): Promise<any> {
+
+  let tx = await powco.getTransaction(txid)
+
+  let job = boostpow.BoostPowJob.fromTransaction(tx)
+
+  let script = tx.outputs[job.vout];
+
+  console.log(job)
+  console.log(script)
+
+  let scripthash = bsv.crypto.Hash.sha256(script.toBuffer()).reverse().toString('hex')
+
+  // get transaction from txid
+  // load job from transaction
+  // look up spend transactions for job script
+  // find which transaction spent the script output
+
+}
+
+program
+  .command('checktxforwork <txid>')
+  .action(async (txid) => {
+
+    let tx = await powco.getTransaction(txid)
+
+    console.log(tx)
+
+    for (let input of tx.inputs) {
+
+
+      var where: any = {
+        txid: input.prevTxId.toString('hex'),
+        vout: input.outputIndex
+      }
+
+      console.log('params', where)
+
+      let job = await models.BoostJob.findOne({ where })
+
+      if (job) {
+
+        console.log('WORK FOUND', tx)
+
+      }
+
+      where = {
+        spend_txid: input.prevTxId.toString('hex'),
+        spend_vout: input.outputIndex
+      }
+
+      console.log('work where', where)
+
+      let work = await models.BoostWork.findOne({
+        where: {
+          job_txid: job.txid,
+          job_vout: job.vout
+        }
+      })
+
+      if (work) {
+
+        console.log('WORK ALREADY RECORDED', work.toJSON())
+
+        continue;
+      } else {
+
+        
+
+      }
+
+    }
 
   })
 

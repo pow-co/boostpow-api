@@ -7,6 +7,8 @@ import * as bsv from 'bsv'
 
 import { pg } from './database'
 
+import { Op } from 'sequelize'
+
 const json = require('koa-json')
 const Koa = require('koa')
 const app = new Koa()
@@ -120,62 +122,39 @@ interface BoostSearchParams {
   expanded?: boolean;
 }
 
-router.get('/v1/ranking/value', async (ctx, next) => {
+router.get('/node/v1/ranking/value', async (ctx, next) => {
 
-  let {rows: content} = await pg.raw('select content, sum(value) as value, sum(difficulty) as difficulty from "boost_jobs" where content is not null group by content order by value desc limit 10;')
+  var limit = ctx.request.query.limit || 100;
+  var offset = ctx.request.query.offset || 0;
 
-  var i = 0;
-  content = content.map(content => {
-    i++
-    return Object.assign(content, { rank: i })
+  var where = {}
+
+  if (ctx.request.query.content_type) {
+    where['content_type'] = ctx.request.query.content_type
+  }
+
+  if (ctx.request.query.content_category) {
+    where['content_type'] = {[Op.like]: `%${ctx.request.query.content_category}%`}
+  }
+
+  let content = await models.Content.findAll({
+    order: [['locked_value', 'desc']],
+    where,
+    limit,
+    offset
   })
 
-  content = await Promise.all(content.map(async item => {
 
-    let record = await models.Content.findOne({ where: {
-      txid: item.content
-    }})
+  content = content.map(content => {
+    offset++
+    return Object.assign(content.toJSON(), { rank: offset })
+  })
 
-    if (!record) {
-
-      try {
-        console.log('get content type')
-
-        let resp = await http.head(`https://media.bitcoinfiles.org/${item.content}`)
-
-        let content_type = resp.headers['content-type']
-
-        record = await models.Content.create({
-          
-          txid: item.content,
-
-          content_type
-
-        })
-
-      } catch(error) {
-
-        return null
-
-        //console.log(error)
-
-      }
-
-    }
-
-    item.content_type = record.content_type
-
-    return item
-
-  }))
-
-  content = content.filter(item => !!item)
-  
   ctx.body = { content }
 
 })
 
-router.get('/v1/ranking', async (ctx, next) => {
+router.get('/node/v1/ranking', async (ctx, next) => {
 
   let {rows: content} = await pg.raw('select content, sum(difficulty) as difficulty from "boost_job_proofs" where content is not null group by content order by difficulty desc limit 10;')
 
@@ -188,21 +167,6 @@ router.get('/v1/ranking', async (ctx, next) => {
   ctx.body = { content }
 
 })
-
-router.get('/v1/ranking', async (ctx, next) => {
-
-  let {rows: content} = await pg.raw('select content, sum(difficulty) as difficulty from "boost_job_proofs" where content is not null group by content order by difficulty desc;')
-
-  var i = 0;
-  content = content.map(content => {
-    i++
-    return Object.assign(content, { rank: i })
-  })
-  
-  ctx.body = { content }
-
-})
-
 
 router.get('/v1/main/boost/search', (ctx, next) => {
 

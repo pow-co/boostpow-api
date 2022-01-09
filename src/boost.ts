@@ -200,6 +200,7 @@ export async function importBoostProof(proof: any): Promise<any> {
         spend_vout: proof.Vin,
         content: job.content,
         difficulty: job.difficulty,
+        value: job.value,
         inserted_at: new Date(),
         updated_at: new Date()
       })

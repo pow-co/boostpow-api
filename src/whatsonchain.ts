@@ -20,3 +20,4 @@ export async function getTransaction(txid: string): Promise<WhatsonchainTransact
   return body
 
 }
+

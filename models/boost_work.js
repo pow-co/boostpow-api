@@ -18,10 +18,20 @@ module.exports = (sequelize, DataTypes) => {
     spend_vout: DataTypes.INTEGER,
     job_txid: DataTypes.STRING,
     job_vout: DataTypes.INTEGER,
+    value: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
     signature: DataTypes.TEXT,
-    content: DataTypes.STRING,
+    content: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     timestamp: DataTypes.DATE,
-    difficulty: DataTypes.DECIMAL,
+    difficulty: {
+      type: DataTypes.DECIMAL,
+      allowNull: false
+    },
     createdAt: { type: DataTypes.DATE, field: 'inserted_at' },
     updatedAt: { type: DataTypes.DATE, field: 'updated_at' }
   }, {
