@@ -22,7 +22,7 @@ jobs:
     steps:
       - run:
           name: Deploy to Web Servers
-          command: ssh ubuntu@pow.co "/home/ubuntu/deploy/proofofwork-rabbi/deploy.sh"
+          command: ssh ubuntu@pow.co "sudo chef-client -o recipe[pow.co::rabbi]"
 
 
 workflows:
