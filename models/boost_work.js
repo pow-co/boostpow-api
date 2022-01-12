@@ -27,7 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    timestamp: DataTypes.DATE,
+    timestamp: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
     difficulty: {
       type: DataTypes.DECIMAL,
       allowNull: false

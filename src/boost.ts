@@ -51,6 +51,8 @@ export async function getBoostJobsFromTxid(txid:string) {
 
   let {hex, json} = await getTransaction(txid)
 
+  console.log(json)
+
   let jobs = json.vout.reduce((_jobs, vout) => {
 
     let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
@@ -94,6 +96,7 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
     tag: job.toObject().tag.toString(),
     userNonce: job.toObject().userNonce.toString(),
     additionalData: job.toObject().additionalData.toString(),
+    timestamp: new Date(),
     inserted_at: new Date(),
     updated_at: new Date()
   }
@@ -200,6 +203,7 @@ export async function importBoostProof(proof: any): Promise<any> {
         spend_vout: proof.Vin,
         content: job.content,
         difficulty: job.difficulty,
+        timestamp: new Date(),
         value: job.value,
         inserted_at: new Date(),
         updated_at: new Date()

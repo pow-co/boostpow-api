@@ -443,6 +443,33 @@ program
 
       }
 
+      let works = await models.BoostWork.findAll({
+        where: {
+          timestamp: { [Op.eq]: null }
+        }
+      })
+
+      for (let work of works) {
+
+        try {
+
+          let tx = await whatsonchain.getTransaction(work.spend_txid)
+
+          let date = new Date(tx.time * 1000)
+
+          work.timestamp = date
+
+          await work.save()
+
+          console.log(work.toJSON())
+
+        } catch(error) {
+
+          console.error(error)
+
+        }
+      } 
+
     } catch(error) {
 
       console.error(error)

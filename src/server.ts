@@ -3,6 +3,10 @@ import * as boost from 'boostpow'
 
 import * as boostpow from 'boostpow'
 
+import { events } from 'rabbi'
+
+import * as uuid from 'uuid'
+
 import * as bsv from 'bsv'
 
 import { pg } from './database'
@@ -49,9 +53,23 @@ router.post('/node/api/boost_job_transactions', async (ctx, next) => {
 
   console.log("import job transaction by txid", ctx.request.body)
 
-  let jobs = await importBoostJob(ctx.request.body.txid)
+  await events.emit('boost.job.tx.submission', { txid: ctx.request.body.txid })
 
-  ctx.body = { jobs }
+  try {
+
+    let jobs = await importBoostJob(ctx.request.body.txid)
+
+    await events.emit('boost.job.tx.imported', { jobs })
+
+    ctx.body = { jobs }
+
+  } catch(error) {
+
+    await events.emit('boost.job.tx.submission.error', { error })
+
+    ctx.body = { error: error.message }
+
+  }
 
 })
 
@@ -68,6 +86,71 @@ router.post('/node/api/boost_proof_transactions', async (ctx, next) => {
   let proof = graph.BoostPowJobProof.fromTransaction(tx)
 
   let record = await importBoostProof(proof)
+
+  ctx.body = { record }
+
+})
+
+/*
+ *
+  Log Work Submission
+  Validate Work Against Schema
+  Log Any Validation Error
+  Check If Work Already Performed
+  Log Any Duplicate Work
+  Check if Work Already Broadcast
+  Log If Work Already Broadcast
+  Broadcast New Work
+  Log If Work Accepted or Rejected
+  If Accepted Write Work to Database
+ *
+ */
+router.post('/node/api/work', async (ctx, next) => {
+
+  let request_uid = uuid.v4()
+
+  console.log("import boost proof transaction", ctx.request.body)
+
+  let transaction = ctx.request.body.transaction
+
+  // Log Work Submission
+  events.emit('boost.work.tx.submission', { transaction, request_uid })
+
+  var tx;
+
+  try {
+
+    tx = new bsv.Transaction(ctx.request.body.transaction)
+    
+    console.log('tx', tx)
+
+  } catch(error) {
+
+    events.emit('boost.work.tx.submission.error', { error, request_uid })
+
+    ctx.body = { error: error.message }
+
+    return
+
+  }
+
+  let graph = boostpow.Graph({})
+
+  // Validate Work Against Schema
+  let proof = graph.BoostPowJobProof.fromTransaction(tx)
+
+  if (proof) {
+    events.emit('boost.work.invalid', { request_uid })
+  } else {
+    events.emit('boost.work.valid', { proof, request_uid })
+  }
+
+  // Check if Work Transaction Already Broadcast
+
+  // Write Work To Database
+  let record = await importBoostProof(proof)
+
+  events.emit('boost.work.imported', { record, request_uid })
 
   ctx.body = { record }
 
