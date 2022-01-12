@@ -16,7 +16,9 @@ module.exports = (sequelize, DataTypes) => {
   TransactionInput.init({
     txid: DataTypes.STRING,
     input_txid: DataTypes.STRING,
-    input_index: DataTypes.INTEGER
+    input_index: DataTypes.INTEGER,
+    block_height: DataTypes.STRING,
+    block_hash: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'TransactionInput',

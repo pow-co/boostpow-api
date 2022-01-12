@@ -70,7 +70,12 @@ class BlockchainProcessor {
 
         let [transaction] = await db.Transaction.findOrCreate({
           where: { txid },
-          defaults: { txid, time: tx.time, blockhash: tx.blockhash }
+          defaults: {
+            txid,
+            time: tx.time,
+            blockhash: tx.blockhash,
+            block_height: height
+          }
         })
 
         console.log(transaction.toJSON())
@@ -79,10 +84,24 @@ class BlockchainProcessor {
 
           try {
 
-            let [transaction_input] = await db.TransactionInput.findOrCreate({
+            console.log('HEIGHT', height)
+
+            let [transaction_input, isNew] = await db.TransactionInput.findOrCreate({
               where: { txid, input_txid: vin['txid'], input_index: vin['vout'] },
-              defaults: { txid, input_txid: vin['txid'], input_index: vin['vout'] }
+              defaults: {
+                txid,
+                input_txid: vin['txid'],
+                input_index: vin['vout'],
+                block_height: height,
+                block_hash: tx.blockhash
+              }
             })
+
+            if (!isNew && !transaction_input.block_height) {
+              transaction_input.block_height = height;
+              transaction_input.block_hash = tx.blockhash
+              await transaction_input.save()
+            }
 
             console.log(transaction_input.toJSON())
 
