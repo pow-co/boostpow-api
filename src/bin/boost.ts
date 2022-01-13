@@ -54,6 +54,34 @@ program
 
       for (let item of allcontent) {
 
+        console.log('ITEM', item)
+
+        let record = await cacheContent(item.content)
+
+        console.log(record.toJSON())
+  
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+    process.exit(0)
+
+  })
+
+program
+  .command('cachecontent <content>')
+  .action(async (content) => {
+
+    try {
+
+      let {rows: allcontent} = await pg.raw(`select content from "boost_jobs" where content = '${content}' group by content`)
+
+      for (let item of allcontent) {
+
         let record = await cacheContent(item.content)
 
         console.log(record.toJSON())

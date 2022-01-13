@@ -219,6 +219,8 @@ export async function importBoostProof(proof: any): Promise<any> {
       await events.emit('work.published', proof_record)
 
       job.spent = true;
+      job.spent_txid = proof.Txid;
+      job.spent_vout = proof.Vin;
       await job.save()
 
       events.emit('job.completed', { job: job.toJSON(), work: proof_record })
