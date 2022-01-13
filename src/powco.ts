@@ -11,6 +11,15 @@ export async function submitBoostProofTransaction(hex: string): Promise<any> {
 
 }
 
+export async function submitJobTransaction(hex: string): Promise<any> {
+
+  let { body } = http.post('https://pow.co/node/api/boost_job_transactions')
+      .send({ transaction: hex })
+
+  return body
+
+}
+
 interface Job {
   content: string;
   difficulty: number;

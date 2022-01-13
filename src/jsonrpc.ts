@@ -50,16 +50,25 @@ interface RawTx {
 export async function getTransaction(txid: string): Promise<RawTx> {
   console.log('getrawtransaction', txid)
 
-  let rawtx: any = await call('getrawtransaction', [txid])
+  try {
 
-  if (!rawtx.result) { throw new Error('transaction not found') }
+    let rawtx: any = await call('getrawtransaction', [txid])
 
-  let decoded: any = await call('decoderawtransaction', [rawtx.result])
+    if (!rawtx.result) { throw new Error('transaction not found') }
 
-  return {
-    hex: rawtx.result,
-    json: decoded.result
+    let decoded: any = await call('decoderawtransaction', [rawtx.result])
+
+    return {
+      hex: rawtx.result,
+      json: decoded.result
+    }
+
+  } catch(error) {
+
+    return null
+
   }
+
 }
 
 

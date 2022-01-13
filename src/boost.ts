@@ -7,6 +7,8 @@ import { events } from 'rabbi'
 
 import * as filepay from 'filepay'
 
+import * as bsv from 'bsv'
+
 const delay = require('delay');
 
 import * as boost from 'boostpow';
@@ -27,25 +29,25 @@ export interface BoostJob {
   spent: boolean;
 }
 
-/*
-export async function getBoostJobsFromRawTx(hex:string) {
+export function getBoostJobsFromTx(tx: bsv.Transaction) {
+  console.log(tx)
 
-  let tx = new bsv.Transaction(hex)
+  var index = 0
+  var jobs = []
 
-  let jobs = tx.vout.reduce((_jobs, vout) => {
+  for (let output of tx.outputs) {
 
-    let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
+    let job = boost.BoostPowJob.fromTransaction(tx, index)
 
-    if (job) { _jobs.push(job) }
+    index +=1
 
-    return _jobs
+    if (job) { jobs.push(job) }
 
-  }, [])
-
+  }
+  
   return jobs
 
 }
-*/
 
 export async function getBoostJobsFromTxid(txid:string) {
 
@@ -170,7 +172,9 @@ export async function importBoostProof(proof: any): Promise<any> {
 
   console.log('find boost job', where)
 
-  let [job] = await pg('boost_jobs').where(where).select('*').limit(1)
+  let job = await models.BoostJob.findOne({
+    where
+  })
 
   console.log('job', job)
 
@@ -212,7 +216,12 @@ export async function importBoostProof(proof: any): Promise<any> {
 
       console.log('job proof record', proof_record)
 
-      events.emit('work.published', proof_record)
+      await events.emit('work.published', proof_record)
+
+      job.spent = true;
+      await job.save()
+
+      events.emit('job.completed', { job: job.toJSON(), work: proof_record })
 
     }
 

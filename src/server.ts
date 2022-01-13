@@ -13,25 +13,47 @@ import { pg } from './database'
 
 import { Op } from 'sequelize'
 
+import { getTransaction, call } from './jsonrpc'
+
 const json = require('koa-json')
 const Koa = require('koa')
 const app = new Koa()
 const cors = require('@koa/cors')
 const bodyParser = require('koa-bodyparser')
+const respond = require('koa-respond')
 const Router = require('koa-router');
 const router = new Router();
 
 import * as http from 'superagent'
 import * as models from '../models'
 
-import { importBoostJob, importBoostProof } from './boost'
+import { getBoostJobsFromTx, persistBoostJob, importBoostJob, importBoostProof } from './boost'
 
 app.use(json())
 app.use(cors())
 app.use(bodyParser())
 app.use(router.routes())
+app.use(respond())
 
 router.post('/node/api/boost_jobs', (ctx, next) => {
+
+  console.log("format job", ctx.request.body)
+
+  let params = {
+    content: ctx.request.body.content,
+    diff: parseFloat(ctx.request.body.difficulty)
+  }
+
+  let job = boost.BoostPowJob.fromObject(params)
+
+  const asm = job.toASM()
+  const hex = job.toHex()
+
+  ctx.body = Object.assign(params, { asm, hex })
+
+})
+
+router.post('/node/api/jobs/new', (ctx, next) => {
 
   console.log("format job", ctx.request.body)
 
@@ -158,11 +180,93 @@ router.post('/node/api/work', async (ctx, next) => {
 
 // BEGIN BOOSTPOW_API HANDLERS
 
-router.post('/v1/main/boost/jobs', (ctx, next) => {
+/*
+ * 
+   Log Job Submission
+   Validate Job Against Schema
+   Log Any Validation Error
+   Check if Job is Broadcast
+   Broadcast Job if not Broadcast
+   Log Error If Job Not Accepted by Network
+   If Valid Write Job To Jobs Database
+ *
+ */
+router.post('/node/api/jobs', async (ctx, next) => {
 
+  let request_uid = uuid.v4()
+
+  let transaction = ctx.request.body.transaction
+
+  // Log Work Submission
+  events.emit('boost.job.tx.submission', { transaction, request_uid })
+
+  // Validate Job Against Schema
+  var tx;
+  try {
+
+    tx = new bsv.Transaction(ctx.request.body.transaction)
+    events.emit('boost.job.tx.submission.validtx', { transaction, request_uid })
+
+
+  } catch(error) {
+
+    // Log Any Validation Error
+    events.emit('boost.job.tx.submission.error', { error, request_uid })
+
+    ctx.badRequest({ error: 'invalid job transaction' })
+  }
+
+  let jobs = getBoostJobsFromTx(tx)
+
+  if (jobs.length < 1) {
+
+    // Log Any Validation Error
+    events.emit('boost.job.tx.submission.error', { error: 'no jobs found', request_uid})
+    ctx.badRequest({ error: 'invalid job transaction' })
+
+  }
+
+  for (let job of jobs) {
+
+    let acceptedTx = await getTransaction(tx.hash)
+
+    // check if Job is Broadcast
+    if (acceptedTx) {
+
+      events.emit('boost.job.tx.submission.error', { error: 'tx already accepted', request_uid})
+
+    } else {
+
+      try {
+
+        // Broadcast Job if not Broadcast
+        let response = await call('sendrawtransaction', [transaction])
+        console.log(response)
+
+        events.emit('boost.job.tx.submission.broadcast.accepted', { response, request_uid})
+      } catch(error) {
+        console.error(error)
+
+        // Log Error If Job Not Accespted By Network
+        events.emit('boost.job.tx.submission.broadcast.error', { error, request_uid})
+        ctx.badRequest({ error: error })
+
+      }
+
+    }
+
+    // If Valid Write Job to Jobs Database
+    let record = await persistBoostJob(job)
+
+    events.emit('boost.job.tx.submission.persisted', { record, request_uid})
+
+    ctx.body = { record }
+
+  }
+ 
 })
 
-router.post('/v1/main/boost/submitsolution', (ctx, next) => {
+router.post('/api/v1/work', (ctx, next) => {
 
 })
 
