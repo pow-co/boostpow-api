@@ -28,6 +28,8 @@ import * as powco from '../powco'
 
 import { getTransaction, getTransactionJson, call } from '../jsonrpc'
 
+import { getAveragePrice } from '../prices'
+
 import * as Minercraft from 'minercraft'
 
 import { cacheContent } from '../content'
@@ -87,6 +89,26 @@ program
         console.log(record.toJSON())
   
       }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+    process.exit(0)
+
+  })
+
+program
+  .command('getaverageprice [startTimestamp]')
+  .action(async (startTimestamp) => {
+
+    try {
+
+      let price = await getAveragePrice(startTimestamp)
+
+      console.log(price)
 
     } catch(error) {
 
