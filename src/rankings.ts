@@ -9,8 +9,8 @@ export async function getRankings(startTimestamp?: string): Promise<any[]> {
   var date = new Date(timestamp * 1000);
 
   var query = !!timestamp ?
-  `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" where timestamp > to_timestamp(${timestamp}) group by content order by difficulty desc limit 10;`
-  : `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" group by content order by difficulty desc limit 10;`
+  `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" where timestamp > to_timestamp(${timestamp}) group by content order by difficulty desc limit 1000;`
+  : `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" group by content order by difficulty desc limit 1000;`
 
   let {rows: content} = await pg.raw(query)
 
