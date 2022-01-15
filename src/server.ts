@@ -207,6 +207,8 @@ router.post('/node/api/jobs', async (ctx, next) => {
 
   let transaction = ctx.request.body.transaction
 
+  console.log('submit job', ctx.request.body)
+
   // Log Work Submission
   events.emit('boost.job.tx.submission', { transaction, request_uid })
 
