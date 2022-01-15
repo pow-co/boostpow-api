@@ -14,6 +14,8 @@ export async function getRankings(startTimestamp?: string): Promise<any[]> {
 
   let {rows: content} = await pg.raw(query)
 
+  if (content.length === 0) { return [] }
+
   let hashes = content.map(item => `'${item.content}'`)
 
   let {rows: contentTypes} = await pg.raw(`select txid, content_type from "Contents" where txid in (${hashes.join(',')})`);

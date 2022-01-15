@@ -360,6 +360,11 @@ router.get('/node/v1/ranking', async (ctx, next) => {
 
   let content = await getRankings(timestamp)
 
+  if (content.length === 0) {
+    ctx.body = { content: [] }
+    return
+  }
+
   let price = await getAveragePrice(timestamp)
 
   var i = 0;
