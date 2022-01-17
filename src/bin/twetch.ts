@@ -4,6 +4,8 @@ require('dotenv').config()
 
 import * as program from 'commander'
 
+import * as twetchlib from '../twetch'
+
 const Twetch = require('@twetch/sdk');
 const twetch = new Twetch({
   clientIdentifier: process.env.TWETCH_CLIENT_IDENTIFIER
@@ -36,6 +38,24 @@ program
     try {
 
       twetch.init()
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  })
+
+program
+  .command('fetchpostdetail <txid>')
+  .action(async (txid) => {
+
+    try {
+
+      let post = await twetchlib.FetchPostDetail(txid)
+
+      console.log(JSON.stringify(post))
 
     } catch(error) {
 

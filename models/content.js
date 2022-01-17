@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   Content.init({
     txid: DataTypes.STRING,
     content_type: DataTypes.STRING,
+    content_json: DataTypes.JSON,
     locked_value: {
       type: DataTypes.INTEGER,
       get() {
