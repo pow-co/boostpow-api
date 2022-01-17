@@ -3,6 +3,8 @@ import * as models from '../models'
 
 import * as http from 'superagent'
 
+const snarkdown = require('snarkdown')
+
 import pg from './database'
 
 import { FetchPostDetail } from './twetch' 
@@ -18,29 +20,26 @@ export async function cacheContent(txid: string): Promise<any> {
   if (!record) {
     console.log('record not found', txid)
 
-    var resp,
-      content_type,
-      content_json
+    var content_type,
+      content_json,
+      content_text,
+      content_bytes
 
     try {
 
-      resp = await http.head(`https://media.bitcoinfiles.org/${txid}`)
+      let resp = await http.head(`https://media.bitcoinfiles.org/${txid}`)
 
       content_type = resp.headers['content-type']
 
     } catch(error) {
 
-      console.log('error', error)
+      console.log('error', error.response.error)
 
     }
 
     try {
 
-      console.log({ content_type })
-
       if (!content_type) {
-
-        console.log('check for twetch content type')
 
         let twetch = await FetchPostDetail(txid)
 
@@ -54,27 +53,36 @@ export async function cacheContent(txid: string): Promise<any> {
 
       }
 
-      record = await models.Content.create({
-        
-        txid,
+      if (content_type === 'text/markdown; charset=utf-8') {
 
-        content_type,
+        let { text } = await http.get(`https://media.bitcoinfiles.org/${txid}`)
 
-        content_json
+        content_text = snarkdown(text)
 
-      })
+        content_bytes = Buffer.from(text) 
+
+      }
+
 
     } catch(error) {
 
-      record = await models.Content.create({
-        
-        txid,
-
-        content_type: null
-
-      })
+      console.error(error)
 
     }
+    
+    record = await models.Content.create({
+      
+      txid,
+
+      content_type,
+
+      content_json,
+
+      content_text,
+
+      content_bytes
+
+    })
 
   }
 

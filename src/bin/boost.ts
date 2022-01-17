@@ -90,6 +90,14 @@ program
   
       }
 
+      if (allcontent.length == 0) {
+
+        let record = await cacheContent(content)
+
+        console.log(record.toJSON())
+          
+      }
+
     } catch(error) {
 
       console.error(error)

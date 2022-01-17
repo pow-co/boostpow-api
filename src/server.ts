@@ -188,6 +188,14 @@ router.post('/node/api/work', async (ctx, next) => {
 
 })
 
+router.get('/node/api/content/:txid', async (ctx, next) => {
+
+  let content = await cacheContent(ctx.request.params.txid)
+
+  ctx.body = { content }
+
+})
+
 // BEGIN BOOSTPOW_API HANDLERS
 
 /*
