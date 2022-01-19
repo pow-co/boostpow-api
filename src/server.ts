@@ -5,7 +5,7 @@ import * as boostpow from 'boostpow'
 
 import { events } from 'rabbi'
 
-import { getRankings } from './rankings'
+import { getRankings, getRankingsTimeframes, getContentRankings } from './rankings'
 
 import { cacheContent } from './content'
 
@@ -385,7 +385,27 @@ router.get('/node/v1/ranking', async (ctx, next) => {
 
 })
 
+router.get('/node/v1/ranking-timeframes', async (ctx, next) => {
+
+  let timeframes = await getRankingsTimeframes()
+
+  ctx.body = { timeframes }
+
+})
+
+router.get('/node/v1/content/:content/rankings', async (ctx, next) => {
+
+  const content = ctx.request.params.content
+
+  let rankings = await getContentRankings(content)
+
+  ctx.body = { content, rankings }
+
+})
+
 router.get('/v1/main/boost/search', (ctx, next) => {
+
+
 
 })
 

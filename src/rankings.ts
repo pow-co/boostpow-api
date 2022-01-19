@@ -1,10 +1,12 @@
 
 import { pg } from './database'
 
-export async function getRankings(startTimestamp?: string): Promise<any[]> {
+import * as moment from 'moment'
+
+export async function getRankings(startTimestamp?: number): Promise<any[]> {
 
   // sanitize for sql query to preven injection attack
-  var timestamp = parseInt(startTimestamp)
+  var timestamp = startTimestamp
 
   var date = new Date(timestamp * 1000);
 
@@ -31,8 +33,92 @@ export async function getRankings(startTimestamp?: string): Promise<any[]> {
     return Object.assign(content, {
       rank: i,
       content_type: contentTypeMap[content.content],
-      difficulty: parseFloat(content.difficulty)
+      difficulty: parseFloat(content.difficulty),
+      value: parseFloat(content.value)
     })
   })
 
 }
+
+const timeframes = ['hour', 'day', 'week', 'month', 'year', 'alltime']
+
+function getTimestamps () {
+
+  return timeframes.map(timeframe => {
+
+    var n: number = 1
+    var interval = timeframe
+
+    if (timeframe === 'alltime') {
+      n = 20
+      interval = 'years'
+    }
+
+    var date: any = moment()
+
+    var timestamp: any = date.subtract(n, interval).toDate().getTime() / 1000
+
+    return {
+      name: timeframe,
+      timestamp: parseInt(timestamp)
+    }
+  })
+
+}
+
+
+export async function getRankingsTimeframes() {
+
+  let timeframes = getTimestamps()
+
+  return Promise.all(timeframes.map(async timeframe => {
+
+    let rankings = await getRankings(timeframe.timestamp)
+
+    return Object.assign(timeframe, { rankings })
+
+  }))
+  
+}
+
+export async function getContentRankings(content: string) {
+
+  let rankings = await getRankingsTimeframes()
+
+  return rankings.map(timeframe => {
+
+    let contentRank = timeframe.rankings.filter(ranking => {
+
+      return ranking.content === content
+
+    })[0]
+
+    var rank, difficulty, value
+
+    if (contentRank) {
+
+      rank = contentRank.rank
+      difficulty = contentRank.difficulty,
+      value = contentRank.value
+
+    } else {
+
+      rank = 0
+      difficulty = 0
+      value = 0
+    }
+
+    var response = {}
+    response[timeframe.name] = {
+      timestamp: timeframe.timestamp,
+      name: timeframe.name,
+      rank,
+      difficulty,
+      value
+    }
+    return response
+
+  })
+
+}
+
