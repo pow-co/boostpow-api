@@ -19,21 +19,26 @@ export async function cacheContent(txid: string): Promise<any> {
 
   if (record && !record.content_type) {
 
-    try {
+    (async () => {
+      // retry cache content type but do not block request
 
-      let resp = await http.head(`https://media.bitcoinfiles.org/${txid}`)
+      try {
 
-      content_type = resp.headers['content-type']
+        let resp = await http.head(`https://media.bitcoinfiles.org/${txid}`)
 
-      record.content_type = content_type
+        content_type = resp.headers['content-type']
 
-      await record.save()
+        record.content_type = content_type
 
-    } catch(error) {
+        await record.save()
 
-      console.log('error', error.response.error)
+      } catch(error) {
 
-    }
+        console.log('error', error.response.error)
+
+      }
+
+    })()
 
   }
 
