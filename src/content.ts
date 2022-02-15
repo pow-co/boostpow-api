@@ -17,6 +17,26 @@ export async function cacheContent(txid: string): Promise<any> {
     where: { txid }
   })
 
+  if (record && !record.content_type) {
+
+    try {
+
+      let resp = await http.head(`https://media.bitcoinfiles.org/${txid}`)
+
+      content_type = resp.headers['content-type']
+
+      record.content_type = content_type
+
+      await record.save()
+
+    } catch(error) {
+
+      console.log('error', error.response.error)
+
+    }
+
+  }
+
   if (!record) {
     console.log('record not found', txid)
 
