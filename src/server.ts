@@ -174,7 +174,7 @@ router.post('/node/api/work', async (ctx, next) => {
   // Check if Work Transaction Already Broadcast
 
   // Write Work To Database
-  let [record] = await importBoostProof(proof)
+  let record = await importBoostProof(proof)
 
   if (record) {
     console.log('CACHE CONTENT', record)
