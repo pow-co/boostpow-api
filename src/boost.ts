@@ -1,6 +1,8 @@
 
 import { getTransaction, call } from './jsonrpc'
 
+import { BoostPowJobProof } from 'boostpow'
+
 import pg from './database'
 
 import { events } from 'rabbi'
@@ -13,7 +15,7 @@ const delay = require('delay');
 
 import * as boost from 'boostpow';
 
-import * as models from '../models'
+import * as models from './models'
 
 export interface BoostJob {
   txid: string;
@@ -69,7 +71,7 @@ export async function getBoostJobsFromTxid(txid:string) {
 
 }
 
-export async function getBoostProof(txid: string) {
+export async function getBoostProof(txid: string): Promise<any> {
 
   let tx = await getTransaction(txid)
 
@@ -81,7 +83,9 @@ export async function getBoostProof(txid: string) {
 
 export async function persistBoostJob(job: any): Promise<BoostJob> {
 
-  let [record] = await pg('boost_jobs').where('txid', job.txid).returning('*')
+  let record = await models.BoostJob.findOne({
+    where: { txid: job.txid }
+  })
 
   if (record) {
     return record
@@ -90,7 +94,7 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
   let params = {
     txid: job.txid,
     content: job.toObject().content.toString(),
-    //script: tx.json.vout[job.vout].scriptPubKey.hex,
+    script: job.toHex(),
     vout: job.vout,
     value: job.value,
     difficulty: job.difficulty,
@@ -98,12 +102,10 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
     tag: job.toObject().tag.toString(),
     userNonce: job.toObject().userNonce.toString(),
     additionalData: job.toObject().additionalData.toString(),
-    timestamp: new Date(),
-    inserted_at: new Date(),
-    updated_at: new Date()
+    timestamp: new Date()
   }
 
-  record = await pg('boost_jobs').insert(params).returning('*')
+  record = await models.BoostJob.create(params)
 
   return record
 
@@ -113,13 +115,17 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   let tx = await getTransaction(txid)
 
+  let { hex } = tx;
+
   console.log(tx)
+
+  console.log({ hex })
 
   let [record] = await pg('boost_jobs').where('txid', txid).returning('*')
 
-  console.log('record', record)
+  //console.log('record', record)
 
-  let job = boost.BoostPowJob.fromRawTransaction(tx.hex, record.vout)
+  let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
 
   console.log('job', job)
 
@@ -161,9 +167,11 @@ export async function checkBoostSpent(txid: string, vout: number): Promise<boole
 
 }
 
-export async function importBoostProof(proof: any): Promise<any> {
+export async function importBoostProof(txid: string): Promise<any> {
 
-  console.log('import boost proof')
+  const proof = await getBoostProof(txid)
+
+  console.log('import boost proof', proof)
 
   let where = {
     txid: proof.SpentTxid,
@@ -180,13 +188,26 @@ export async function importBoostProof(proof: any): Promise<any> {
 
   if (!job) {
 
-    console.log('no job found')
-    return
+    console.log('job.notfound')
+
+    await importBoostJob(proof.SpentTxid)
+
+    job = await models.BoostJob.findOne({
+      where
+    })
+
+    if (!job) {
+
+      return
+    }
+
   }
 
-  let [proof_record] = await pg('boost_job_proofs').where({
-    job_txid: proof.SpentTxid,
-  }).select('*').limit(1)
+  let proof_record = await models.BoostWork.findOne({
+    where: {
+      job_txid: proof.SpentTxid
+    }
+  })
 
   if (job.spend_txid && proof_record) {
 
@@ -200,7 +221,7 @@ export async function importBoostProof(proof: any): Promise<any> {
 
       console.log('no proof found')
 
-      proof_record = await pg('boost_job_proofs').insert({
+      proof_record = await models.BoostWork.create({
         job_txid: proof.SpentTxid,
         job_vout: proof.SpentVout,
         spend_txid: proof.Txid,
@@ -208,11 +229,8 @@ export async function importBoostProof(proof: any): Promise<any> {
         content: job.content,
         difficulty: job.difficulty,
         timestamp: new Date(),
-        value: job.value,
-        inserted_at: new Date(),
-        updated_at: new Date()
+        value: job.value
       })
-      .returning('*')
 
       console.log('job proof record', proof_record)
 
@@ -240,7 +258,7 @@ export async function importBoostProof(proof: any): Promise<any> {
 
     await jobRecord.save()
 
-    console.log('job record updated', jobRecord.toJSON())
+    console.log('job.updated', jobRecord.toJSON())
 
   }
 
@@ -253,7 +271,6 @@ export async function importBoostJob(txid: string) {
   let jobs: BoostJob[] = await getBoostJobsFromTxid(txid)
 
   return Promise.all(jobs.map(async job => {
-    console.log('job', job)
 
     let [job_record] = await pg('boost_jobs').where({ txid }).returning('*')
 
@@ -297,6 +314,7 @@ export async function postNewJob(newJob: NewJob) {
     filepay.send(config, async (err, result) => {
       if (err) { throw err }
       let [txid] = result.split(' ')
+
       console.log('job.created', { txid })
 
       await delay(2000)
@@ -304,10 +322,6 @@ export async function postNewJob(newJob: NewJob) {
       try {
 
         let {hex} = await getTransaction(txid)
-
-        let result = await boost.Graph().submitBoostJob(hex);
-
-        console.log('boost.job.submitted', result)
 
         let newRecord = await importBoostJob(txid)
 

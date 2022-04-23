@@ -1,7 +1,7 @@
 import * as assert from 'assert'
 import { getBoostJob, importBoostProof } from '../src/boost'
 
-import * as boost from '/Users/zyler/github/ProofOfWorkCompany/boostpow-js'
+import * as boost from 'boostpow'
 
 describe("Getting Boost Txns From Bitcoin", () => {
 
@@ -59,7 +59,7 @@ describe("Boost Job Proofs", () => {
 
   it("should import a boost proof by txid", async () => {
 
-    const txid = ''
+    const txid = '3a69e3a0431b5619f74b4671d83a87fd1b84d51ca8863063c59965b89250cbd1'
 
     let record = await importBoostProof(txid)
 

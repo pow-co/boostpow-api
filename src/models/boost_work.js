@@ -35,8 +35,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL,
       allowNull: false
     },
-    createdAt: { type: DataTypes.DATE, field: 'inserted_at' },
-    updatedAt: { type: DataTypes.DATE, field: 'updated_at' }
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE }
   }, {
     sequelize,
     modelName: 'BoostWork',
