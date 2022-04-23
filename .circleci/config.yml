@@ -6,8 +6,8 @@ jobs:
       - image: circleci/node:14
       - image: circleci/postgres:9.5-postgis
         environment:
-          POSTGRES_USER: anypay_test
-          POSTGRES_DB: anypay_test
+          POSTGRES_USER: postgres
+          POSTGRES_DB: database
           POSTGRES_PASSWORD: "letmein"
       - image: rabbitmq:3
     steps:
@@ -17,7 +17,7 @@ jobs:
           command: npm install
       - run:
           name: Migrate & Seed Test Database
-          command: npm run db:migrate
+          command: npx sequelize db:migrate --url=postgres://postgres:letmein@localhost/database
       - run:
           name: Run Main Tests
           command: npm test
