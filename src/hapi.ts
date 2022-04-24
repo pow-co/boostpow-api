@@ -4,9 +4,7 @@ import { Server } from '@hapi/hapi'
 
 import { log } from './log'
 
-//import * as Joi from '@hapi/joi'
-
-const Joi = require('@hapi/joi')
+const Joi = require('joi')
 
 import { join } from 'path'
 
@@ -54,8 +52,8 @@ export const server = new Server({
 
 server.route({
   method: 'POST',
-  path: '/api/v1/boost_job_transactions',
-  handler: () => {},
+  path: '/api/v1/boost/jobs',
+  handler: handlers.BoostJobs.create,
   options: {
     description: 'Submit Jobs To Index',
     notes: 'Receives boost job transactions in hex form and indexes them if they are valid bitcoin transactions',
@@ -64,6 +62,9 @@ server.route({
       failAction: 'log'
     },
     validate: {
+      payload: Joi.object({
+        transaction: Joi.string().required()
+      })
     }
   }
 })
@@ -77,9 +78,22 @@ server.route({
     notes: 'Provide a Boost Job data structure and receive a boost job script in response. Useful for clients that do not want to include a boostpow sdk',
     tags: ['api'],
     response: {
-      failAction: 'log'
+      failAction: 'log',
+      schema: Joi.object({
+        script: Joi.object({
+          hex: Joi.string().required()
+        }).required()
+      })
     },
     validate: {
+      payload: Joi.object({
+        content: Joi.string().required(),
+        diff: Joi.number().required(),
+        category: Joi.string().optional(),
+        tag: Joi.string().optional(),
+        additionalData: Joi.string().optional(),
+        userNonce: Joi.string().optional()
+      })
     }
   }
 })
@@ -118,6 +132,56 @@ server.route({
 
 server.route({
   method: 'GET',
+  path: '/api/v1/boost/jobs/{txid}',
+  handler: handlers.BoostJobs.show,
+  options: {
+    description: 'Get Job From Txid',
+    notes: 'Get information about a job from a transaction id. Optionally postfix with _v0, _v1, etc to specify the output containing the job',
+    tags: ['api'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: Joi.object({
+          id: Joi.number().required()
+        }).required()
+      }).required()
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      }).required()
+    }
+  }
+})
+
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/jobs/{txid}',
+  handler: handlers.BoostJobs.createByTxid,
+  options: {
+    description: 'Import Existing Job Transaction By Txid',
+    notes: 'For any job that has not already been indexed by the system but has already been broadcast through the peer to peer network',
+    tags: ['api'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: Joi.object({
+          id: Joi.number().required()
+        }).required()
+      }).required()
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      }).required()
+    }
+  }
+})
+
+
+
+server.route({
+  method: 'GET',
   path: '/api/v1/content/{txid}',
   handler: () => {},
   options: {
@@ -128,6 +192,52 @@ server.route({
       failAction: 'log'
     },
     validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      })
+    }
+  }
+})
+
+server.route({
+  method: 'GET',
+  path: '/api/v1/tx/{txid}',
+  handler: handlers.Transactions.show,
+  options: {
+    description: 'Get Bitcoin Transaction by Txid',
+    notes: 'Returns the transaction in hex, json, and includes a merkleproof',
+    tags: ['api'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        txhex: Joi.string().required(),
+        txjson: Joi.object().required(),
+        merkleproof: Joi.object().required()
+      })
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      })
+    }
+  }
+})
+
+server.route({
+  method: 'GET',
+  path: '/api/v1/utxo/{address}',
+  handler: handlers.UnspentOutputs.index,
+  options: {
+    description: 'List Unspent Outputs For Address',
+    notes: 'PREMIUM ENDPOINT! Only available to paying clients',
+    tags: ['api'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      params: Joi.object({
+        address: Joi.string().required()
+      })
     }
   }
 })

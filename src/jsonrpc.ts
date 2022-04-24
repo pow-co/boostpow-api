@@ -71,6 +71,25 @@ export async function getTransaction(txid: string): Promise<RawTx> {
 
 }
 
+type MerkleProof = any;
+
+export async function getMerkleProof(txid: string): Promise<MerkleProof> {
+
+  let { result } = await call('getmerkleproof', [txid])
+
+  return result
+
+}
+
+type Utxo = any;
+
+export async function listUnspent(address: string): Promise<Utxo[]> {
+
+  let { result } = await call('listunspent', [0, 9999999, [address]])
+
+  return result
+
+}
 
 export async function getTransactionJson(txid: string): Promise<any> {
 
