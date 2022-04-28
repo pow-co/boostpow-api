@@ -29,9 +29,9 @@ const Router = require('koa-router');
 const router = new Router();
 
 import * as http from 'superagent'
-import * as models from '../models'
+import * as models from './models'
 
-import { getBoostJobsFromTx, persistBoostJob, importBoostJob, importBoostProof } from './boost'
+import { importBoostJobFromTxid, getBoostJobsFromTx, persistBoostJob, importBoostJob, importBoostProof } from './boost'
 
 app.use(json())
 app.use(cors())
@@ -83,7 +83,7 @@ router.post('/node/api/boost_job_transactions', async (ctx, next) => {
 
   try {
 
-    let jobs = await importBoostJob(ctx.request.body.txid)
+    let jobs = await importBoostJobFromTxid(ctx.request.body.txid)
 
     await events.emit('boost.job.tx.imported', { jobs })
 

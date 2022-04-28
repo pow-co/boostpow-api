@@ -24,14 +24,12 @@ module.exports = (sequelize, DataTypes) => {
     vout: DataTypes.INTEGER,
     value: DataTypes.INTEGER,
     timestamp: DataTypes.DATE,
-    inserted_at: DataTypes.DATE,
-    updated_at: DataTypes.DATE,
     spent: DataTypes.BOOLEAN,
     script: DataTypes.TEXT,
     spent_txid: DataTypes.STRING,
     spent_vout: DataTypes.INTEGER,
-    createdAt: { type: DataTypes.DATE, field: 'inserted_at' },
-    updatedAt: { type: DataTypes.DATE, field: 'updated_at' }
+    createdAt: { type: DataTypes.DATE },
+    updatedAt: { type: DataTypes.DATE }
   }, {
     sequelize,
     modelName: 'BoostJob',
