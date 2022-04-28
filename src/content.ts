@@ -1,5 +1,5 @@
 
-import * as models from '../models'
+import * as models from './models'
 
 import * as http from 'superagent'
 
