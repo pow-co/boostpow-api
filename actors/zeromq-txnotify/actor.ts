@@ -6,7 +6,7 @@ import * as boost from 'boostpow';
 
 import { Actor, Joi, log, getChannel } from 'rabbi';
 
-import { importBoostJob, importBoostProof } from '../../src/boost';
+import { importBoostJobFromTxid, importBoostProof } from '../../src/boost';
 
 import * as bsv from 'bsv'
 
@@ -92,7 +92,7 @@ export async function start() {
 
     let tx = new bsv.Transaction(rawtx)
 
-    await importBoostJob(tx.hash)
+    await importBoostJobFromTxid(tx.hash)
 
     for (let input of tx.inputs) {
       let boostjob = boost.BoostPowJob.fromRawTransaction(rawtx)
@@ -113,7 +113,7 @@ export async function start() {
           console.log('boost.proof.found.publish', tx.hash)
           channel.publish('proofofwork', 'boost_proof_found', Buffer.from(tx.hash))
 
-          importBoostProof(boostproof)
+          importBoostProof(tx.hash)
 
         }
 

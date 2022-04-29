@@ -4,7 +4,7 @@ require('dotenv').config();
 
 import { Actor, log } from 'rabbi';
 
-import * as models from '../../models'
+import * as models from '../../src/models'
 
 import { sendWebhooks } from '../../src/webhooks'
 
