@@ -116,16 +116,39 @@ server.route({
 
 server.route({
   method: 'GET',
-  path: '/api/v1/jobs',
-  handler: () => {},
+  path: '/api/v1/boost/jobs',
+  handler: handlers.BoostJobs.index,
   options: {
     description: 'List Available Jobs',
     notes: 'For miners looking to mine new jobs, list available jobs filtered by content, difficulty, reward, tag and category',
     tags: ['api'],
     response: {
-      failAction: 'log'
+      failAction: 'log',
+      schema: Joi.object({
+        jobs: Joi.array().items(Joi.object({
+          id: Joi.number(),
+          content: Joi.string().required(),
+          difficulty: Joi.number().required(),
+          category: Joi.string().required(),
+          tag: Joi.string().required(),
+          additionalData: Joi.string().required(),
+          userNonce: Joi.string().required(),
+          vout: Joi.number().required(),
+          value: Joi.number().required(),
+          timestamp: Joi.date().required(),
+          spent: Joi.boolean().required(),
+          script: Joi.string().required(),
+          spent_txid: Joi.string().optional(),
+          spent_vout: Joi.number().optional(),
+          createdAt: Joi.date().optional(),
+          updatedAt: Joi.date().optional()
+        }))
+      })
     },
     validate: {
+      query: Joi.object({
+        limit: Joi.number().optional()
+      })
     }
   }
 })
@@ -206,7 +229,7 @@ server.route({
   options: {
     description: 'Get Bitcoin Transaction by Txid',
     notes: 'Returns the transaction in hex, json, and includes a merkleproof',
-    tags: ['api'],
+    tags: ['experimental'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -230,7 +253,7 @@ server.route({
   options: {
     description: 'List Unspent Outputs For Address',
     notes: 'PREMIUM ENDPOINT! Only available to paying clients',
-    tags: ['api'],
+    tags: ['experimental'],
     response: {
       failAction: 'log'
     },

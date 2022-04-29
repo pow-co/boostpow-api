@@ -6,25 +6,64 @@ import { flatten } from 'lodash'
 
 import * as models from '../../models'
 
-export async function show(request, hapi) {
+import { Op } from 'sequelize'
 
-  let { txid } = request.params
+export async function index(request, hapi) {
 
-  const where = {
-    txid
-  };
+  try {
 
-  if (txid.match('_')) {
+    const limit = request.query.limit || 25;
 
-    const vout = txid.split('_')[1]
+    let jobs = await models.BoostJob.findAll({
+      where: {
+        spent: false,
+        script: {
+          [Op.ne]: null
+        }
+      },
+      order: [['difficulty', 'asc']],
+      limit
+    })
 
-    where['vout'] = txid.split('_')[1]
+    return { jobs }
+
+  } catch(error) {
+
+    return hapi.response({ error: error.message }).code(500)
 
   }
 
-  let job = await models.BoostJob.findOne({ where })
+}
 
-  return hapi.response({ job: job.toJSON() }).code(200)
+export async function show(request, hapi) {
+
+  try {
+
+    let { txid } = request.params
+
+    const where = {
+      txid
+    };
+
+    if (txid.match('_')) {
+
+      const vout = txid.split('_')[1]
+
+      where['vout'] = txid.split('_')[1]
+
+    }
+
+    let job = await models.BoostJob.findOne({ where })
+
+    return hapi.response({ job: job.toJSON() }).code(200)
+
+  } catch(error) {
+
+    console.error(error)
+
+    return hapi.response({ error }).code(500)
+
+  }
 
 }
 
