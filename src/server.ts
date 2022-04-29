@@ -99,24 +99,6 @@ router.post('/node/api/boost_job_transactions', async (ctx, next) => {
 
 })
 
-router.post('/node/api/boost_proof_transactions', async (ctx, next) => {
-
-  console.log("import boost proof transaction", ctx.request.body)
-
-  let tx = new bsv.Transaction(ctx.request.body.transaction)
-  
-  console.log('tx', tx)
-
-  let graph = boostpow.Graph({})
-
-  let proof = graph.BoostPowJobProof.fromTransaction(tx)
-
-  let record = await importBoostProof(proof)
-
-  ctx.body = { record }
-
-})
-
 /*
  *
   Log Work Submission
@@ -160,21 +142,8 @@ router.post('/node/api/work', async (ctx, next) => {
 
   }
 
-  let graph = boostpow.Graph({})
-
-  // Validate Work Against Schema
-  let proof = graph.BoostPowJobProof.fromTransaction(tx)
-
-  if (proof) {
-    events.emit('boost.work.invalid', { request_uid })
-  } else {
-    events.emit('boost.work.valid', { proof, request_uid })
-  }
-
-  // Check if Work Transaction Already Broadcast
-
   // Write Work To Database
-  let record = await importBoostProof(proof)
+  let record = await importBoostProof(tx.txid)
 
   if (record) {
     console.log('CACHE CONTENT', record)
