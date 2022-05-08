@@ -35,6 +35,33 @@ export async function index(request, hapi) {
 
 }
 
+export async function spent(request, hapi) {
+
+  try {
+
+    const limit = request.query.limit || 25;
+
+    let jobs = await models.BoostJob.findAll({
+      where: {
+        spent: true,
+        script: {
+          [Op.ne]: null
+        }
+      },
+      order: [['createdAt', 'desc']],
+      limit
+    })
+
+    return { jobs }
+
+  } catch(error) {
+
+    return hapi.response({ error: error.message }).code(500)
+
+  }
+
+}
+
 export async function show(request, hapi) {
 
   try {
