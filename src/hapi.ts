@@ -160,7 +160,7 @@ server.route({
 server.route({
   method: 'GET',
   path: '/api/v1/boost/work',
-  handler: handlers.BoostJobs.spent,
+  handler: handlers.BoostWork.index,
   options: {
     description: 'List Completed Work',
     notes: 'List recently performed work (completed jobs) filtered by content, difficulty, reward, tag and category',
@@ -190,7 +190,8 @@ server.route({
     },
     validate: {
       query: Joi.object({
-        limit: Joi.number().optional()
+        limit: Joi.number().optional(),
+        tag: Joi.string().optional()
       })
     }
   }
