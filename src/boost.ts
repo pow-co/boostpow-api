@@ -160,18 +160,66 @@ export async function checkBoostSpent(txid: string, vout: number): Promise<boole
 
 }
 
-export async function importBoostProof(txid: string): Promise<any> {
+export async function importBoostProofByTxid(txid: string): Promise<any> {
 
   const proof = await getBoostProof(txid)
+
+  return importBoostProof(proof)
+
+}
+
+export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
+
+  // ensure the transaction is broadcast to the network first
+
+  let tx = new bsv.Transaction(txhex)
+
+  console.log({ tx })
+
+  tx = await getTransaction(tx.hash)
+
+  if (!tx) {
+    
+    console.log('transaction not found')
+
+    try {
+
+      //broadcast transaction
+      let response = await call('sendrawtransaction', [txhex])
+
+      console.log(response)
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+  }
+
+  let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
+
+  console.log('PROOF', proof)
+
+  return importBoostProof(proof)
+
+}
+
+export async function importBoostProof(proof): Promise<any> {
+
+  console.log('importboostproof', proof)
 
   let where = {
     txid: proof.SpentTxid,
     vout: proof.SpentVout
   }
 
+
   let job = await models.BoostJob.findOne({
     where
   })
+
+  console.log({ job })
 
   if (!job) {
 
@@ -188,11 +236,15 @@ export async function importBoostProof(txid: string): Promise<any> {
 
   }
 
+  console.log('find proof record')
+
   let proof_record = await models.BoostWork.findOne({
     where: {
       job_txid: proof.SpentTxid
     }
   })
+
+  console.log({ proof_record })
 
   if (job.spend_txid && proof_record) {
 
@@ -201,6 +253,8 @@ export async function importBoostProof(txid: string): Promise<any> {
   } else {
 
     if (!proof_record) {
+
+      console.log('create boost work')
 
       proof_record = await models.BoostWork.create({
         job_txid: proof.SpentTxid,
@@ -213,16 +267,20 @@ export async function importBoostProof(txid: string): Promise<any> {
         value: job.value
       })
 
-      await events.emit('work.published', proof_record)
+      console.log('proof record', proof_record.toJSON())
+
+      //await events.emit('work.published', proof_record)
 
       job.spent = true;
       job.spent_txid = proof.Txid;
       job.spent_vout = proof.Vin;
       await job.save()
 
-      events.emit('job.completed', { job: job.toJSON(), work: proof_record })
+      //events.emit('job.completed', { job: job.toJSON(), work: proof_record })
 
     }
+
+    console.log('find job record')
 
     let jobRecord = await models.BoostJob.findOne({
       where: {
@@ -231,11 +289,15 @@ export async function importBoostProof(txid: string): Promise<any> {
       }
     })
 
+    console.log('found job record', jobRecord.toJSON())
+
     jobRecord.spend_txid = proof.SpentTxid
     jobRecord.spend_vout = proof.SpentVout
     jobRecord.spent = true
 
     await jobRecord.save()
+
+    console.log('job record updated', jobRecord.toJSON())
 
   }
 

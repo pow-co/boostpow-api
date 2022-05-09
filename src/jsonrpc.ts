@@ -2,6 +2,8 @@ require('dotenv').config()
 
 import * as http from 'superagent'
 
+import { log } from './log'
+
 interface RpcResponse {
   result: any;
 }
@@ -47,8 +49,7 @@ interface RawTx {
   json: any;
 }
 
-export async function getTransaction(txid: string): Promise<RawTx> {
-  console.log('getrawtransaction', txid)
+export async function getTransaction(txid: string): Promise<RawTx | null> {
 
   try {
 
@@ -64,6 +65,8 @@ export async function getTransaction(txid: string): Promise<RawTx> {
     }
 
   } catch(error) {
+
+    log.debug('gettransaction.error', error)
 
     return null
 

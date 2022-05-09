@@ -100,8 +100,8 @@ server.route({
 
 server.route({
   method: 'POST',
-  path: '/api/v1/work',
-  handler: () => {},
+  path: '/api/v1/boost/work',
+  handler: handlers.BoostWork.create,
   options: {
     description: 'Submit New Work',
     notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
@@ -110,6 +110,9 @@ server.route({
       failAction: 'log'
     },
     validate: {
+      payload: Joi.object({
+        transaction: Joi.string().required()
+      })
     }
   }
 })

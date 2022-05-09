@@ -6,6 +6,8 @@ import { flatten } from 'lodash'
 
 import * as models from '../../models'
 
+import { log } from '../../log'
+
 import { Op } from 'sequelize'
 
 export async function index(request, hapi) {
@@ -110,7 +112,7 @@ export async function create(request, hapi) {
 
   const { transaction } = request.payload
 
-  console.log("boost.job.tx.import", transaction)
+  log.info('boost.job.tx.import', { transaction })
 
   const tx = new Transaction(transaction)
 
