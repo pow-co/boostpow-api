@@ -54,7 +54,7 @@ jobs:
     steps:
       - run:
           name: Deploy to Web Servers
-          command: ssh ubuntu@pow.co "sudo chef-client -o recipe[pow.co::rabbi]"
+          command: ssh ubuntu@pow.co "sudo chef-client -o recipe[pow.co::api]"
 
 
 workflows:
