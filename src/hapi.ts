@@ -150,7 +150,8 @@ server.route({
     },
     validate: {
       query: Joi.object({
-        limit: Joi.number().optional()
+        limit: Joi.number().optional(),
+        tag: Joi.string().optional()
       })
     }
   }

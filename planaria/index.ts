@@ -4,24 +4,86 @@ const EventSource = require('eventsource')
 
 import * as boostpow from 'boostpow'
 
-import * as models from '../models'
+import * as models from '../src/models'
 
-const pg = require('knex')({
-  client: 'pg',
-  connection: process.env.DATABASE_URL
-});
-
-const rabbi = require('rabbi')
+import * as rabbi from 'rabbi'
 
 import * as powco from '../src/powco'
+
 import * as whatsonchain from '../src/whatsonchain'
 
+//import { Crawler } from '../src/bitbus_crawler'
 import { Crawler } from './crawler'
 
+import { log } from '../src/log'
+
+type PlanariaJSON = any;
+
+async function handlePlanariaJSON(json: PlanariaJSON) {
+
+  try {
+
+    // for each transaction get the full transaction from blockchain provider
+    let powcotx = await powco.getTransaction(json['tx']['h'])
+    let tx = await whatsonchain.getTransaction(json['tx']['h'])
+
+    // for each output in the transaction attempt to parse boost job
+    //
+    let entries = Array.from(powcotx.outputs.entries())
+
+    let jobs = entries.map(([index, output]) => {
+
+      return boostpow.BoostPowJob.fromTransaction(powcotx, index)
+
+    }).filter(job => !!job)
+
+    for (let job of jobs) {
+
+      console.log({ job })
+
+      // for each boost job parsed, query the database for a job at that txid and vout
+      // when a boost job is not found in the database record that job
+      let [record, isNew] = await models.BoostJob.findOrCreate({
+        where: {
+          txid: job.txid,
+          vout: job.vout
+        },
+        defaults: {
+          content: job.content.hex,
+          difficulty: job.difficulty,
+          category: job.category.hex,
+          tag: job.tag.hex,
+          additionalData: job.additionalData.hex,
+          userNonce: job.userNonce.hex,
+          txid: job.txid,
+          vout: job.vout,
+          value: job.value,
+          timestamp: tx.time,
+          script: job.toHex()
+        }
+      })
+      console.log({ record: record.toJSON(), isNew })
+
+      if (isNew) {
+        // when a new boost job is recorded in the database, publish an event to rabbi
+
+        log.info('boost.job.recorded', { job: job.toObject(), record: record.toJSON() })
+
+      }
+
+    }
+
+  } catch(error) {
+
+    console.error(error.message)
+
+  }
+
+}
 
 export async function sync() {
 
-  let block = await pg('planaria_records').orderBy('block_height', 'desc').limit(1).returning('block_height')
+  //let block = await pg('planaria_records').orderBy('block_height', 'desc').limit(1).returning('block_height')
 
   //const block_height_start = !!block[0] ? block[0]['block_height'] - 100 : 0;
   const block_height_start = 0
@@ -30,101 +92,15 @@ export async function sync() {
 
     query: {
       q: {
-        find: { "out.s0": "boostpow", "blk.i": { "$gt": block_height_start } },
+        find: { "out.s0": "boostpow", "blk.i": { "$gt": 738000 } },
       }
     },
 
-    onTransaction: async (json) => {
+    onTransaction: (json) => {
 
-      try {
+      log.info('planaria.json', json)
 
-        let record = await pg('planaria_records').where({
-          'txid': json['tx']['h']
-        }).select('_id')
-
-        if (record.length === 0) {
-          //console.log('record not found')
-
-          let params = {
-            _id: json['_id'],
-            //tx: tx.json,
-            txid: json['tx']['h'],
-            block_hash: json['blk']['h'],
-            block_height: json['blk']['i'],
-            time: json['blk']['t'],
-            inserted_at: new Date(),
-            updated_at: new Date()
-          }
-
-          let record = await pg('planaria_records')
-            .insert(params)
-            .returning('*')
-
-          let channel = await rabbi.getChannel()
-
-          channel.publish('proofofwork', 'boost_job_created', Buffer.from(JSON.stringify(params)))
-
-        }
-
-        let jobRecord = await models.BoostJob.findOne({
-          where: { txid: json['tx']['h'] }
-        })
-
-        if (!jobRecord) {
-
-          console.log(`JOB NOT FOUND ${json['tx']['h']}`)
-
-          let powcotx = await powco.getTransaction(json['tx']['h'])
-          let tx = await whatsonchain.getTransaction(json['tx']['h'])
-
-          console.log(tx)
-          console.log(powcotx)
-
-          try {
-
-            let boostjob = boostpow.BoostPowJob.fromTransaction(powcotx)
-
-            console.log('boostjob', boostjob)
-
-            if (boostjob) {
-
-              jobRecord = await models.BoostJob.create({
-                content: boostjob.content.hex,
-                difficulty: boostjob.difficulty,
-                category: boostjob.category.hex,
-                tag: boostjob.tag.hex,
-                additionalData: boostjob.additionalData.hex,
-                userNonce: boostjob.userNonce.hex,
-                txid: boostjob.txid,
-                vout: boostjob.vout,
-                value: boostjob.value,
-                timestamp: tx.time
-
-              })
-
-              console.log('boostpow job recorded', jobRecord.toJSON())
-
-            }
-
-          } catch(error) {
-
-            console.error('error', error)
-          }
-
-
-        } else {
-
-          console.log(`YES JOB FOUND ${json['tx']['h']}`)
-        }
-
-        //console.log(powcotx)
-        //console.log(tx)
-
-      } catch(error) {
-
-        console.error(error.message)
-
-      }
+      return handlePlanariaJSON(json)
 
     }
   })

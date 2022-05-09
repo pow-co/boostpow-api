@@ -9,7 +9,7 @@ const fetch = require('node-fetch')
 
 interface CrawlerParams {
   query: any;
-  onTransaction: Function
+  onTransaction: Function;
 }
 
 export class Crawler extends EventEmitter{
@@ -23,7 +23,6 @@ export class Crawler extends EventEmitter{
     this.query = params.query
     this.onTransaction = params.onTransaction
   }
-
 
   start() {
 

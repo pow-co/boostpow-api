@@ -16,6 +16,35 @@ export async function createByTxid(request, hapi) {
 
 }
 
+export async function index(request, hapi) {
+
+  const where = {
+  }
+
+  if (request.query.tag) {
+    where['tag'] = request.query.tag
+  }
+
+  try {
+
+    const limit = request.query.limit || 25;
+
+    let work = await models.BoostWork.findAll({
+      where,
+      order: [['createdAt', 'desc']],
+      limit
+    })
+
+    return { work }
+
+  } catch(error) {
+
+    return hapi.response({ error: error.message }).code(500)
+
+  }
+
+}
+
 export async function create(request, hapi) {
 
   try {

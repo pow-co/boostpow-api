@@ -344,11 +344,21 @@ export async function importBoostJobFromTxid(txid: string) {
 
   let records = await Promise.all(jobs.map(async job => {
 
-    let [job_record] = await pg('boost_jobs').where({ txid }).returning('*')
+    let record = await models.BoostJob.findOne({
 
-    if (job_record && job_record.script) {
+      where: {
 
-      return job_record
+        vout: job.vout,
+
+        txid: job.txid
+
+      }
+
+    })
+
+    if (record && record.script) {
+
+      return record
     }
 
     return persistBoostJob(job)

@@ -12,17 +12,25 @@ import { Op } from 'sequelize'
 
 export async function index(request, hapi) {
 
+  const where = {
+    spent: false,
+    script: {
+      [Op.ne]: null
+    }
+  }
+
+  if (request.query.tag) {
+    where['tag'] = request.query.tag
+  }
+
+  console.log('boost.jobs.list', { where })
+
   try {
 
     const limit = request.query.limit || 25;
 
     let jobs = await models.BoostJob.findAll({
-      where: {
-        spent: false,
-        script: {
-          [Op.ne]: null
-        }
-      },
+      where,
       order: [['difficulty', 'asc']],
       limit
     })
