@@ -6,6 +6,8 @@ import { log } from './log'
 
 const Joi = require('joi')
 
+import * as schema from './server/schema'
+
 import { join } from 'path'
 
 const Inert = require('@hapi/inert');
@@ -55,11 +57,14 @@ server.route({
   path: '/api/v1/boost/jobs',
   handler: handlers.BoostJobs.create,
   options: {
-    description: 'Submit Jobs To Index',
+    description: 'Submit Bitcoin Transactions Containing Boost Jobs To Index',
     notes: 'Receives boost job transactions in hex form and indexes them if they are valid bitcoin transactions',
-    tags: ['api'],
+    tags: ['api', 'jobs'],
     response: {
-      failAction: 'log'
+      failAction: 'log',
+      schema: Joi.object({
+        job: schema.Job
+      })
     },
     validate: {
       payload: Joi.object({
@@ -74,15 +79,15 @@ server.route({
   path: '/api/v1/boost/scripts',
   handler: handlers.Scripts.create,
   options: {
-    description: 'Get New Job Script',
+    description: 'Build Boost Job Bitcoin Script ASM from JSON',
     notes: 'Provide a Boost Job data structure and receive a boost job script in response. Useful for clients that do not want to include a boostpow sdk',
-    tags: ['api'],
+    tags: ['api', 'scripts'],
     response: {
       failAction: 'log',
       schema: Joi.object({
         script: Joi.object({
           hex: Joi.string().required()
-        }).required()
+        }).label('BoostJobScript').required()
       })
     },
     validate: {
@@ -103,9 +108,9 @@ server.route({
   path: '/api/v1/boost/work',
   handler: handlers.BoostWork.create,
   options: {
-    description: 'Submit New Work',
+    description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
     notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
-    tags: ['api'],
+    tags: ['api', 'work'],
     response: {
       failAction: 'log'
     },
@@ -124,7 +129,7 @@ server.route({
   options: {
     description: 'List Available Jobs',
     notes: 'For miners looking to mine new jobs, list available jobs filtered by content, difficulty, reward, tag and category',
-    tags: ['api'],
+    tags: ['api', 'jobs'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -164,28 +169,11 @@ server.route({
   options: {
     description: 'List Completed Work',
     notes: 'List recently performed work (completed jobs) filtered by content, difficulty, reward, tag and category',
-    tags: ['api'],
+    tags: ['api', 'work'],
     response: {
       failAction: 'log',
       schema: Joi.object({
-        jobs: Joi.array().items(Joi.object({
-          id: Joi.number(),
-          content: Joi.string().required(),
-          difficulty: Joi.number().required(),
-          category: Joi.string().required(),
-          tag: Joi.string().required(),
-          additionalData: Joi.string().required(),
-          userNonce: Joi.string().required(),
-          vout: Joi.number().required(),
-          value: Joi.number().required(),
-          timestamp: Joi.date().required(),
-          spent: Joi.boolean().required(),
-          script: Joi.string().required(),
-          spent_txid: Joi.string().optional(),
-          spent_vout: Joi.number().optional(),
-          createdAt: Joi.date().optional(),
-          updatedAt: Joi.date().optional()
-        }).label('Job'))
+        jobs: Joi.array().items(schema.Job)
       })
     },
     validate: {
@@ -204,7 +192,7 @@ server.route({
   options: {
     description: 'Get Job From Txid',
     notes: 'Get information about a job from a transaction id. Optionally postfix with _v0, _v1, etc to specify the output containing the job',
-    tags: ['api'],
+    tags: ['api', 'jobs'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -228,7 +216,7 @@ server.route({
   options: {
     description: 'Import Existing Job Transaction By Txid',
     notes: 'For any job that has not already been indexed by the system but has already been broadcast through the peer to peer network',
-    tags: ['api'],
+    tags: ['api', 'jobs'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -252,7 +240,7 @@ server.route({
   options: {
     description: 'Rank Content By Proof of Work Boosted',
     notes: 'In a given time period, return the total sum of all boost work for every piece of content. May be filtered by tag',
-    tags: ['api'],
+    tags: ['api', 'rankings'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -284,7 +272,7 @@ server.route({
   options: {
     description: 'Show Content Jobs & Work',
     notes: 'For applications looking to display work for a given piece of content, or miners looking to mine specific content. Includes jobs, work, and content metadata',
-    tags: ['beta'],
+    tags: ['beta', 'content'],
     response: {
       failAction: 'log'
     },
@@ -303,7 +291,7 @@ server.route({
   options: {
     description: 'Get Bitcoin Transaction by Txid',
     notes: 'Returns the transaction in hex, json, and includes a merkleproof',
-    tags: ['experimental'],
+    tags: ['experimental', 'transactions'],
     response: {
       failAction: 'log',
       schema: Joi.object({
@@ -327,7 +315,7 @@ server.route({
   options: {
     description: 'List Unspent Outputs For Address',
     notes: 'PREMIUM ENDPOINT! Only available to paying clients',
-    tags: ['experimental'],
+    tags: ['experimental', 'utxos'],
     response: {
       failAction: 'log'
     },
@@ -347,7 +335,8 @@ const swaggerOptions = {
   },
   schemes: ['https'],
   host: 'pow.co',
-  documentationPath: '/docs'
+  documentationPath: '/docs',
+  grouping: 'tags'
 }
 
 export async function start() {
