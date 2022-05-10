@@ -4,7 +4,7 @@
    "private": true,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
-      "test": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 test/end_to_end_test.ts --exit",
+      "test": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
       "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 $1",
       "start": "ts-node src/hapi.ts"
    },
