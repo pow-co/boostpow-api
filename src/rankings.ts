@@ -3,18 +3,41 @@ import { pg } from './database'
 
 import * as moment from 'moment'
 
-export async function getRankings(startTimestamp?: number): Promise<any[]> {
+interface RankingOptions {
+  tag?: string;
+}
+
+export async function getRankings(startTimestamp?: number, options: RankingOptions = {}): Promise<any[]> {
 
   // sanitize for sql query to preven injection attack
   var timestamp = startTimestamp
 
+  console.log({ timestamp })
+
+  if (!timestamp) { timestamp = 0 }
+
   var date = new Date(timestamp * 1000);
 
-  var query = !!timestamp ?
-  `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" where timestamp > to_timestamp(${timestamp}) group by content order by difficulty desc limit 1000;`
-  : `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" group by content order by difficulty desc limit 1000;`
+  var result;
 
-  let {rows: content} = await pg.raw(query)
+  console.log({ timestamp })
+
+  if (options['tag']) {
+
+    let query = `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" where timestamp > to_timestamp(?) and tag = ? group by content order by difficulty desc limit 1000;`
+
+    result = await pg.raw(query, [timestamp, options['tag']])
+
+  } else {
+
+    let query = `select content, sum(value) as value, sum(difficulty) as difficulty from "boost_job_proofs" where timestamp > to_timestamp(?) group by content order by difficulty desc limit 1000;`
+
+    result = await pg.raw(query, [timestamp])
+  }
+
+  const content = result.rows
+
+  //let {rows: content} = await pg.raw(query)
 
   if (content.length === 0) { return [] }
 

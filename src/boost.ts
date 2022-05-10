@@ -263,6 +263,7 @@ export async function importBoostProof(proof): Promise<any> {
         spend_vout: proof.Vin,
         content: job.content,
         difficulty: job.difficulty,
+        tag: job.tag,
         timestamp: new Date(),
         value: job.value
       })
@@ -305,7 +306,7 @@ export async function importBoostProof(proof): Promise<any> {
 
 }
 
-export async function importBoostJob(job: typeof BoostPowJob, txhex: string) {
+export async function importBoostJob(job: typeof BoostPowJob, txhex?: string) {
 
   let record = await models.BoostJob.findOne({
     where: {

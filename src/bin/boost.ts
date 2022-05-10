@@ -17,7 +17,7 @@ import * as program from 'commander'
 
 import pg from '../database'
 
-import * as models from '../../models'
+import * as models from '../models'
 
 import * as boost from 'boostpow';
 
@@ -194,7 +194,7 @@ program
       console.log('HEX', job.toHex())
       console.log('TO SCRIPT', job.toScript())
 
-      console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
+      //console.log('FROM SCRIPT', boost.BoostPowJob.fromScript(job.toHex()))
 
     } catch(error) {
       console.error(error)
@@ -383,6 +383,75 @@ program
     }
   
   })
+
+program
+  .command('fillworktags')
+  .action(async () => {
+
+    try {
+
+      let jobs = await models.BoostJob.findAll({
+
+        where: {
+
+          tag: {
+
+            [Op.ne]: null
+
+          }
+
+        }
+
+      })
+
+      for (let job of jobs) {
+
+        let work = await models.BoostWork
+
+      }
+
+      let works = await models.BoostWork.findAll()
+
+      for (let work of works) {
+
+        console.log({ work: work.toJSON() })
+
+        if (!work.tag) {
+
+          let job = await models.BoostJob.findOne({
+
+            where: {
+              spent_txid: work.spend_txid,
+              spent_vout: work.spend_vout
+            }
+
+          })
+
+          if (job && job.tag) {
+
+            console.log({ job: job.toJSON() })
+
+            work.tag = job.tag
+            await work.save()
+
+          }
+
+        }
+
+      }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+
+    process.exit(0)
+
+
+  })
+
+
 
 program
   .command('backfillallwork')

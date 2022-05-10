@@ -245,6 +245,32 @@ server.route({
   }
 })
 
+server.route({
+  method: 'GET',
+  path: '/api/v1/boost/rankings',
+  handler: handlers.Rankings.index,
+  options: {
+    description: 'Rank Content By Proof of Work Boosted',
+    notes: 'In a given time period, return the total sum of all boost work for every piece of content. May be filtered by tag',
+    tags: ['api'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: Joi.object({
+          id: Joi.number().required()
+        }).required()
+      }).required()
+    },
+    validate: {
+      query: Joi.object({
+        from_timestamp: Joi.number().optional(),
+        tag: Joi.string().optional(),
+        content: Joi.string().optional()
+      }).required()
+    }
+  }
+})
+
 
 
 server.route({
@@ -254,7 +280,7 @@ server.route({
   options: {
     description: 'Show Content Jobs & Work',
     notes: 'For applications looking to display work for a given piece of content, or miners looking to mine specific content. Includes jobs, work, and content metadata',
-    tags: ['api'],
+    tags: ['beta'],
     response: {
       failAction: 'log'
     },
@@ -311,7 +337,7 @@ server.route({
 
 const swaggerOptions = {
   info: {
-    title: 'Pow.co API Documentation',
+    title: 'Powco API Docs',
     version: Pack.version,
   },
   schemes: ['https'],
