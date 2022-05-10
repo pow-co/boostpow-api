@@ -17,7 +17,7 @@ import * as boost from 'boostpow';
 
 const { BoostPowJob } = require('boostpow')
 
-import { Wallet } from 'anypay-simple-wallet'
+import { loadWallet } from 'anypay-simple-wallet'
 
 import * as models from './models'
 
@@ -383,12 +383,12 @@ export async function buildNewJobTransaction(job: BoostPowJob): Promise<bsv.Tran
 
   job = boost.BoostPowJob.fromObject(job)
 
-  const wallet = Wallet.fromWIF(process.env.BSV_SIMPLE_WALLET_WIF)
+  let wallet = (await loadWallet()).holdings[0]
 
-  let utxos = await wallet.getUnspentOutputs()
+  let balance = await wallet.balance()
 
   let tx = new bsv.Transaction()
-    .from(utxos)
+    .from(wallet.unspent)
     .change(wallet.address)
 
   tx.addOutput(
