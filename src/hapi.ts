@@ -185,7 +185,7 @@ server.route({
           spent_vout: Joi.number().optional(),
           createdAt: Joi.date().optional(),
           updatedAt: Joi.date().optional()
-        }))
+        }).label('Job'))
       })
     },
     validate: {
@@ -256,10 +256,14 @@ server.route({
     response: {
       failAction: 'log',
       schema: Joi.object({
-        job: Joi.object({
-          id: Joi.number().required()
-        }).required()
-      }).required()
+        rankings: Joi.array().items({
+          content: Joi.string().required(),
+          value: Joi.number().required(),
+          difficulty: Joi.number().required(),
+          rank: Joi.number().required(),
+          content_type: Joi.string().optional()
+        }).required().label('Ranking')
+      }).required().label('Rankings')
     },
     validate: {
       query: Joi.object({
@@ -339,9 +343,11 @@ const swaggerOptions = {
   info: {
     title: 'Powco API Docs',
     version: Pack.version,
+    description: 'Proof of Work Service Powered by Boost POW'
   },
   schemes: ['https'],
-  host: 'pow.co'
+  host: 'pow.co',
+  documentationPath: '/docs'
 }
 
 export async function start() {
