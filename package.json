@@ -6,7 +6,7 @@
    "scripts": {
       "test": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
       "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 $1",
-      "start": "ts-node src/hapi.ts"
+      "start": "ts-node src/main.ts"
    },
    "keywords": [],
    "author": "Steven Zeiler",
@@ -51,6 +51,7 @@
       "node-json-rpc": "0.0.1",
       "pg": "^8.4.0",
       "phoenix-channels": "^1.0.0",
+      "prom-client": "^14.0.1",
       "public-ip": "^4.0.4",
       "rabbi": "^1.17.4",
       "redis": "^3.1.2",

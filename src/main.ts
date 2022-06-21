@@ -10,6 +10,8 @@ import * as schema from './server/schema'
 
 import { join } from 'path'
 
+var register = require('prom-client').register;
+
 const Inert = require('@hapi/inert');
 
 const Vision = require('@hapi/vision');
@@ -19,6 +21,8 @@ const HapiSwagger = require('hapi-swagger');
 const Pack = require('../package');
 
 import { load } from './server/handlers'
+
+import { register as prometheus } from './metrics'
 
 const handlers = load(join(__dirname, './server/handlers'))
 
@@ -34,6 +38,14 @@ export const server = new Server({
     }
   }
 });
+
+server.route({
+  method: 'GET',
+  path: '/metrics',
+  handler: async (req, h) => {
+    return h.response(await prometheus.metrics())
+  }
+})
 
 // POST /node/api/boost_jobs
 // POST /node/api/boost_job_transactions
