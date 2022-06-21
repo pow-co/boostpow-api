@@ -339,6 +339,24 @@ server.route({
   }
 })
 
+server.route({
+  method: 'POST',
+  path: '/mapi/tx',
+  handler: handlers.MapiTransactions.create,
+  options: {
+    description: 'Submit a raw transaction directly to powco nodes',
+    tags: ['api', 'mapi', 'transactions'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      payload: Joi.object({
+        rawtx: Joi.string().required()
+      })
+    }
+  }
+})
+
 const swaggerOptions = {
   info: {
     title: 'Powco API Docs',

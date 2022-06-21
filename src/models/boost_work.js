@@ -1,4 +1,8 @@
+
 'use strict';
+
+const BigNumber = require('bignumber.js')
+
 const {
   Model
 } = require('sequelize');
@@ -22,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    profitability: DataTypes.DECIMAL,
     signature: DataTypes.TEXT,
     content: {
       type: DataTypes.STRING,
@@ -42,6 +47,13 @@ module.exports = (sequelize, DataTypes) => {
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE }
   }, {
+    hooks: {
+      beforeCreate: (job, options) => {
+        let difficulty = new BigNumber(job.difficulty)
+        let value = new BigNumber(job.value)
+        job.profitability = value.dividedBy(difficulty).toNumber()
+      }
+    },
     sequelize,
     modelName: 'BoostWork',
     tableName: 'boost_job_proofs'
