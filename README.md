@@ -14,7 +14,6 @@ npm install --save proofofwork-miner
 ```
 import { Miner } from 'proofofwork-miner'
 
-
 let miner = new Miner()
 
 miner.mine({
@@ -23,3 +22,13 @@ miner.mine({
 })
 
 ```
+### System Events
+
+- boost.job.created
+- boost.job.received
+- boost.job.detected
+
+- boost.proof.created
+- boost.proof.received
+- boost.proof.detected
+

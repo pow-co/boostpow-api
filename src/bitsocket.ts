@@ -1,7 +1,11 @@
 
 const EventSource = require('eventsource')
 
+import { EventEmitter } from 'events'
+
 var btoa = require('btoa');
+
+import { CrawlerParams } from './bitbus_crawler'
 
 const query = {
   q: {
@@ -10,10 +14,9 @@ const query = {
     //sort: { "blk.i": 1 },
     //project: { "blk": 1, "tx.h": 1, "out.s4": 1, "out.o1": 1 }
   },
-  lastEventId: "5ee2b2bce8404fe732a6a4f5"
+  //lastEventId: "5ee2b2bce8404fe732a6a4f5"
 };
 
-const b64 = btoa(JSON.stringify(query))
 // Subscribe
 //
 
@@ -38,8 +41,42 @@ sock.onmessage = function(e) {
 }
 */
 //var b64 = Buffer.from(JSON.stringify(query)).toString("base64")
-var url = "https://txo.bitsocket.network/s/" + b64;
-var socket = new EventSource(url);
-socket.onmessage = function(e) {
-  console.log(e.data)
+
+export class BitSocket extends EventEmitter {
+
+  query: string;
+
+  onTransaction: Function;
+
+  constructor(params: CrawlerParams) {
+    super()
+    this.query = params.query
+    this.onTransaction = params.onTransaction
+  }
+  
+  open() {
+
+    const b64 = btoa(JSON.stringify({ q: this.query }))
+
+    var url = "https://txo.bitsocket.network/s/" + b64;
+
+    var socket = new EventSource(url);
+
+    socket.onmessage = (e) => {
+
+      const { data } = JSON.parse(e.data)
+
+      for (let transaction of data) {
+
+        this.onTransaction(transaction)
+
+      }
+
+      //console.log(e.data)
+
+    }
+
+  }
+
 }
+

@@ -86,6 +86,8 @@ async function sync() {
       //project: { "blk": 1, "tx.h": 1, "out.s4": 1, "out.o1": 1 }
     }
   };
+
+  console.log({ query })
   fetch("https://txo.bitbus.network/block", {
     method: "post",
     headers: {

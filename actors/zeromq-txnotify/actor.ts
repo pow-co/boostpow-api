@@ -40,9 +40,9 @@ export async function start() {
   const channel = await getChannel()
 
   let socket = connectHashtxSocket()
+
   let rawsocket = connectRawtxSocket()
 
-  /*
   connectHashtxSocket().on("message", function(topic, msg) {
 
     log.info(msg.toString('hex'));
@@ -50,14 +50,13 @@ export async function start() {
     channel.publish('proofofwork', 'zeromq_hashtx', Buffer.from(msg.toString('hex')))
      
   });
-  */
 
-  /*connectRawtxSocket().on("message", (topic, msg) => {
+  connectRawtxSocket().on("message", (topic, msg) => {
 
     log.info(msg.toString('hex'));
 
   })
-  */
+
   channel.prefetch(1000)
 
   Actor.create({

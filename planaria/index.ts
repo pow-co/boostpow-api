@@ -100,7 +100,7 @@ export async function sync() {
 
       log.info('planaria.json', json)
 
-      return handlePlanariaJSON(json)
+      //return handlePlanariaJSON(json)
 
     }
   })

@@ -1,272 +1,4 @@
 
-import * as boost from 'boostpow'
-
-import * as boostpow from 'boostpow'
-
-import { events } from 'rabbi'
-
-import { getRankings, getRankingsTimeframes, getContentRankings } from './rankings'
-
-import { cacheContent } from './content'
-
-import { getAveragePrice } from './prices'
-
-import * as uuid from 'uuid'
-
-import * as bsv from 'bsv'
-
-import { Op } from 'sequelize'
-
-import { getTransaction, call } from './jsonrpc'
-
-const json = require('koa-json')
-const Koa = require('koa')
-const app = new Koa()
-const cors = require('@koa/cors')
-const bodyParser = require('koa-bodyparser')
-const respond = require('koa-respond')
-const Router = require('koa-router');
-const router = new Router();
-
-import * as http from 'superagent'
-import * as models from './models'
-
-import { importBoostJobFromTxid, getBoostJobsFromTx, persistBoostJob, importBoostJob, importBoostProof } from './boost'
-
-app.use(json())
-app.use(cors())
-app.use(bodyParser())
-app.use(router.routes())
-app.use(respond())
-
-router.post('/node/api/boost_jobs', (ctx, next) => {
-
-  console.log("format job", ctx.request.body)
-
-  let params = {
-    content: ctx.request.body.content,
-    diff: parseFloat(ctx.request.body.difficulty)
-  }
-
-  let job = boost.BoostPowJob.fromObject(params)
-
-  const asm = job.toASM()
-  const hex = job.toHex()
-
-  ctx.body = Object.assign(params, { asm, hex })
-
-})
-
-router.post('/node/api/jobs/new', (ctx, next) => {
-
-  console.log("format job", ctx.request.body)
-
-  let params = {
-    content: ctx.request.body.content,
-    diff: parseFloat(ctx.request.body.difficulty)
-  }
-
-  let job = boost.BoostPowJob.fromObject(params)
-
-  const asm = job.toASM()
-  const hex = job.toHex()
-
-  ctx.body = Object.assign(params, { asm, hex })
-
-})
-
-router.post('/node/api/boost_job_transactions', async (ctx, next) => {
-
-  console.log("import job transaction by txid", ctx.request.body)
-
-  await events.emit('boost.job.tx.submission', { txid: ctx.request.body.txid })
-
-  try {
-
-    let jobs = await importBoostJobFromTxid(ctx.request.body.txid)
-
-    await events.emit('boost.job.tx.imported', { jobs })
-
-    ctx.body = { jobs }
-
-  } catch(error) {
-
-    await events.emit('boost.job.tx.submission.error', { error })
-
-    ctx.body = { error: error.message }
-
-  }
-
-})
-
-/*
- *
-  Log Work Submission
-  Validate Work Against Schema
-  Log Any Validation Error
-  Check If Work Already Performed
-  Log Any Duplicate Work
-  Check if Work Already Broadcast
-  Log If Work Already Broadcast
-  Broadcast New Work
-  Log If Work Accepted or Rejected
-  If Accepted Write Work to Database
- *
- */
-router.post('/node/api/work', async (ctx, next) => {
-
-  let request_uid = uuid.v4()
-
-  console.log("import boost proof transaction", ctx.request.body)
-
-  let transaction = ctx.request.body.transaction
-
-  // Log Work Submission
-  events.emit('boost.work.tx.submission', { transaction, request_uid })
-
-  var tx;
-
-  try {
-
-    tx = new bsv.Transaction(ctx.request.body.transaction)
-    
-    console.log('tx', tx)
-
-  } catch(error) {
-
-    events.emit('boost.work.tx.submission.error', { error, request_uid })
-
-    ctx.body = { error: error.message }
-
-    return
-
-  }
-
-  // Write Work To Database
-  let record = await importBoostProof(tx.txid)
-
-  if (record) {
-    console.log('CACHE CONTENT', record)
-    cacheContent(record.content)
-  }
-
-  events.emit('boost.work.imported', { record, request_uid })
-
-  ctx.body = { record }
-
-
-})
-
-router.get('/node/api/content/:txid', async (ctx, next) => {
-
-  let content = await cacheContent(ctx.request.params.txid)
-
-  ctx.body = { content }
-
-})
-
-// BEGIN BOOSTPOW_API HANDLERS
-
-/*
- * 
-   Log Job Submission
-   Validate Job Against Schema
-   Log Any Validation Error
-   Check if Job is Broadcast
-   Broadcast Job if not Broadcast
-   Log Error If Job Not Accepted by Network
-   If Valid Write Job To Jobs Database
- *
- */
-router.post('/node/api/jobs', async (ctx, next) => {
-
-  let request_uid = uuid.v4()
-
-  let transaction = ctx.request.body.transaction
-
-  console.log('submit job', ctx.request.body)
-
-  // Log Work Submission
-  events.emit('boost.job.tx.submission', { transaction, request_uid })
-
-  // Validate Job Against Schema
-  var tx;
-  try {
-
-    tx = new bsv.Transaction(ctx.request.body.transaction)
-    events.emit('boost.job.tx.submission.validtx', { transaction, request_uid })
-
-
-  } catch(error) {
-
-    // Log Any Validation Error
-    events.emit('boost.job.tx.submission.error', { error, request_uid })
-
-    ctx.badRequest({ error: 'invalid job transaction' })
-  }
-
-  let jobs = getBoostJobsFromTx(tx)
-
-  if (jobs.length < 1) {
-
-    // Log Any Validation Error
-    events.emit('boost.job.tx.submission.error', { error: 'no jobs found', request_uid})
-    ctx.badRequest({ error: 'invalid job transaction' })
-
-  }
-
-  for (let job of jobs) {
-
-    let acceptedTx = await getTransaction(tx.hash)
-
-    // check if Job is Broadcast
-    if (acceptedTx) {
-
-      events.emit('boost.job.tx.submission.error', { error: 'tx already accepted', request_uid})
-
-    } else {
-
-      try {
-
-        // Broadcast Job if not Broadcast
-        let response = await call('sendrawtransaction', [transaction])
-        console.log(response)
-
-        events.emit('boost.job.tx.submission.broadcast.accepted', { response, request_uid})
-      } catch(error) {
-        console.error(error)
-
-        // Log Error If Job Not Accespted By Network
-        events.emit('boost.job.tx.submission.broadcast.error', { error, request_uid})
-        ctx.badRequest({ error: error })
-
-      }
-
-    }
-
-    // If Valid Write Job to Jobs Database
-    let record = await persistBoostJob(job)
-
-    events.emit('boost.job.tx.submission.persisted', { record, request_uid})
-
-    ctx.body = { record }
-
-  }
- 
-})
-
-router.post('/api/v1/work', (ctx, next) => {
-
-})
-
-router.post('/v1/main/boost/jobs/:txid/proof', (ctx, next) => {
-
-})
-
-router.get('/v1/main/boost/jobs/:txid', (ctx, next) => {
-
-})
-
 interface BoostSearchParams {
   contentutf8?: string;
   content?: string;
@@ -298,97 +30,377 @@ interface BoostSearchParams {
   expanded?: boolean;
 }
 
-router.get('/node/v1/ranking/value', async (ctx, next) => {
+import { Server } from '@hapi/hapi'
 
-  var limit = ctx.request.query.limit || 100;
-  var offset = ctx.request.query.offset || 0;
+import { log } from './log'
 
-  var where = {}
+const Joi = require('joi')
 
-  if (ctx.request.query.content_type) {
-    where['content_type'] = ctx.request.query.content_type
+import * as schema from './server/schema'
+
+import { join } from 'path'
+
+var register = require('prom-client').register;
+
+const Inert = require('@hapi/inert');
+
+const Vision = require('@hapi/vision');
+
+const HapiSwagger = require('hapi-swagger');
+
+const Pack = require('../package');
+
+import { load } from './server/handlers'
+
+import { register as prometheus } from './metrics'
+
+const handlers = load(join(__dirname, './server/handlers'))
+
+export const server = new Server({
+  host: process.env.HOST || "0.0.0.0",
+  port: process.env.PORT || 8000,
+  routes: {
+    cors: true,
+    validate: {
+      options: {
+        stripUnknown: true
+      }
+    }
   }
+});
 
-  if (ctx.request.query.content_category) {
-    where['content_type'] = {[Op.like]: `%${ctx.request.query.content_category}%`}
+server.route({
+  method: 'GET',
+  path: '/metrics',
+  handler: async (req, h) => {
+    return h.response(await prometheus.metrics())
   }
-
-  let content = await models.Content.findAll({
-    order: [['locked_value', 'desc']],
-    where,
-    limit,
-    offset
-  })
-
-
-  content = content.map(content => {
-    offset++
-    return Object.assign(content.toJSON(), { rank: offset })
-  })
-
-  ctx.body = { content }
-
 })
 
-
-router.get('/node/v1/ranking', async (ctx, next) => {
-
-  let timestamp = ctx.request.query.from_timestamp
-
-  let content = await getRankings(timestamp)
-
-  if (content.length === 0) {
-    ctx.body = { content: [] }
-    return
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/jobs',
+  handler: handlers.BoostJobs.create,
+  options: {
+    description: 'Submit Bitcoin Transactions Containing Boost Jobs To Index',
+    notes: 'Receives boost job transactions in hex form and indexes them if they are valid bitcoin transactions',
+    tags: ['api', 'jobs'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: schema.Job
+      })
+    },
+    validate: {
+      payload: Joi.object({
+        transaction: Joi.string().required()
+      })
+    }
   }
-
-  let price = await getAveragePrice(timestamp)
-
-  var i = 0;
-  content = content.map(content => {
-    i++
-    return Object.assign(content, { rank: i })
-  })
-  
-  ctx.body = Object.assign(price, { content })
-
 })
 
-router.get('/node/v1/ranking-timeframes', async (ctx, next) => {
-
-  let timeframes = await getRankingsTimeframes()
-
-  ctx.body = { timeframes }
-
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/scripts',
+  handler: handlers.Scripts.create,
+  options: {
+    description: 'Build Boost Job Bitcoin Script ASM from JSON',
+    notes: 'Provide a Boost Job data structure and receive a boost job script in response. Useful for clients that do not want to include a boostpow sdk',
+    tags: ['api', 'scripts'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        script: Joi.object({
+          hex: Joi.string().required()
+        }).label('BoostJobScript').required()
+      })
+    },
+    validate: {
+      payload: Joi.object({
+        content: Joi.string().required(),
+        diff: Joi.number().required(),
+        category: Joi.string().optional(),
+        tag: Joi.string().optional(),
+        additionalData: Joi.string().optional(),
+        userNonce: Joi.string().optional()
+      })
+    }
+  }
 })
 
-router.get('/node/v1/content/:content/rankings', async (ctx, next) => {
-
-  const content = ctx.request.params.content
-
-  let rankings = await getContentRankings(content)
-
-  ctx.body = { content, rankings }
-
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/work',
+  handler: handlers.BoostWork.create,
+  options: {
+    description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
+    notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
+    tags: ['api', 'work'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      payload: Joi.object({
+        transaction: Joi.string().required()
+      })
+    }
+  }
 })
 
-router.get('/v1/main/boost/search', (ctx, next) => {
-
-
-
+server.route({
+  method: 'GET',
+  path: '/api/v1/boost/jobs',
+  handler: handlers.BoostJobs.index,
+  options: {
+    description: 'List Available Jobs',
+    notes: 'For miners looking to mine new jobs, list available jobs filtered by content, difficulty, reward, tag and category',
+    tags: ['api', 'jobs'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        jobs: Joi.array().items(Joi.object({
+          id: Joi.number(),
+          content: Joi.string().required(),
+          difficulty: Joi.number().required(),
+          category: Joi.string().required(),
+          tag: Joi.string().required(),
+          additionalData: Joi.string().required(),
+          userNonce: Joi.string().required(),
+          vout: Joi.number().required(),
+          value: Joi.number().required(),
+          timestamp: Joi.date().required(),
+          spent: Joi.boolean().required(),
+          script: Joi.string().required(),
+          spent_txid: Joi.string().optional(),
+          spent_vout: Joi.number().optional(),
+          createdAt: Joi.date().optional(),
+          updatedAt: Joi.date().optional()
+        }))
+      })
+    },
+    validate: {
+      query: Joi.object({
+        limit: Joi.number().optional(),
+        tag: Joi.string().optional()
+      })
+    }
+  }
 })
 
-router.get('/v1/main/boost/id/:id', (ctx, next) => {
-
+server.route({
+  method: 'GET',
+  path: '/api/v1/boost/work',
+  handler: handlers.BoostWork.index,
+  options: {
+    description: 'List Completed Work',
+    notes: 'List recently performed work (completed jobs) filtered by content, difficulty, reward, tag and category',
+    tags: ['api', 'work'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        jobs: Joi.array().items(schema.Job)
+      })
+    },
+    validate: {
+      query: Joi.object({
+        limit: Joi.number().optional(),
+        tag: Joi.string().optional()
+      })
+    }
+  }
 })
 
-// END BOOSTPOW_API HANDLERS
+server.route({
+  method: 'GET',
+  path: '/api/v1/boost/jobs/{txid}',
+  handler: handlers.BoostJobs.show,
+  options: {
+    description: 'Get Job From Txid',
+    notes: 'Get information about a job from a transaction id. Optionally postfix with _v0, _v1, etc to specify the output containing the job',
+    tags: ['api', 'jobs'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: Joi.object({
+          id: Joi.number().required()
+        }).required()
+      }).required()
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      }).required()
+    }
+  }
+})
 
-export async function startServer() {
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/jobs/{txid}',
+  handler: handlers.BoostJobs.createByTxid,
+  options: {
+    description: 'Import Existing Job Transaction By Txid',
+    notes: 'For any job that has not already been indexed by the system but has already been broadcast through the peer to peer network',
+    tags: ['api', 'jobs'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        job: Joi.object({
+          id: Joi.number().required()
+        }).required()
+      }).required()
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      }).required()
+    }
+  }
+})
 
-  return { app }
+server.route({
+  method: 'GET',
+  path: '/api/v1/boost/rankings',
+  handler: handlers.Rankings.index,
+  options: {
+    description: 'Rank Content By Proof of Work Boosted',
+    notes: 'In a given time period, return the total sum of all boost work for every piece of content. May be filtered by tag',
+    tags: ['api', 'rankings'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        rankings: Joi.array().items({
+          content: Joi.string().required(),
+          value: Joi.number().required(),
+          difficulty: Joi.number().required(),
+          rank: Joi.number().required(),
+          content_type: Joi.string().optional()
+        }).required().label('Ranking')
+      }).required().label('Rankings')
+    },
+    validate: {
+      query: Joi.object({
+        from_timestamp: Joi.number().optional(),
+        tag: Joi.string().optional(),
+        content: Joi.string().optional()
+      }).required()
+    }
+  }
+})
+
+
+
+server.route({
+  method: 'GET',
+  path: '/api/v1/content/{txid}',
+  handler: () => {},
+  options: {
+    description: 'Show Content Jobs & Work',
+    notes: 'For applications looking to display work for a given piece of content, or miners looking to mine specific content. Includes jobs, work, and content metadata',
+    tags: ['beta', 'content'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      })
+    }
+  }
+})
+
+server.route({
+  method: 'GET',
+  path: '/api/v1/tx/{txid}',
+  handler: handlers.Transactions.show,
+  options: {
+    description: 'Get Bitcoin Transaction by Txid',
+    notes: 'Returns the transaction in hex, json, and includes a merkleproof',
+    tags: ['experimental', 'transactions'],
+    response: {
+      failAction: 'log',
+      schema: Joi.object({
+        txhex: Joi.string().required(),
+        txjson: Joi.object().required(),
+        merkleproof: Joi.object().required()
+      })
+    },
+    validate: {
+      params: Joi.object({
+        txid: Joi.string().required()
+      })
+    }
+  }
+})
+
+server.route({
+  method: 'GET',
+  path: '/api/v1/utxo/{address}',
+  handler: handlers.UnspentOutputs.index,
+  options: {
+    description: 'List Unspent Outputs For Address',
+    notes: 'PREMIUM ENDPOINT! Only available to paying clients',
+    tags: ['experimental', 'utxos'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      params: Joi.object({
+        address: Joi.string().required()
+      })
+    }
+  }
+})
+
+server.route({
+  method: 'POST',
+  path: '/mapi/tx',
+  handler: handlers.MapiTransactions.create,
+  options: {
+    description: 'Submit a raw transaction directly to powco nodes',
+    tags: ['api', 'mapi', 'transactions'],
+    response: {
+      failAction: 'log'
+    },
+    validate: {
+      payload: Joi.object({
+        rawtx: Joi.string().required()
+      })
+    }
+  }
+})
+
+const swaggerOptions = {
+  info: {
+    title: 'Powco API Docs',
+    version: Pack.version,
+    description: 'Proof of Work Service Powered by Boost POW'
+  },
+  schemes: ['https'],
+  host: 'pow.co',
+  documentationPath: '/docs',
+  grouping: 'tags'
+}
+
+export async function start() {
+
+  await server.register([
+      Inert,
+      Vision,
+      {
+          plugin: HapiSwagger,
+          options: swaggerOptions
+      }
+  ]);
+
+  await server.start();
+
+  log.info(server.info)
 
 }
 
-export { app }
+if (require.main === module) {
 
+  start()
+
+}

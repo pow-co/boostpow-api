@@ -1,5 +1,5 @@
 
-import { server } from '../../src/main'
+import { server } from '../../src/server'
 
 import { expect } from '../utils'
 

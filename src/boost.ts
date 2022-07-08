@@ -1,7 +1,11 @@
 
-import { getTransaction, call } from './jsonrpc'
+import { call } from './jsonrpc'
 
 import { BoostPowJobProof } from 'boostpow'
+
+import { log } from './log'
+
+import { run, broadcast } from './run'
 
 import pg from './database'
 
@@ -56,29 +60,31 @@ export function getBoostJobsFromTx(tx: bsv.Transaction) {
 
 export async function getBoostJobsFromTxid(txid:string) {
 
-  const tx = await getTransaction(txid)
+  const hex = await run.blockchain.fetch(txid)
 
-  let {hex, json} = tx
+  const tx = new bsv.Transaction(hex)
 
-  let jobs = json.vout.reduce((_jobs, vout) => {
+  var vout = 0
 
-    let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
+  return tx.outputs.reduce((jobs, vout) => {
 
-    if (job) { _jobs.push(job) }
+    let job = boost.BoostPowJob.fromRawTransaction(hex, vout)
 
-    return _jobs
+    if (job) { jobs.push(job) }
+
+    vout++
+
+    return jobs
 
   }, [])
-
-  return jobs
 
 }
 
 export async function getBoostProof(txid: string): Promise<any> {
 
-  let tx = await getTransaction(txid)
+  let hex = await run.blockchain.fetch(txid)
 
-  let proof = boost.BoostPowJobProof.fromRawTransaction(tx.hex)
+  let proof = boost.BoostPowJobProof.fromRawTransaction(hex)
 
   return proof
 
@@ -116,13 +122,10 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
 
 export async function getBoostJob(txid: string): Promise<BoostJob> {
 
-  let tx = await getTransaction(txid)
-
-  let { hex } = tx;
+  let hex = await run.blockchain.fetch(txid)
 
   let [record] = await pg('boost_jobs').where('txid', txid).returning('*')
-
-  let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
+  let job = boost.BoostPowJob.fromRawTransaction(hex)
 
   if (record && !job) {
     return record
@@ -134,10 +137,12 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
     await pg('boost_jobs').update('spent', true).where('txid', txid).returning('*')
   }
 
+  let tx = new bsv.Transaction(hex)
+
   let out = {
     txid,
     content: job.toObject().content.toString(),
-    script: tx.json.vout[job.vout].scriptPubKey.hex,
+    script: tx.vout[job.vout].scriptPubKey.hex,
     vout: job.vout,
     value: job.value,
     difficulty: job.difficulty,
@@ -174,20 +179,15 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   let tx = new bsv.Transaction(txhex)
 
-  console.log({ tx })
+  let hex = await run.blockchain.fetch(tx.hash)
 
-  tx = await getTransaction(tx.hash)
-
-  if (!tx) {
+  if (!hex) {
     
-    console.log('transaction not found')
-
     try {
 
-      //broadcast transaction
-      let response = await call('sendrawtransaction', [txhex])
+      let response = await run.blockchain.broadcast(txhex)
 
-      console.log(response)
+      log.info('run.blockchain.broadcast', { txhex,  response })
 
     } catch(error) {
 
@@ -199,15 +199,11 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
 
-  console.log('PROOF', proof)
-
   return importBoostProof(proof)
 
 }
 
 export async function importBoostProof(proof): Promise<any> {
-
-  console.log('importboostproof', proof)
 
   let where = {
     txid: proof.SpentTxid,
@@ -218,8 +214,6 @@ export async function importBoostProof(proof): Promise<any> {
   let job = await models.BoostJob.findOne({
     where
   })
-
-  console.log({ job })
 
   if (!job) {
 
@@ -236,15 +230,11 @@ export async function importBoostProof(proof): Promise<any> {
 
   }
 
-  console.log('find proof record')
-
   let proof_record = await models.BoostWork.findOne({
     where: {
       job_txid: proof.SpentTxid
     }
   })
-
-  console.log({ proof_record })
 
   if (job.spend_txid && proof_record) {
 
@@ -253,8 +243,6 @@ export async function importBoostProof(proof): Promise<any> {
   } else {
 
     if (!proof_record) {
-
-      console.log('create boost work')
 
       proof_record = await models.BoostWork.create({
         job_txid: proof.SpentTxid,
@@ -268,8 +256,6 @@ export async function importBoostProof(proof): Promise<any> {
         value: job.value
       })
 
-      console.log('proof record', proof_record.toJSON())
-
       //await events.emit('work.published', proof_record)
 
       job.spent = true;
@@ -281,8 +267,6 @@ export async function importBoostProof(proof): Promise<any> {
 
     }
 
-    console.log('find job record')
-
     let jobRecord = await models.BoostJob.findOne({
       where: {
         txid: proof.SpentTxid,
@@ -290,15 +274,11 @@ export async function importBoostProof(proof): Promise<any> {
       }
     })
 
-    console.log('found job record', jobRecord.toJSON())
-
     jobRecord.spend_txid = proof.SpentTxid
     jobRecord.spend_vout = proof.SpentVout
     jobRecord.spent = true
 
     await jobRecord.save()
-
-    console.log('job record updated', jobRecord.toJSON())
 
   }
 
@@ -321,14 +301,12 @@ export async function importBoostJob(job: typeof BoostPowJob, txhex?: string) {
 
   } else {
 
-    let tx = await getTransaction(job.txid)
+    let isOnChain = await run.blockchain.fetch(job.txid)
 
-    if (tx) {
+    if (!isOnChain) {
 
-    } else {
+      await broadcast(txhex)
 
-      // broadcast transaction
-      let response = await call('sendrawtransaction', [txhex])
 
     }
 
@@ -413,33 +391,50 @@ export async function postNewJob(newJob: NewJob) {
       diff: newJob.difficulty
     })
 
+    const address = process.env.BSV_SIMPLE_WALLET_ADDRESS
+
+    let utxos = await run.blockchain.utxos(address)
+
+    utxos = utxos.map(utxo => Object.assign(utxo, { value: utxo.satoshis }))
+
+    const script = job.toHex()
+
+    const value = newJob.satoshis
+
+    const key = process.env.BSV_SIMPLE_WALLET_WIF
+
     var config = {
       pay: {
         key: process.env.BSV_SIMPLE_WALLET_WIF,
-        rpc: "",
+        //rpc: "",
         to: [{
           script: job.toHex(),
           value: newJob.satoshis
         }],
-        changeAddress: process.env.BSV_SIMPLE_WALLET_ADDRESS
+        inputs: utxos,
+        changeAddress: address 
       }
     }
 
-    filepay.send(config, async (err, result) => {
+    filepay.build(config, async (err, result) => {
+
       if (err) { throw err }
-      let [txid] = result.split(' ')
+
+      log.info('job.transaction.created', { hex: result.serialize() })
+
+      var txid = await broadcast(result.serialize())
 
       await delay(2000)
 
       try {
 
-        let {hex} = await getTransaction(txid)
+        let hex = await run.blockchain.fetch(txid)
 
         let newRecord = await importBoostJobFromTxid(txid)
 
       } catch(error) {
 
-        console.error(error)
+        log.error('run.blockchain.fetch', error)
 
       }
 
