@@ -45,8 +45,8 @@ jobs:
           name: Push to Docker Hub
           command: |
             docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
-            docker tag proofofwork-node proofofwork/proofofwork-node:$CIRCLE_BRANCH
-            docker push proofofwork/proofofwork-node:$CIRCLE_BRANCH
+            docker tag proofofwork-node proofofwork/powco-api:$CIRCLE_BRANCH
+            docker push proofofwork/powco-api:$CIRCLE_BRANCH
 
   deploy:
     machine:
