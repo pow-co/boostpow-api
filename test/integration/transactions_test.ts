@@ -1,11 +1,18 @@
 
-import { server } from '../../src/main'
+import { buildServer } from '../../src/main'
 
 import { expect } from '../utils'
 
 import { buildNewJobTransaction } from '../../src/boost'
 
 describe("API Server Posting Transactions", () => {
+  var server;
+
+  before(async () => {
+
+    server = await buildServer()
+
+  })
 
   describe("POST /api/v1/boost/scripts", () => {
 

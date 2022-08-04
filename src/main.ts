@@ -31,7 +31,7 @@ import { plugin as socketio } from './socket.io/plugin'
 
 const handlers = load(join(__dirname, './server/handlers'))
 
-async function buildServer(): Server {
+export async function buildServer(): Server {
 
   const server = new Server({
     host: process.env.HOST || "0.0.0.0",
