@@ -26,6 +26,9 @@ import { register as prometheus } from './metrics'
 
 import { start as slack } from '../actors/slack_boost_job_created/actor'
 
+import { plugin as socketio } from './socket.io/plugin'
+
+
 const handlers = load(join(__dirname, './server/handlers'))
 
 export const server = new Server({
@@ -380,6 +383,8 @@ export async function start() {
           options: swaggerOptions
       }
   ]);
+
+  await server.register(socketio);
 
   await server.start();
 
