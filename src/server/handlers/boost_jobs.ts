@@ -10,6 +10,8 @@ import { log } from '../../log'
 
 import { Op } from 'sequelize'
 
+import { badRequest } from 'boom'
+
 export async function index(request, hapi) {
 
   const where = {
@@ -106,9 +108,23 @@ export async function show(request, hapi) {
 
 export async function createByTxid(request, hapi) {
 
-  let job = await importBoostJobFromTxid(request.params.txid)
+  try {
 
-  return { job }
+    console.log('create by txid', request.params)
+
+    let job = await importBoostJobFromTxid(request.params.txid)
+
+    console.log({ job })
+
+    return { job }
+
+  } catch(error) {
+
+    log.error('api.BoostJobs.createbyTxid', error)
+
+    return badRequest(error)
+
+  }
 
 }
 

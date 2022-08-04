@@ -1,18 +1,29 @@
-import { Transaction } from 'bsv'
 
-import { importBoostProofFromTxHex } from '../../boost'
-
-import { flatten } from 'lodash'
+import { importBoostProofFromTxHex, importBoostProofByTxid} from '../../boost'
 
 import * as models from '../../models'
 
-import { Op } from 'sequelize'
+import { log } from '../../log'
+
+import { badRequest } from 'boom'
 
 export async function createByTxid(request, hapi) {
 
-  // import boost work transaction if not already submitted
+  try {
 
-  return hapi.response({ }).code(200)
+    let result = await importBoostProofByTxid(request.params.txid)
+
+    log.debug('api.BoostProofs.createByTxid.result', result)
+
+    return hapi.response(result)
+
+  } catch(error) {
+
+    log.error('api.BoostProofs.createByTxid', error)
+
+    return badRequest(error)
+
+  }
 
 }
 

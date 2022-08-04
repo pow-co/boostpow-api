@@ -5,7 +5,9 @@ import { BoostPowJobProof } from 'boostpow'
 
 import pg from './database'
 
-import { events } from 'rabbi'
+import { publish } from 'rabbi'
+
+import * as whatsonchain from './whatsonchain'
 
 import * as filepay from 'filepay'
 
@@ -20,6 +22,8 @@ const { BoostPowJob } = require('boostpow')
 import { loadWallet } from 'anypay-simple-wallet'
 
 import * as models from './models'
+
+import { fetch } from 'powco'
 
 export interface BoostJob {
   txid: string;
@@ -56,17 +60,23 @@ export function getBoostJobsFromTx(tx: bsv.Transaction) {
 
 export async function getBoostJobsFromTxid(txid:string) {
 
-  const tx = await getTransaction(txid)
+  const txhex = await fetch(txid)
 
-  let {hex, json} = tx
+  console.log({ txhex })
 
-  let jobs = json.vout.reduce((_jobs, vout) => {
+  const tx = new bsv.Transaction(txhex)
 
-    let job = boost.BoostPowJob.fromRawTransaction(hex, vout['n'])
+  var i = 0;
 
-    if (job) { _jobs.push(job) }
+  let jobs = tx.outputs.reduce((jobs, vout) => {
 
-    return _jobs
+    let job = boost.BoostPowJob.fromRawTransaction(txhex, i)
+
+    if (job) { jobs.push(job) }
+
+    i++
+
+    return jobs
 
   }, [])
 
@@ -76,9 +86,9 @@ export async function getBoostJobsFromTxid(txid:string) {
 
 export async function getBoostProof(txid: string): Promise<any> {
 
-  let tx = await getTransaction(txid)
+  const hex = await fetch(txid)
 
-  let proof = boost.BoostPowJobProof.fromRawTransaction(tx.hex)
+  let proof = boost.BoostPowJobProof.fromRawTransaction(hex)
 
   return proof
 
@@ -94,6 +104,20 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
     return record
   }
 
+  var timestamp = job.timestamp;
+
+  if (!timestamp) {
+
+    const result = await whatsonchain.getTransaction(job.txid)
+
+    timestamp = result.time
+  }
+
+  if (!timestamp) {
+
+    timestamp = new Date()
+  }
+
   let params = {
     txid: job.txid,
     content: job.toObject().content.toString(),
@@ -105,10 +129,12 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
     tag: job.toObject().tag.toString(),
     userNonce: job.toObject().userNonce.toString(),
     additionalData: job.toObject().additionalData.toString(),
-    timestamp: new Date()
+    timestamp
   }
 
   record = await models.BoostJob.create(params)
+
+  await publish('powco', 'boostpow.job.created', record.toJSON())
 
   return record
 
@@ -219,8 +245,6 @@ export async function importBoostProof(proof): Promise<any> {
     where
   })
 
-  console.log({ job })
-
   if (!job) {
 
     await importBoostJobFromTxid(proof.SpentTxid)
@@ -236,15 +260,11 @@ export async function importBoostProof(proof): Promise<any> {
 
   }
 
-  console.log('find proof record')
-
   let proof_record = await models.BoostWork.findOne({
     where: {
       job_txid: proof.SpentTxid
     }
   })
-
-  console.log({ proof_record })
 
   if (job.spend_txid && proof_record) {
 
@@ -253,8 +273,6 @@ export async function importBoostProof(proof): Promise<any> {
   } else {
 
     if (!proof_record) {
-
-      console.log('create boost work')
 
       proof_record = await models.BoostWork.create({
         job_txid: proof.SpentTxid,
@@ -270,18 +288,18 @@ export async function importBoostProof(proof): Promise<any> {
 
       console.log('proof record', proof_record.toJSON())
 
-      //await events.emit('work.published', proof_record)
+      publish('powco', 'boostpow.proof.created', proof_record.toJSON());
 
       job.spent = true;
       job.spent_txid = proof.Txid;
       job.spent_vout = proof.Vin;
       await job.save()
 
-      //events.emit('job.completed', { job: job.toJSON(), work: proof_record })
+      publish('powco', 'boostpow.job.completed', {
+        job: job.toJSON(), proof: proof_record.toJSON()
+      })
 
     }
-
-    console.log('find job record')
 
     let jobRecord = await models.BoostJob.findOne({
       where: {
@@ -290,15 +308,11 @@ export async function importBoostProof(proof): Promise<any> {
       }
     })
 
-    console.log('found job record', jobRecord.toJSON())
-
     jobRecord.spend_txid = proof.SpentTxid
     jobRecord.spend_vout = proof.SpentVout
     jobRecord.spent = true
 
     await jobRecord.save()
-
-    console.log('job record updated', jobRecord.toJSON())
 
   }
 
@@ -362,7 +376,9 @@ export async function importBoostJobFromTxid(txid: string) {
       return record
     }
 
-    return persistBoostJob(job)
+    let result = await persistBoostJob(job)
+
+    return result;
 
   }))
 

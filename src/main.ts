@@ -47,23 +47,6 @@ server.route({
   }
 })
 
-// POST /node/api/boost_jobs
-// POST /node/api/boost_job_transactions
-// GET /node/api/content/:txid
-//
-// POST /node/api/jobs
-//
-// POST /api/v1/work
-// POST /v1/main/boost/jobs/:txid/proof
-// GET /v1/main/boost/jobs/:txid
-// POST /v1/main/boost/jobs/scripts
-// GET /node/v1/ranking/value
-// GET /node/v1/ranking
-// GET /node/v1/ranking-timeframes
-// GET /node/v1/content/:content/rankings
-// GET /v1/main/boost/search
-// GET /v1/main/boost/id/:id
-
 server.route({
   method: 'POST',
   path: '/api/v1/boost/jobs',
@@ -117,7 +100,7 @@ server.route({
 
 server.route({
   method: 'POST',
-  path: '/api/v1/boost/work',
+  path: '/api/v1/boost/proofs',
   handler: handlers.BoostWork.create,
   options: {
     description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
@@ -131,6 +114,20 @@ server.route({
         transaction: Joi.string().required()
       })
     }
+  }
+})
+
+server.route({
+  method: 'POST',
+  path: '/api/v1/boost/proofs/{txid}',
+  handler: handlers.BoostWork.createByTxid,
+  options: {
+    description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
+    notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
+    tags: ['api', 'work'],
+    response: {
+      failAction: 'log'
+    },
   }
 })
 

@@ -2,16 +2,20 @@
 
 require('dotenv').config();
 
-import { Actor, Joi, log } from 'rabbi';
+import { Actor, log } from '/Users/zyler/github/rabbijs/rabbi';
 
 const http = require("superagent");
+
+import config from '../../src/config'
+
+const SLACK_URL = process.env.SLACK_URL
 
 export function notify(message: string) {
 
   log.info(`notify slack ${message}`);
 
   http
-    .post('https://hooks.slack.com/services/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')
+    .post(SLACK_URL)
     .send({
       text: message
     })
@@ -27,24 +31,49 @@ export function notify(message: string) {
 
 export async function start() {
 
+  console.log("start actor")
+
   Actor.create({
 
-    exchange: 'proofofwork',
+    exchange: 'powco',
 
-    routingkey: 'boost_job_created',
+    routingkey: 'boostpow.job.created',
 
-    queue: 'slack_boost_job_created',
-
-    schema: Joi.object() // optional, enforces validity of json schema
+    queue: 'boostpow_job_created_notify_slack',
 
   })
   .start(async (channel, msg, json) => {
 
     log.info('boost.job.slack', msg.content.toString());
 
-    log.info('boost.job.slack.json', json);
+    if (SLACK_URL) {
 
-    notify(`A New Boost Job Was Published\n\nhttps://whatsonchain.com/tx/${json.txid}`)
+      notify(`A New Boost Job Was Published\n\nhttps://whatsonchain.com/tx/${json.txid}`)
+
+    }
+
+    channel.ack(msg);
+
+  });
+
+  Actor.create({
+
+    exchange: 'powco',
+
+    routingkey: 'boostpow.proof.created',
+
+    queue: 'boostpow_proof_created_notify_slack',
+
+  })
+  .start(async (channel, msg, json) => {
+
+    log.info('boostpow.proof.created.slack', msg.content.toString());
+
+    if (SLACK_URL) {
+
+      notify(`A New Boost Proof Was Mined\n\nhttps://whatsonchain.com/tx/${json.spend_txid}`)
+
+    }
 
     channel.ack(msg);
 
