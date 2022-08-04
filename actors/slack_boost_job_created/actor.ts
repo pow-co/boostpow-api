@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 
-import { Actor, log } from '/Users/zyler/github/rabbijs/rabbi';
+import { Actor, log } from 'rabbi';
 
 const http = require("superagent");
 
