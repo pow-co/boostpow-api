@@ -49,8 +49,7 @@ jobs:
             docker push proofofwork/powco-api:$CIRCLE_BRANCH
 
   deploy:
-    machine:
-      image: ubuntu-1604:202007-01
+    machine: true
     steps:
       - run:
           name: Deploy to Web Servers
