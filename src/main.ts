@@ -24,6 +24,8 @@ import { load } from './server/handlers'
 
 import { register as prometheus } from './metrics'
 
+import { start as slack } from '../actors/slack_boost_job_created/actor'
+
 const handlers = load(join(__dirname, './server/handlers'))
 
 export const server = new Server({
@@ -367,6 +369,8 @@ const swaggerOptions = {
 }
 
 export async function start() {
+
+  slack();
 
   await server.register([
       Inert,
