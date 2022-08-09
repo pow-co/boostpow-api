@@ -381,7 +381,7 @@ export async function start() {
     },
     schemes: ['https'],
     host: 'pow.co',
-    documentationPath: '/docs',
+    documentationPath: '/api',
     grouping: 'tags'
   }
 
