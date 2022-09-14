@@ -4,13 +4,11 @@ const socketio = require('socket.io')
 
 import { Server } from '@hapi/hapi'
 
-import { authenticate } from './auth'
-
 import { log } from '../log'
 
-import { subscribe } from './pubsub'
-
 import { Actor } from 'rabbi'
+
+import * as uuid from 'uuid'
 
 export const plugin = (() => {
 
@@ -29,13 +27,9 @@ export const plugin = (() => {
 
       io.use(async (socket, next) => {
 
-        const { address } = socket.handshake
+        socket.data.sessionId = uuid.v4()
 
-        await authenticate(socket)
-
-        log.info('socket.io.authenticated', { address })
-
-        socket.emit('authenticated')
+        // authenticate here
 
         next()
 
@@ -59,9 +53,26 @@ export const plugin = (() => {
 
         exchange: 'powco',
 
+        routingkey: 'askbitcoin.question.created',
+
+        queue: 'askbitcoin_created_broadcast_websockets',
+
+      })
+      .start(async (channel, msg, json) => {
+
+        io.emit('boostpow.job.created', json)
+
+        channel.ack(msg);
+
+      });
+
+      Actor.create({
+
+        exchange: 'powco',
+
         routingkey: 'boostpow.job.created',
 
-        queue: 'boostpow_job_created_broadcast_websockets',
+        queue: 'askbitcoin_boostpow_job_created_broadcast_websockets',
 
       })
       .start(async (channel, msg, json) => {
@@ -78,7 +89,7 @@ export const plugin = (() => {
 
         routingkey: 'boostpow.proof.created',
 
-        queue: 'boostpow_proof_created_broadcast_websockets',
+        queue: 'askbitcoin_boostpow_proof_created_broadcast_websockets',
 
       })
       .start(async (channel, msg, json) => {

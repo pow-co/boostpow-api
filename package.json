@@ -4,9 +4,13 @@
    "private": true,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
-      "test": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
+      "test": "NODE_ENV=test nyc --reporter=lcov mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
       "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 $1",
-      "start": "ts-node src/main.ts"
+      "start": "ts-node src/main.ts",
+      "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
+      "cover:unit": "nyc --silent npm run test:unit",
+      "cover:integration": "nyc --silent --no-clean npm run test:integration",
+      "cover:report": "nyc report --reporter=lcov --reporter=text"
    },
    "keywords": [],
    "author": "Steven Zeiler",
@@ -71,6 +75,7 @@
       "typedi": "^0.10.0",
       "typeorm": "0.2.41",
       "typeorm-typedi-extensions": "^0.4.1",
+      "uuid": "^8.3.2",
       "winston": "^3.3.3",
       "ws": "^8.2.0",
       "zeromq": "^6.0.0-beta.6"

@@ -7,3 +7,5 @@ temp/.env
 .env
 .bit
 get402.json
+.nyc_output/
+coverage/

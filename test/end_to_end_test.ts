@@ -25,7 +25,7 @@ describe('End to End Boost Tests with HTTP API Client', () => {
 
   })
 
-  it('constructs a live transaction, submits to the jobs api, and is correctly added to the jobs list', async () => {
+  it.skip('constructs a live transaction, submits to the jobs api, and is correctly added to the jobs list', async () => {
 
     let script: string = await buildBoostJob({
       content: '0d1a0054499b6d4cc5e95adef0304ee588465485471fd740ca8e4fced2b346c7',
