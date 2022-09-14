@@ -48,13 +48,6 @@ jobs:
             docker tag proofofwork-node proofofwork/powco-api:$CIRCLE_BRANCH
             docker push proofofwork/powco-api:$CIRCLE_BRANCH
 
-  deploy:
-    machine: true
-    steps:
-      - run:
-          name: Deploy to Web Servers
-          command: ssh ubuntu@pow.co "sudo chef-client -o recipe[pow.co::api]"
-
 
 workflows:
   version: 2
@@ -64,11 +57,3 @@ workflows:
       - build_docker:
           requires:
             - build
-      - deploy:
-          requires:
-            - build_docker
-          filters:
-            branches:
-              only:
-                - master
-
