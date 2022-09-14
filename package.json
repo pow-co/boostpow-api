@@ -12,6 +12,21 @@
       "cover:integration": "nyc --silent --no-clean npm run test:integration",
       "cover:report": "nyc report --reporter=lcov --reporter=text"
    },
+   "nyc": {
+      "check-coverage": false,
+      "all": true,
+      "include": [
+        "src/**.ts",
+        "src/**/*.ts",
+        "actors/**/*.ts",
+        "planaria/**/*.ts"
+      ],
+      "exclude": [
+        "includes/**.ts"
+      ],
+      "reporter": "lcov",
+      "report-dir": "./coverage"
+    },
    "keywords": [],
    "author": "Steven Zeiler",
    "license": "BSV",
