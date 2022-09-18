@@ -6,7 +6,7 @@ import { Actor, log } from 'rabbi';
 
 const http = require("superagent");
 
-import config from '../../src/config'
+import config from '../../config'
 
 const SLACK_URL = process.env.SLACK_URL
 

@@ -1,17 +1,29 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('planaria-queries', {
+    await queryInterface.createTable('planaria_syncs', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      name: {
+        type: Sequelize.STRING
+      },
       query: {
         type: Sequelize.JSON
       },
-      block: {
+      timestamp: {
+        type: Sequelize.DATE
+      },
+      block_index: {
+        type: Sequelize.INTEGER
+      },
+      block_hash: {
+        type: Sequelize.STRING
+      },
+      block_tx_index: {
         type: Sequelize.INTEGER
       },
       createdAt: {
@@ -25,6 +37,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('planaria-queries');
+    await queryInterface.dropTable('planaria_syncs');
   }
 };

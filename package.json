@@ -4,7 +4,7 @@
    "private": true,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
-      "test": "NODE_ENV=test nyc --reporter=lcov mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
+      "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
       "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 $1",
       "start": "ts-node src/main.ts",
       "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
@@ -16,7 +16,7 @@
       "check-coverage": false,
       "all": true,
       "include": [
-        "src/**.ts",
+        "src/*.ts",
         "src/**/*.ts",
         "actors/**/*.ts",
         "planaria/**/*.ts"

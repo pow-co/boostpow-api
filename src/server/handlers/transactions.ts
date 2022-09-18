@@ -1,15 +1,15 @@
 
 import { getTransaction, getMerkleProof } from '../../jsonrpc'
 
+import { run } from '../../run'
+
 export async function show(request, hapi) {
 
-  let { hex: txhex, json: txjson } = await getTransaction(request.params.txid)
-
-  let merkleproof = await getMerkleProof(request.params.txid)
+  let txhex = await run.blockchain.fetch(request.params.txid)
 
   return hapi.response({
 
-    txhex, txjson, merkleproof
+    txhex
 
   }).code(200)
 
