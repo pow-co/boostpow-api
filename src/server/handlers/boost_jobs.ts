@@ -4,7 +4,7 @@ import { getBoostJobsFromTx, importBoostJob, importBoostJobFromTxid } from '../.
 
 import { flatten } from 'lodash'
 
-import * as models from '../../models'
+import models from '../../models'
 
 import { log } from '../../log'
 

@@ -1,5 +1,5 @@
 
-import * as models from './models'
+import models from './models'
 
 import { log } from './log'
 

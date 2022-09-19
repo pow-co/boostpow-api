@@ -24,9 +24,17 @@ module.exports = (sequelize, DataTypes) => {
     job_vout: DataTypes.INTEGER,
     value: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      get() {
+        return parseInt(this.getDataValue('value'))
+      }
     },
-    profitability: DataTypes.DECIMAL,
+    profitability: {
+      type: DataTypes.DECIMAL,
+      get() {
+        return parseFloat(this.getDataValue('profitability'))
+      }
+    },
     signature: DataTypes.TEXT,
     content: {
       type: DataTypes.STRING,
@@ -38,7 +46,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     difficulty: {
       type: DataTypes.DECIMAL,
-      allowNull: false
+      allowNull: false,
+      get() {
+        return parseFloat(this.getDataValue('difficulty'))
+      }
     },
     tag: {
       type: DataTypes.STRING,

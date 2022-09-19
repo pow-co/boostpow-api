@@ -3,7 +3,7 @@ import { log } from '../log'
 
 import { OnchainTransaction } from '../onchain';
 
-import * as models from '../models'
+import models from '../models'
 
 import { importBoostProofByTxid } from '../boost'
 

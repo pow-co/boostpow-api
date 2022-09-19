@@ -27,7 +27,12 @@ module.exports = (sequelize, DataTypes) => {
     txid: DataTypes.STRING,
     vout: DataTypes.INTEGER,
     value: DataTypes.INTEGER,
-    profitability: DataTypes.DECIMAL,
+    profitability: {
+      type: DataTypes.DECIMAL,
+      get() {
+        return parseFloat(this.getDataValue('profitability'))
+      }
+    },
     timestamp: DataTypes.DATE,
     spent: DataTypes.BOOLEAN,
     script: DataTypes.TEXT,

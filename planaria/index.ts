@@ -4,7 +4,7 @@ const EventSource = require('eventsource')
 
 import * as boostpow from 'boostpow'
 
-import * as models from '../src/models'
+import models from '../src/models'
 
 import * as rabbi from 'rabbi'
 

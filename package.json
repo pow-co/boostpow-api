@@ -14,11 +14,9 @@
    },
    "nyc": {
       "check-coverage": false,
-      "all": true,
       "include": [
-         "src/*.ts",
-         "src/**/*.ts",
-         "planaria/**/*.ts"
+         "src/",
+         "src/*.ts"
       ],
       "exclude": [
          "includes/**.ts"
