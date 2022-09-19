@@ -98,7 +98,7 @@ export async function sync() {
 
     onTransaction: (json) => {
 
-      log.info('planaria.json', json)
+      //log.info('planaria.json', json)
 
       return handlePlanariaJSON(json)
 

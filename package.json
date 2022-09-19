@@ -16,17 +16,17 @@
       "check-coverage": false,
       "all": true,
       "include": [
-        "src/*.ts",
-        "src/**/*.ts",
-        "actors/**/*.ts",
-        "planaria/**/*.ts"
+         "src/*.ts",
+         "src/**/*.ts",
+         "actors/**/*.ts",
+         "planaria/**/*.ts"
       ],
       "exclude": [
-        "includes/**.ts"
+         "includes/**.ts"
       ],
       "reporter": "lcov",
       "report-dir": "./coverage"
-    },
+   },
    "keywords": [],
    "author": "Steven Zeiler",
    "license": "BSV",
@@ -53,6 +53,7 @@
       "delay": "^5.0.0",
       "dotenv": "^10.0.0",
       "externalip": "^1.0.2",
+      "fastq": "^1.13.0",
       "filepay": "^2.2.12",
       "hapi": "^18.1.0",
       "hapi-swagger": "^14.3.0",

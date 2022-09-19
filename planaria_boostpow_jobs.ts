@@ -32,7 +32,7 @@ export default async function start() {
 
     onTransaction: (json) => {
 
-      log.info('planaria.json', json)
+      //log.info('planaria.json', json)
 
     }
   })
