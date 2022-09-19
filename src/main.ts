@@ -7,11 +7,17 @@ import { start as slack } from './actors/slack_boost_job_created/actor'
 
 import { startCrawler } from './crawlers';
 
+import config from './config';
+
 export async function start() {
 
   const server = await buildServer();
 
-  slack();
+  if (config.get('notify_slack')) {
+
+    slack();
+
+  }
 
   await server.start();
 

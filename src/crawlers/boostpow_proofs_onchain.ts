@@ -1,11 +1,36 @@
 
 import { log } from '../log'
 
-import { OnchainTransaction } from '../onchain'
+import { OnchainTransaction } from '../onchain';
 
-const queue = require('fastq')((json, callback) => {
+import * as models from '../models'
+
+import { importBoostProofByTxid } from '../boost'
+
+const queue = require('fastq')(async (json, callback) => {
 
   log.info('boostpow_proofs_onchain', json)
+
+  const tx_id = json.value.tx_id || json.tx_id
+
+  const tx_index = json.value.tx_index || json.tx_index
+
+  const jobRecord = await models.BoostWork.findOne({
+    where: {
+      spend_txid: tx_id,
+      spend_vout: tx_index
+    }
+  })
+
+  if (jobRecord) {
+
+    log.info('models.BoostWork.found', jobRecord.toJSON())
+
+  } else {
+
+    await importBoostProofByTxid(tx_id)
+
+  }
 
   callback(null, json)
 
@@ -49,6 +74,8 @@ export async function onTransaction(json) {
       }
 
       log.info('planaria.boostpow.proof', message)
+
+      queue.push(message)
 
     })
 

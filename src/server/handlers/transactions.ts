@@ -1,5 +1,4 @@
 
-import { getTransaction, getMerkleProof } from '../../jsonrpc'
 
 import { run } from '../../run'
 

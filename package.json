@@ -18,7 +18,6 @@
       "include": [
          "src/*.ts",
          "src/**/*.ts",
-         "actors/**/*.ts",
          "planaria/**/*.ts"
       ],
       "exclude": [

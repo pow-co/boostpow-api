@@ -3,6 +3,8 @@ import { getBoostJob, importBoostProof } from '../src/boost'
 
 import * as boost from 'boostpow'
 
+import { BoostPowJob } from 'boostpow'
+
 describe("Getting Boost Txns From Bitcoin", () => {
 
   it("#getBoostJob should return the output script", async () => {
@@ -29,25 +31,25 @@ describe("serializing boost jobs", () => {
 
   it("should maintain the difficulty after serializing and de-serializing", () => {
 
-    var job = boost.BoostPowJob.fromObject({
+    var job = BoostPowJob.fromObject({
       content: '00000000000000000000000058e3baf54d1f81304bafcf2a3e24db4bfd6b5cca',
       diff: 0.001
     })
 
     var script = job.toScript().toHex()
 
-    var newJob = boost.BoostPowJob.fromScript(script)
+    var newJob = BoostPowJob.fromScript(script)
 
     assert.strictEqual(newJob.difficulty, 0.0010000003662166597)
 
-    job = boost.BoostPowJob.fromObject({
+    job = BoostPowJob.fromObject({
       content: '00000000000000000000000058e3baf54d1f81304bafcf2a3e24db4bfd6b5cca',
       diff: 0.1
     })
 
     script = job.toScript().toHex()
 
-    newJob = boost.BoostPowJob.fromScript(script)
+    newJob = BoostPowJob.fromScript(script)
 
     assert.strictEqual(newJob.difficulty, 0.1)
 

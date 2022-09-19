@@ -10,8 +10,6 @@ import * as schema from './server/schema'
 
 import { join } from 'path'
 
-var register = require('prom-client').register;
-
 const Inert = require('@hapi/inert');
 
 const Vision = require('@hapi/vision');
@@ -25,7 +23,6 @@ import { load } from './server/handlers'
 import { register as prometheus } from './metrics'
 
 import { plugin as socketio } from './socket.io/plugin'
-
 
 const handlers = load(join(__dirname, './server/handlers'))
 
@@ -248,38 +245,6 @@ export async function buildServer(): Server {
       }
     }
   })
-
-  server.route({
-    method: 'GET',
-    path: '/api/v1/boost/rankings',
-    handler: handlers.Rankings.index,
-    options: {
-      description: 'Rank Content By Proof of Work Boosted',
-      notes: 'In a given time period, return the total sum of all boost work for every piece of content. May be filtered by tag',
-      tags: ['api', 'rankings'],
-      response: {
-        failAction: 'log',
-        schema: Joi.object({
-          rankings: Joi.array().items({
-            content: Joi.string().required(),
-            value: Joi.number().required(),
-            difficulty: Joi.number().required(),
-            rank: Joi.number().required(),
-            content_type: Joi.string().optional()
-          }).required().label('Ranking')
-        }).required().label('Rankings')
-      },
-      validate: {
-        query: Joi.object({
-          from_timestamp: Joi.number().optional(),
-          tag: Joi.string().optional(),
-          content: Joi.string().optional()
-        }).required()
-      }
-    }
-  })
-
-
 
   server.route({
     method: 'GET',

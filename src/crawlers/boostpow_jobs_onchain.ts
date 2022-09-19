@@ -1,11 +1,36 @@
 
 import { log } from '../log'
 
-import { OnchainTransaction } from '../onchain'
+import { OnchainTransaction } from '../onchain';
 
-const queue = require('fastq')((json, callback) => {
+import * as models from '../models'
+
+import { importBoostJobFromTxid } from '../boost'
+
+const queue = require('fastq')(async (json, callback) => {
 
   log.info('boostpow_jobs_onchain', json)
+
+  const tx_id = json.value.tx_id || json.tx_id
+
+  const tx_index = json.value.tx_index || json.tx_index
+
+  const jobRecord = await models.BoostJob.findOne({
+    where: {
+      txid: tx_id,
+      vout: tx_index
+    }
+  })
+
+  if (jobRecord) {
+
+    log.info('models.BoostPowJob.found', jobRecord.toJSON())
+
+  } else {
+
+    await importBoostJobFromTxid(tx_id)
+
+  }
 
   callback(null, json)
 

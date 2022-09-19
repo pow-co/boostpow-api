@@ -51,8 +51,6 @@ process.on('SIGHUP', () => {
 
 })
 
-import { join } from 'path'
-
 nconf.defaults({
   host: '0.0.0.0',
   port: '5200',
@@ -62,7 +60,8 @@ nconf.defaults({
   postgres_enabled: true,
   amqp_enabled: false,
   planaria_token: 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxRlRyUWRaRjczd21tSFpVbzRhQzI1a0JWNUprWFRoeGl3IiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SHovaVkvTncvNmI0M1Q4WFZ0Ulk2SHdEMXQzOGM1RHJkVTFoTEYyLzhJeEhGZzJsSDQxeldzRG1vdUttemJPb2pJTXd4aVM5Qk9VNjFQNUhJK2x6bUxNPQ',
-  api_base: 'https://pow.co'
+  api_base: 'https://pow.co',
+  notify_slack: false
 })
 
 export default nconf

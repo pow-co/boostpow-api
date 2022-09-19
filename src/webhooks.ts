@@ -1,8 +1,6 @@
 
 import * as models from './models';
 
-import { log } from 'rabbi'
-
 import * as http from 'superagent';
 
 export async function sendWebhooks(boostWork) {

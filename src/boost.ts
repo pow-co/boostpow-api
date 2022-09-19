@@ -1,9 +1,7 @@
 
 import { getTransaction, call } from './jsonrpc'
 
-import { BoostPowJobProof } from 'boostpow'
-
-import pg from './database'
+import { BoostPowJob } from 'boostpow'
 
 import { publish } from 'rabbi'
 
@@ -17,13 +15,11 @@ const delay = require('delay');
 
 import * as boost from 'boostpow';
 
-const { BoostPowJob } = require('boostpow')
-
-import { loadWallet } from 'anypay-simple-wallet'
-
 import * as models from './models'
 
-import { fetch } from 'powco'
+import { log } from './log'
+
+import { fetch, broadcast } from 'powco'
 
 export interface BoostJob {
   txid: string;
@@ -88,13 +84,15 @@ export async function getBoostProof(txid: string): Promise<any> {
 
   const hex = await fetch(txid)
 
+  console.log({ hex })
+
   let proof = boost.BoostPowJobProof.fromRawTransaction(hex)
 
   return proof
 
 }
 
-export async function persistBoostJob(job: any): Promise<BoostJob> {
+export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
 
   let record = await models.BoostJob.findOne({
     where: { txid: job.txid }
@@ -104,7 +102,7 @@ export async function persistBoostJob(job: any): Promise<BoostJob> {
     return record
   }
 
-  var timestamp = job.timestamp;
+  var timestamp;
 
   if (!timestamp) {
 
@@ -146,7 +144,9 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   let { hex } = tx;
 
-  let [record] = await pg('boost_jobs').where('txid', txid).returning('*')
+  let [record] = await models.BoostJob.findOne({
+    where: { txid }
+  })
 
   let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
 
@@ -157,7 +157,9 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
   let spent = await checkBoostSpent(txid, job.vout)
 
   if (spent && !record.spent) {
-    await pg('boost_jobs').update('spent', true).where('txid', txid).returning('*')
+
+    record.spent = true
+    await record.save()
   }
 
   let out = {
@@ -189,6 +191,10 @@ export async function checkBoostSpent(txid: string, vout: number): Promise<boole
 export async function importBoostProofByTxid(txid: string): Promise<any> {
 
   const proof = await getBoostProof(txid)
+
+  if (!proof) {
+    return
+  }
 
   return importBoostProof(proof)
 
@@ -225,21 +231,20 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
 
-  console.log('PROOF', proof)
-
   return importBoostProof(proof)
 
 }
 
-export async function importBoostProof(proof): Promise<any> {
+export async function importBoostProof(proof: boost.BoostPowJobProof): Promise<any> {
+
+  if (!proof) { return }
 
   console.log('importboostproof', proof)
 
   let where = {
-    txid: proof.SpentTxid,
-    vout: proof.SpentVout
+    txid: proof.spentTxid,
+    vout: proof.spentVout
   }
-
 
   let job = await models.BoostJob.findOne({
     where
@@ -247,7 +252,7 @@ export async function importBoostProof(proof): Promise<any> {
 
   if (!job) {
 
-    await importBoostJobFromTxid(proof.SpentTxid)
+    await importBoostJobFromTxid(proof.spentTxid)
 
     job = await models.BoostJob.findOne({
       where
@@ -262,7 +267,7 @@ export async function importBoostProof(proof): Promise<any> {
 
   let proof_record = await models.BoostWork.findOne({
     where: {
-      job_txid: proof.SpentTxid
+      job_txid: proof.spentTxid
     }
   })
 
@@ -275,10 +280,10 @@ export async function importBoostProof(proof): Promise<any> {
     if (!proof_record) {
 
       proof_record = await models.BoostWork.create({
-        job_txid: proof.SpentTxid,
-        job_vout: proof.SpentVout,
-        spend_txid: proof.Txid,
-        spend_vout: proof.Vin,
+        job_txid: proof.spentTxid,
+        job_vout: proof.spentVout,
+        spend_txid: proof.txid,
+        spend_vout: proof.vin,
         content: job.content,
         difficulty: job.difficulty,
         tag: job.tag,
@@ -286,13 +291,11 @@ export async function importBoostProof(proof): Promise<any> {
         value: job.value
       })
 
-      console.log('proof record', proof_record.toJSON())
-
       publish('powco', 'boostpow.proof.created', proof_record.toJSON());
 
       job.spent = true;
-      job.spent_txid = proof.Txid;
-      job.spent_vout = proof.Vin;
+      job.spent_txid = proof.txid;
+      job.spent_vout = proof.vin;
       await job.save()
 
       publish('powco', 'boostpow.job.completed', {
@@ -303,13 +306,13 @@ export async function importBoostProof(proof): Promise<any> {
 
     let jobRecord = await models.BoostJob.findOne({
       where: {
-        txid: proof.SpentTxid,
-        vout: proof.SpentVout
+        txid: proof.spentTxid,
+        vout: proof.spentVout
       }
     })
 
-    jobRecord.spend_txid = proof.SpentTxid
-    jobRecord.spend_vout = proof.SpentVout
+    jobRecord.spend_txid = proof.spentTxid
+    jobRecord.spend_vout = proof.spentVout
     jobRecord.spent = true
 
     await jobRecord.save()
@@ -320,7 +323,7 @@ export async function importBoostProof(proof): Promise<any> {
 
 }
 
-export async function importBoostJob(job: typeof BoostPowJob, txhex?: string) {
+export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
   let record = await models.BoostJob.findOne({
     where: {
@@ -341,12 +344,12 @@ export async function importBoostJob(job: typeof BoostPowJob, txhex?: string) {
 
     } else {
 
-      // broadcast transaction
-      let response = await call('sendrawtransaction', [txhex])
+      let response = await broadcast(txhex)
+
+      log.info('broadcast.response', response)
 
     }
 
-    // if successfull, import into database
     return importBoostJobFromTxid(job.txid)
 
   }
@@ -355,7 +358,7 @@ export async function importBoostJob(job: typeof BoostPowJob, txhex?: string) {
 
 export async function importBoostJobFromTxid(txid: string) {
 
-  let jobs: BoostJob[] = await getBoostJobsFromTxid(txid)
+  let jobs: BoostPowJob[] = await getBoostJobsFromTxid(txid)
 
   let records = await Promise.all(jobs.map(async job => {
 
@@ -384,89 +387,3 @@ export async function importBoostJobFromTxid(txid: string) {
 
   return records
 }
-
-interface NewJob {
-  content: string;
-  difficulty: number;
-  satoshis: number;
-}
-
-type BoostPowJob = any;
-
-export async function buildNewJobTransaction(job: BoostPowJob): Promise<bsv.Transaction> {
-
-  const { satoshis } = job
-
-  job = boost.BoostPowJob.fromObject(job)
-
-  let wallet = (await loadWallet()).holdings[0]
-
-  let balance = await wallet.balance()
-
-  let tx = new bsv.Transaction()
-    .from(wallet.unspent)
-    .change(wallet.address)
-
-  tx.addOutput(
-    bsv.Transaction.Output({
-      satoshis: satoshis,
-      script: job.toHex()
-    })
-  )
-
-  tx.sign(process.env.BSV_SIMPLE_WALLET_WIF)
-
-  return tx;
-
-}
-
-export async function postNewJob(newJob: NewJob) {
-
-  try {
-
-    let job = boost.BoostPowJob.fromObject({
-      content: newJob.content,
-      diff: newJob.difficulty
-    })
-
-    var config = {
-      pay: {
-        key: process.env.BSV_SIMPLE_WALLET_WIF,
-        rpc: "",
-        to: [{
-          script: job.toHex(),
-          value: newJob.satoshis
-        }],
-        changeAddress: process.env.BSV_SIMPLE_WALLET_ADDRESS
-      }
-    }
-
-    filepay.send(config, async (err, result) => {
-      if (err) { throw err }
-      let [txid] = result.split(' ')
-
-      await delay(2000)
-
-      try {
-
-        let {hex} = await getTransaction(txid)
-
-        let newRecord = await importBoostJobFromTxid(txid)
-
-      } catch(error) {
-
-        console.error(error)
-
-      }
-
-    })
-
-  } catch(error) {
-
-    console.error(error)
-
-  }
-
-}
-
-
