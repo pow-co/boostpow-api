@@ -1,6 +1,4 @@
 
-import { log } from './log'
-
 const nconf = require('nconf')
 
 const os = require('os')
@@ -29,15 +27,9 @@ nconf.add('global_file', { type: 'file', file: global_file, transform })
 
 export function loadFromFiles() {
 
-  log.debug('config.file.project.load', { path: project_file })
-
   nconf.use('project_file', { type: 'file', file: project_file, transform })
 
-  log.debug('config.file.user.load', { path: user_file })
-
   nconf.use('user_file', { type: 'file', file: user_file, transform })
-
-  log.debug('config.file.global.load', { path: global_file })
 
   nconf.use('global_file', { type: 'file', file: global_file, transform })
 
@@ -61,7 +53,8 @@ nconf.defaults({
   amqp_enabled: false,
   planaria_token: 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxRlRyUWRaRjczd21tSFpVbzRhQzI1a0JWNUprWFRoeGl3IiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SHovaVkvTncvNmI0M1Q4WFZ0Ulk2SHdEMXQzOGM1RHJkVTFoTEYyLzhJeEhGZzJsSDQxeldzRG1vdUttemJPb2pJTXd4aVM5Qk9VNjFQNUhJK2x6bUxNPQ',
   api_base: 'https://pow.co',
-  notify_slack: false
+  notify_slack: false,
+  node_env: 'development'
 })
 
 export default nconf

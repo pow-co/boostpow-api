@@ -90,6 +90,7 @@
       "typeorm-typedi-extensions": "^0.4.1",
       "uuid": "^8.3.2",
       "winston": "^3.3.3",
+      "winston-loki": "^6.0.6",
       "ws": "^8.2.0",
       "zeromq": "^6.0.0-beta.6"
    },
