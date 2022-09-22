@@ -138,9 +138,7 @@ export async function create(request, hapi) {
 
   log.info('boost.job.tx.import', { transaction })
 
-  const tx = new Transaction(transaction)
-
-  let jobs = await getBoostJobsFromTx(tx)
+  let jobs = await getBoostJobsFromTx(transaction)
 
   let records = await Promise.all(jobs.map((job) => importBoostJob(job, transaction)))
 
@@ -149,4 +147,3 @@ export async function create(request, hapi) {
   return hapi.response({ jobs: json }).code(200)
 
 }
-
