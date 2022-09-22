@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:16.13
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -8,10 +8,9 @@ COPY package.json /usr/src/app/
 
 RUN npm install -g typescript
 RUN npm install -g ts-node
-RUN npm install -g rabbi
 RUN npm install 
 
 # Bundle app source
 COPY . /usr/src/app
 
-CMD rabbi start
+CMD npm start
