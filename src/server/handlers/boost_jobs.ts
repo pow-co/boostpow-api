@@ -1,6 +1,6 @@
 import { Transaction } from 'bsv'
 
-import { getBoostJobsFromTx, importBoostJob, importBoostJobFromTxid } from '../../boost'
+import { getBoostJobsFromTxHex, importBoostJob, importBoostJobFromTxid } from '../../boost'
 
 import { flatten } from 'lodash'
 
@@ -138,9 +138,11 @@ export async function create(request, hapi) {
 
   log.info('boost.job.tx.import', { transaction })
 
-  let jobs = await getBoostJobsFromTx(transaction)
+  let jobs = getBoostJobsFromTxHex(transaction)
 
   let records = await Promise.all(jobs.map((job) => importBoostJob(job, transaction)))
+
+  log.info('boost.job.tx.import.response', { records })
 
   let json = flatten(records).map(record => record.toJSON())
 

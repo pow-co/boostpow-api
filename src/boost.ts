@@ -7,8 +7,6 @@ import { publish } from 'rabbi'
 
 import * as whatsonchain from './whatsonchain'
 
-import * as filepay from 'filepay'
-
 import * as bsv from 'bsv'
 
 const delay = require('delay');
@@ -35,14 +33,16 @@ export interface BoostJob {
   spent: boolean;
 }
 
-export function getBoostJobsFromTx(tx: bsv.Transaction) {
+export function getBoostJobsFromTxHex(txhex: string): boost.BoostPowJob[] {
+
+  const tx = new bsv.Transaction(txhex)
 
   var index = 0
-  var jobs = []
+  var jobs: boost.BoostPowJob[] = []
 
   for (let output of tx.outputs) {
 
-    let job = boost.BoostPowJob.fromTransaction(tx, index)
+    let job = boost.BoostPowJob.fromTransaction(txhex, index)
 
     index +=1
 
@@ -54,17 +54,15 @@ export function getBoostJobsFromTx(tx: bsv.Transaction) {
 
 }
 
-export async function getBoostJobsFromTxid(txid:string) {
+export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJob[]> {
 
   const txhex = await fetch(txid)
-
-  console.log({ txhex })
 
   const tx = new bsv.Transaction(txhex)
 
   var i = 0;
 
-  let jobs = tx.outputs.reduce((jobs, vout) => {
+  let jobs: boost.BoostPowJob[] = tx.outputs.reduce((jobs, vout) => {
 
     let job = boost.BoostPowJob.fromRawTransaction(txhex, i)
 
@@ -83,8 +81,6 @@ export async function getBoostJobsFromTxid(txid:string) {
 export async function getBoostProof(txid: string): Promise<any> {
 
   const hex = await fetch(txid)
-
-  console.log({ hex })
 
   let proof = boost.BoostPowJobProof.fromRawTransaction(hex)
 
@@ -140,15 +136,15 @@ export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
 
 export async function getBoostJob(txid: string): Promise<BoostJob> {
 
-  let tx = await getTransaction(txid)
+  const hex = await fetch(txid)
 
-  let { hex } = tx;
+  console.log('FETCH', hex)
 
   let [record] = await models.BoostJob.findOne({
     where: { txid }
   })
 
-  let job = boost.BoostPowJob.fromRawTransaction(tx.hex)
+  let job = boost.BoostPowJob.fromRawTransaction(hex)
 
   if (record && !job) {
     return record
@@ -162,21 +158,7 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
     await record.save()
   }
 
-  let out = {
-    txid,
-    content: job.toObject().content.toString(),
-    script: tx.json.vout[job.vout].scriptPubKey.hex,
-    vout: job.vout,
-    value: job.value,
-    difficulty: job.difficulty,
-    category: job.toObject().category.toString(),
-    tag: job.toObject().tag.toString(),
-    userNonce: job.toObject().userNonce.toString(),
-    additionalData: job.toObject().additionalData.toString(),
-    spent
-  }
-
-  return out
+  return record.toJSON()
 
 }
 
@@ -325,6 +307,8 @@ export async function importBoostProof(proof: boost.BoostPowJobProof): Promise<a
 
 export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
+  log.info('importBoostJob', {job, txhex})
+
   let record = await models.BoostJob.findOne({
     where: {
       txid: job.txid,
@@ -338,11 +322,9 @@ export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
   } else {
 
-    let tx = await getTransaction(job.txid)
+    let hex = await fetch(job.txid)
 
-    if (tx) {
-
-    } else {
+    if (!hex) {
 
       let response = await broadcast(txhex)
 
