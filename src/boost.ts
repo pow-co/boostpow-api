@@ -188,30 +188,44 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   let tx = new bsv.Transaction(txhex)
 
-  console.log({ tx })
+  var isBroadcast = false;
 
-  tx = await getTransaction(tx.hash)
+  try {
 
-  if (!tx) {
+    const result = await fetch(tx.hash)
+
+    isBroadcast = !!result
+
+  } catch(error) {
+
+    log.debug('powco.fetch.error', error)
+
+  }
+ 
+  if (!isBroadcast) {
     
-    console.log('transaction not found')
-
     try {
 
-      //broadcast transaction
-      let response = await call('sendrawtransaction', [txhex])
+      log.info('powco.broadcast', { txhex })
 
-      console.log(response)
+      //broadcast transaction
+      await broadcast(txhex)
+
+      log.info('powco.broadcast.response', { txhex, txid: tx.hash })
 
     } catch(error) {
 
-      console.error(error)
+      log.error('powco.broadcast.error', error)
+
+      throw error
 
     }
 
   }
 
   let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
+
+  importBoostProofByTxid(tx.hash)
 
   return importBoostProof(proof)
 
