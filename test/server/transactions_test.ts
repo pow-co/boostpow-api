@@ -1,7 +1,7 @@
 
 import { buildServer } from '../../src/server'
 
-import { expect } from '../utils'
+import { expect, server } from '../utils'
 
 describe("API Server Posting Transactions", () => {
   var server;
