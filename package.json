@@ -5,7 +5,7 @@
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
       "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 test/**/*_test.ts --exit",
-      "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 $1",
+      "runtest": "NODE_ENV=test mocha --require=ts-node/register --timeout=20000 --exit $1",
       "start": "ts-node src/main.ts",
       "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
       "cover:unit": "nyc --silent npm run test:unit",
@@ -14,6 +14,10 @@
    },
    "nyc": {
       "check-coverage": false,
+      "extension": [
+         ".ts",
+         ".tsx"
+       ],
       "include": [
          "src/",
          "src/*.ts"
@@ -46,6 +50,8 @@
       "boostminer": "^0.3.11",
       "boostpow": "^1.5.0",
       "bsv": "^1.5.5",
+      "bsv-p2p": "^1.0.7",
+      "bsv-spv": "^0.3.5",
       "btoa": "^1.2.1",
       "delay": "^5.0.0",
       "dotenv": "^10.0.0",

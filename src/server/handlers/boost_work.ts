@@ -60,19 +60,22 @@ export async function create(request, hapi) {
 
   try {
 
-    let record = await importBoostProofFromTxHex(request.payload.transaction)
+    const tx_hex = request.payload.transaction
 
-    console.log('importboostprooffromtxhex.result', record)
+    log.info('importBoostProofFromTxHex', {tx_hex})
 
-    return hapi.response({ work: record.toJSON() }).code(200)
+    let result = await importBoostProofFromTxHex(tx_hex)
+
+    log.info('importBoostProofFromTxHex.result', { tx_hex, result })
+
+    return hapi.response({ work: result.toJSON() }).code(200)
 
   } catch(error) {
 
-    console.error('importboostprooffromtxhex.error', error)
+    log.error.error('importBoostProofFromTxHex.error', error)
 
     return hapi.response({ error: error.message }).code(500)
 
   }
 
 }
-

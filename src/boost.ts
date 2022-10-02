@@ -78,13 +78,13 @@ export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJ
 
 }
 
-export async function getBoostProof(txid: string): Promise<any> {
+export async function getBoostProof(txid: string): Promise<{ proof: boost.BoostPowJobProof, tx_hex: string }> {
 
-  const hex = await fetch(txid)
+  const tx_hex = await fetch(txid)
 
-  let proof = boost.BoostPowJobProof.fromRawTransaction(hex)
+  let proof = boost.BoostPowJobProof.fromRawTransaction(tx_hex)
 
-  return proof
+  return { proof, tx_hex }
 
 }
 
@@ -138,8 +138,6 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
 
   const hex = await fetch(txid)
 
-  console.log('FETCH', hex)
-
   let [record] = await models.BoostJob.findOne({
     where: { txid }
   })
@@ -172,13 +170,13 @@ export async function checkBoostSpent(txid: string, vout: number): Promise<boole
 
 export async function importBoostProofByTxid(txid: string): Promise<any> {
 
-  const proof = await getBoostProof(txid)
+  const {proof, tx_hex} = await getBoostProof(txid)
 
   if (!proof) {
     return
   }
 
-  return importBoostProof(proof)
+  return importBoostProof(proof, tx_hex)
 
 }
 
@@ -227,15 +225,13 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   importBoostProofByTxid(tx.hash)
 
-  return importBoostProof(proof)
+  return importBoostProof(proof, txhex)
 
 }
 
-export async function importBoostProof(proof: boost.BoostPowJobProof): Promise<any> {
+export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: string): Promise<any> { // proof_record
 
   if (!proof) { return }
-
-  console.log('importboostproof', proof)
 
   let where = {
     txid: proof.spentTxid,
@@ -275,6 +271,8 @@ export async function importBoostProof(proof: boost.BoostPowJobProof): Promise<a
 
     if (!proof_record) {
 
+      log.info('boost.importBoostProof.recordNotFound')
+
       proof_record = await models.BoostWork.create({
         job_txid: proof.spentTxid,
         job_vout: proof.spentVout,
@@ -284,7 +282,8 @@ export async function importBoostProof(proof: boost.BoostPowJobProof): Promise<a
         difficulty: job.difficulty,
         tag: job.tag,
         timestamp: new Date(),
-        value: job.value
+        value: job.value,
+        tx_hex
       })
 
       publish('powco', 'boostpow.proof.created', proof_record.toJSON());
@@ -353,6 +352,8 @@ export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 }
 
 export async function importBoostJobFromTxid(txid: string) {
+
+  log.info('boost.importBoostJobFromTxid', { txid })
 
   let jobs: BoostPowJob[] = await getBoostJobsFromTxid(txid)
 

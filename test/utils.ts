@@ -19,3 +19,15 @@ const wallet = Wallet.init()
 
 export { wallet } 
 
+var server;
+
+import { buildServer } from '../src/server'
+
+before(async () => {
+
+    server = await buildServer()
+
+})
+
+export { server }
+
