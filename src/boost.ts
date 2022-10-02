@@ -19,6 +19,8 @@ import { log } from './log'
 
 import { fetch, broadcast } from 'powco'
 
+import config from './config'
+
 export interface BoostJob {
   txid: string;
   content: string;
@@ -128,7 +130,12 @@ export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
 
   record = await models.BoostJob.create(params)
 
-  await publish('powco', 'boostpow.job.created', record.toJSON())
+  if (config.get('amqp_enabled')) {
+
+    await publish('powco', 'boostpow.job.created', record.toJSON())
+
+  }
+
 
   return record
 
@@ -286,16 +293,26 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
         tx_hex
       })
 
-      publish('powco', 'boostpow.proof.created', proof_record.toJSON());
+      if (config.get('amqp_enabled')) {
+
+        publish('powco', 'boostpow.proof.created', proof_record.toJSON());
+
+      }
+
 
       job.spent = true;
       job.spent_txid = proof.txid;
       job.spent_vout = proof.vin;
       await job.save()
 
-      publish('powco', 'boostpow.job.completed', {
-        job: job.toJSON(), proof: proof_record.toJSON()
-      })
+      if (config.get('amqp_enabled')) {
+
+
+        publish('powco', 'boostpow.job.completed', {
+          job: job.toJSON(), proof: proof_record.toJSON()
+        })
+
+      }
 
     }
 
