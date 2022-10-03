@@ -17,7 +17,7 @@
       "extension": [
          ".ts",
          ".tsx"
-       ],
+      ],
       "include": [
          "src/",
          "src/*.ts"
@@ -41,6 +41,7 @@
       "amqp-lib": "^0.3.4",
       "amqplib": "^0.8.0",
       "anypay-simple-wallet": "^0.2.1",
+      "ascii-art": "^2.8.5",
       "async-redis": "^2.0.0",
       "bitcoinfiles-sdk": "^2.4.17",
       "bitcoinjs-lib": "^5.2.0",
@@ -55,6 +56,7 @@
       "btoa": "^1.2.1",
       "delay": "^5.0.0",
       "dotenv": "^10.0.0",
+      "eventsource": "^2.0.2",
       "externalip": "^1.0.2",
       "fastq": "^1.13.0",
       "filepay": "^2.2.12",

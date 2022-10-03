@@ -12,7 +12,7 @@ type JobsMap = {
 
 class Importer {
 
-    jobs: JobsMap;
+    jobs: JobsMap = {};
 
     async importProof(tx_hex: string): Promise<{job: BoostPowJob, proof: BoostPowJobProof}> {
 
@@ -33,8 +33,12 @@ class Importer {
     }
 
     addJob({txid, index} : { txid: string, index: number}): void {
-
         this.jobs[`${txid}_${index}`] = true
+    }
+
+    getJob({txid, index} : { txid: string, index: number}): boolean {
+
+        return !!this.jobs[`${txid}_${index}`]
     }
 
     removeJob({txid, index} : { txid: string, index: number}): void {
