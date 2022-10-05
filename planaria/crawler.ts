@@ -93,7 +93,7 @@ export class Crawler extends EventEmitter {
 
   }
 
-  runOnceFromStart() {
+  runOnceFromStart<T>(): Promise<T[]> {
 
     log.debug('crawler.planaria.sync', { latestBlock: this.latestBlock })
 
@@ -114,6 +114,7 @@ export class Crawler extends EventEmitter {
               "$gt": block_index
 
             }
+
           })
 
         }
