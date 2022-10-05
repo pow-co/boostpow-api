@@ -1,7 +1,7 @@
 
 import { log } from '../../log'
 
-import { call as rpc } from '../../jsonrpc'
+import { run } from '../../run'
 
 export async function create(request, hapi) {
 
@@ -11,11 +11,17 @@ export async function create(request, hapi) {
 
   try {
 
-    let response = await rpc('sendrawtransaction', [rawtx])
+    let txid = await run.blockchain.broadcast(rawtx)
 
-    log.info('mapi.tx.submit.rpc.response', { response, rawtx })
+    log.info('mapi.tx.submit.rpc.response', { txid, rawtx })
 
-    return hapi.response(response).code(201)
+    return hapi.response({
+
+      txid,
+      
+      txhex: rawtx
+
+    }).code(201)
 
   } catch({ response }) {
 

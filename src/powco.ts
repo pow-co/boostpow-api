@@ -2,6 +2,8 @@
 import * as http from 'superagent'
 import * as bsv from 'bsv'
 
+import { run } from './run'
+
 export async function submitBoostProofTransaction(hex: string): Promise<any> {
 
   let { body } = http.post('https://pow.co/node/api/boost_proof_transactions')
@@ -48,9 +50,16 @@ export async function listAvailableJobs(): Promise<Job[]> {
 
 export async function getTransaction(txid: string): Promise<bsv.Transaction> {
 
-  let { body } = await http.get(`https://pow.co/api/v1/tx/${txid}`)
+  const hex = await run.blockchain.fetch(txid)
 
-  return new bsv.Transaction(body.txhex)
+  return new bsv.Transaction(hex)
 
 }
+
+export async function getTransactionHex(txid: string): Promise<string> {
+
+  return await run.blockchain.fetch(txid)
+
+}
+
 

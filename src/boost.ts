@@ -1,6 +1,4 @@
 
-import { getTransaction, call } from './jsonrpc'
-
 import { BoostPowJob } from 'boostpow'
 
 import { publish } from 'rabbi'
@@ -20,6 +18,7 @@ import { log } from './log'
 import { fetch, broadcast } from 'powco'
 
 import config from './config'
+import { getSpendingTransaction } from './spends'
 
 export interface BoostJob {
   txid: string;
@@ -155,7 +154,7 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
     return record
   }
 
-  let spent = await checkBoostSpent(txid, job.vout)
+  let spent = await getSpendingTransaction({hash: txid, index: job.vout })
 
   if (spent && !record.spent) {
 
@@ -164,14 +163,6 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
   }
 
   return record.toJSON()
-
-}
-
-export async function checkBoostSpent(txid: string, vout: number): Promise<boolean> {
-
-  let {result}: any = await call('gettxout', [txid, vout])
-
-  return !result
 
 }
 

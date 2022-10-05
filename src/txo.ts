@@ -1,7 +1,7 @@
 
 import * as txo from 'txo'
 
-import { getTransaction } from './jsonrpc'
+import { getTransaction } from './powco'
 
 export async function txoFromTxid(txid: string): Promise<any> {
 
@@ -10,4 +10,3 @@ export async function txoFromTxid(txid: string): Promise<any> {
   return txo.fromTx(hex)
 
 }
-

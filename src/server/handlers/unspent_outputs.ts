@@ -1,11 +1,11 @@
 
-import { listUnspent } from '../../jsonrpc'
+import { run } from '../../run'
 
 export async function index(request, hapi) {
 
   let { address } = await request.params
 
-  let utxos = await listUnspent(address)
+  let utxos = await run.blockchain.unspent(address)
 
   return hapi.response({
 
@@ -14,4 +14,3 @@ export async function index(request, hapi) {
   }).code(200)
 
 }
-
