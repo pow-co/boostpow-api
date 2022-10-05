@@ -92,7 +92,9 @@ export default async function start() {
     const jobs = await models.BoostJob.findAll({
         where: {
             spent: false
-        }
+        },
+        order: [["createdAt", "asc"]],
+        offset: 1500
     })
 
     for (let job of jobs) {

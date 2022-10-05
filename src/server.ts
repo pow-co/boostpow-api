@@ -272,6 +272,37 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/spends/{output_txid}/{output_index}',
+    handler: handlers.Spends.show,
+    options: {
+      description: 'Gets the transaction input for a given transaction output',
+      notes: 'Gets the transaction input for a given transaction output',
+      tags: ['api', 'spends'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          spent: Joi.boolean().required(),
+          output: Joi.object({
+            txid: Joi.string().required(),
+            index: Joi.number().required()
+          }).required(),
+          intput: Joi.object({
+            txid: Joi.string().required(),
+            index: Joi.number().required()
+          }).optional()
+        })
+      },
+      validate: {
+        params: Joi.object({
+          output_txid: Joi.string().required(),
+          output_index: Joi.number().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/tx/{txid}',
     handler: handlers.Transactions.show,
     options: {

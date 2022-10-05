@@ -9,3 +9,4 @@ temp/.env
 get402.json
 .nyc_output/
 coverage/
+.runcache

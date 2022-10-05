@@ -238,7 +238,10 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
 export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: string): Promise<any> { // proof_record
 
+
   if (!proof) { return }
+
+  const timestamp = proof.time ? new Date(proof.time.number * 1000) : new Date()
 
   let where = {
     txid: proof.spentTxid,
@@ -288,7 +291,7 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
         content: job.content,
         difficulty: job.difficulty,
         tag: job.tag,
-        timestamp: new Date(),
+        timestamp,
         value: job.value,
         tx_hex
       })
