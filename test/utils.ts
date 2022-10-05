@@ -13,12 +13,6 @@ const expect = chai.expect
 
 export { expect } 
 
-import { Wallet } from 'boostminer'
-
-const wallet = Wallet.init()
-
-export { wallet } 
-
 var server;
 
 import { buildServer } from '../src/server'

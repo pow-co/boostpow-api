@@ -1,7 +1,7 @@
 
-import { importer, loaded } from '../src/importer'
-import models from '../src/models'
-import { expect } from './utils'
+import { importer, loaded } from '../../src/importer'
+import models from '../../src/models'
+import { expect } from '../utils'
 
 describe('Unmined Jobs Processor', () => {
 
@@ -10,24 +10,6 @@ describe('Unmined Jobs Processor', () => {
     await loaded()
 
   })
-
-  /*it("should read all unmined jobs into memory at startup", async () => {
-
-    const jobsMap = JobsMap.loadUnminedFromDatabase()
-
-  })
-
-  it("should detect a matching proof spending a job output", async () => {
-
-    const job;
-
-    const proofTxid = ''
-
-    const job = await Importer.findJobByWorkTxid(proofTxid)
-
-    expect(job).to.be.a(BoostPowJob)
-    
-  })*/
 
   it("should import a matching proof spending a job output", async () => {
 
