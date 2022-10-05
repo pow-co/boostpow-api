@@ -15,7 +15,7 @@
     "boostpow-js": "^1.2.22",
     "btoa": "^1.2.1",
     "dotenv": "^10.0.0",
-    "eventsource": "^1.1.0",
+    "eventsource": "^1.1.1",
     "knex": "^0.95.10",
     "mongoose": "^6.0.4",
     "node-fetch": "^2.6.1",
