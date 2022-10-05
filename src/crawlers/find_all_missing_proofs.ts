@@ -9,7 +9,7 @@ export default async function start() {
         where: {
             spent: false
         },
-        order: [["createdAt", "desc"]]
+        order: [["profitability", "desc"]]
     })
 
     for (let job of jobs) {
