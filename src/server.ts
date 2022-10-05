@@ -286,7 +286,7 @@ export async function buildServer(): Server {
             txid: Joi.string().required(),
             index: Joi.number().required()
           }).required(),
-          intput: Joi.object({
+          input: Joi.object({
             txid: Joi.string().required(),
             index: Joi.number().required()
           }).optional()
