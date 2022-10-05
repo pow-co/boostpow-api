@@ -1,5 +1,5 @@
 
-import { getSpendingTransaction } from "../../../find_spending_tx"
+import { getSpendingTransaction } from "../../spends"
 
 export async function show(req, h) {
 

@@ -1,11 +1,8 @@
 require("dotenv").config()
 
-import { log } from './src/log'
+import { log } from './log'
 
-import { Crawler } from './planaria/crawler'
-import { txoFromTxid } from './src/txo';
-import models from './src/models';
-import { importBoostProofByTxid } from './src/boost';
+import { Crawler } from '../planaria/crawler'
 
 interface Script {
     hash: string;
@@ -84,63 +81,5 @@ export async function getSpendingTransaction(output: Script): Promise<GetSpendin
     const result = await crawler.runOnceFromStart<GetSpendingTransactionResult>()
 
     return result[0]
-
-}
-
-export default async function start() {
-
-    const jobs = await models.BoostJob.findAll({
-        where: {
-            spent: false
-        },
-        order: [["createdAt", "asc"]],
-        offset: 1500
-    })
-
-    for (let job of jobs) {
-
-        //console.log(job.toJSON())
-
-        const output = { hash: job.txid, index: job.vout }
-
-        const result = await getSpendingTransaction(output)
-
-
-        if (result) {
-
-            log.info('output.spent', result)
-
-            const proof = await importBoostProofByTxid(result.input.hash)
-
-            log.info('proof.imported', proof)
-
-
-        } else {
-
-            log.info('output.unspent', {output})
-
-        }
-        
-    }
-
-    try {
-
-        const output = {
-            hash: '6468fccbee68f5a3ddf92a5ad0f3d540c87edcbdc0206c4d7cb3799c2bd91b2e',
-            index: 0
-        }
-
-
-    } catch(error) {
-
-        log.error('getSpendingTransaction.error', error)
-
-    }
-
-}
-
-if (require.main === module) {
-
-  start()
 
 }
