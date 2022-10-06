@@ -20,7 +20,7 @@ interface Input {
 
 interface Output {}
 
-interface PlanariaResult {
+export interface PlanariaResult {
     _id: string;
     tx: {
         h: string;
@@ -29,7 +29,7 @@ interface PlanariaResult {
     out: Output[];
 }
 
-interface GetSpendingTransactionResult {
+export interface GetSpendingTransactionResult {
     input: Script;
     output: Script;
 }
@@ -49,30 +49,20 @@ export async function getSpendingTransaction(output: Script): Promise<GetSpendin
 
         onTransaction: (transaction: PlanariaResult) => {
 
-            try {
+            const input = transaction.in.filter(input => {
+                return input.e.h === output.hash && input.e.i === output.index
+            })[0]
 
-                const input = transaction.in.filter(input => {
-                    return input.e.h === output.hash && input.e.i === output.index
-                })[0]
+            if (input) {
 
-                if (input) {
+                return ({
+                    input: {
+                        hash: transaction.tx.h,
+                        index: input.i
+                    },
+                    output
+                })
 
-                    return ({
-                        input: {
-                            hash: transaction.tx.h,
-                            index: input.i
-                        },
-                        output
-                    })
-
-                }
-
-            } catch(error) {
-
-                log.error('planaria.find_spending_tx.error', error)
-
-                throw error
-            
             }
 
         }
