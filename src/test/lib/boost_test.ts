@@ -1,6 +1,5 @@
-
-import * as boost from '../../boost'
 import { expect } from '../utils'
+import * as boost from '../../boost'
 
 describe("Boost Utilities", () => {
 
