@@ -1,9 +1,17 @@
 
 import { rankContent, rankTags } from '../../rankings'
 
-export async function index(req, h) {
+export async function index(req) {
 
-    const { start_date, end_date, tag } = req.params
+    let { start_date, end_date, tag } = req.query
+
+    if (start_date) {
+        start_date = new Date(start_date * 1000)
+    }
+
+    if (end_date) {
+        end_date = new Date(end_date * 1000)
+    }
 
     const rankings = await rankContent({
         start_date,
@@ -15,9 +23,17 @@ export async function index(req, h) {
 
 }
 
-export async function tags(req, h) {
+export async function tags(req) {
 
-    const { start_date, end_date } = req.params
+    let { start_date, end_date } = req.query
+
+    if (start_date) {
+        start_date = new Date(start_date * 1000)
+    }
+
+    if (end_date) {
+        end_date = new Date(end_date * 1000)
+    }
 
     const rankings = await rankTags({
         start_date,

@@ -66,8 +66,8 @@ export async function buildServer(): Server {
       },
       validate: {
         query: Joi.object({
-          start_date: Joi.number().optional(),
-          end_date: Joi.number().optional(),
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp'),
           tag: Joi.string().optional()
         }).optional()
       }
@@ -89,8 +89,8 @@ export async function buildServer(): Server {
       },
       validate: {
         query: Joi.object({
-          start_date: Joi.number().optional(),
-          end_date: Joi.number().optional()
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp')
         })
       }
     }

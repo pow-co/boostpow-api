@@ -1,5 +1,6 @@
 
 import { Op } from 'sequelize'
+import { log } from './log';
 
 import models from './models'
 
@@ -46,6 +47,8 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
         where['tag'] = params.tag
 
     }
+
+    log.info('rankings.rankContent', {params, where})
 
     const proofs = await models.BoostWork.findAll({
 
