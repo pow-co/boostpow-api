@@ -52,6 +52,52 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/boost/rankings',
+    handler: handlers.Rankings.index,
+    options: {
+      description: 'Rank content by difficulty in a given time period',
+      tags: ['api', 'rankings'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional(),
+          end_date: Joi.number().optional(),
+          tag: Joi.string().optional()
+        }).optional()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/boost/rankings/tags',
+    handler: handlers.Rankings.tags,
+    options: {
+      description: 'Return rank of tags ie baes, askbitcoin, etc',
+      tags: ['api', 'rankings'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional(),
+          end_date: Joi.number().optional()
+        })
+      }
+    }
+  })
+
+
+  server.route({
     method: 'POST',
     path: '/api/v1/boost/jobs',
     handler: handlers.BoostJobs.create,

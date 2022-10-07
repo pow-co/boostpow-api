@@ -1,7 +1,11 @@
 
 import * as assert from 'assert'
 
+import * as moment from 'moment' 
+
 export { assert }
+
+export { moment }
 
 import * as chai from 'chai'
 
