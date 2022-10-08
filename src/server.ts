@@ -168,6 +168,19 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/boost/proofs',
+    handler: handlers.BoostWork.index,
+    options: {
+      description: 'List Boostpow Proofs',
+      tags: ['api', 'work'],
+      response: {
+        failAction: 'log'
+      }
+    }
+  })
+
+  server.route({
     method: 'POST',
     path: '/api/v1/boost/proofs/{txid}',
     handler: handlers.BoostWork.createByTxid,
@@ -220,6 +233,7 @@ export async function buildServer(): Server {
       validate: {
         query: Joi.object({
           limit: Joi.number().optional(),
+          content: Joi.string().optional(),
           tag: Joi.string().optional()
         })
       }
@@ -373,36 +387,17 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
-    path: '/api/v1/utxo/{address}',
+    path: '/api/v1/utxos/{address}',
     handler: handlers.UnspentOutputs.index,
     options: {
       description: 'List Unspent Outputs For Address',
-      notes: 'PREMIUM ENDPOINT! Only available to paying clients',
-      tags: ['experimental', 'utxos'],
+      tags: ['api', 'utxos'],
       response: {
         failAction: 'log'
       },
       validate: {
         params: Joi.object({
           address: Joi.string().required()
-        })
-      }
-    }
-  })
-
-  server.route({
-    method: 'POST',
-    path: '/mapi/tx',
-    handler: handlers.MapiTransactions.create,
-    options: {
-      description: 'Submit a raw transaction directly to powco nodes',
-      tags: ['api', 'mapi', 'transactions'],
-      response: {
-        failAction: 'log'
-      },
-      validate: {
-        payload: Joi.object({
-          rawtx: Joi.string().required()
         })
       }
     }

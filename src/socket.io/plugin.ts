@@ -16,7 +16,7 @@ export const plugin = (() => {
 
     name: 'socket.io',
 
-    register: function(server: Server, options, next) {
+    register: function(server: Server) {
 
       const path = '/v1/socketio'
 
@@ -106,27 +106,4 @@ export const plugin = (() => {
 
 })()
 
-if (require.main === module) {
-
-  (async () => {
-
-    const server = new Server({
-      host: process.env.HOST || "localhost",
-      port: process.env.PORT || 8001,
-      routes: {
-        cors: true
-      }
-    });
-
-    await server.register(plugin)
-
-    log.info('socket.io.server.start')
-
-    await server.start();
-    
-    log.info('socket.io.server.started', server.info)
-
-  })()
-
-}
 

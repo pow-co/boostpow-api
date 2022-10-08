@@ -22,5 +22,40 @@ describe("Boost Proofs API", () => {
             expect(response.result.work.tx_hex).to.equal(proof_tx_hex)
             
         })
+
+        it("POST '/api/v1/boost/proofs/txid should return the proof record from a txid", async () => {
+
+            const txid = "1086dd56c7fbadf272f2aec4cbe54129a8af7535835df0d0a68d2a22ac7ef7c5"
+
+            const response = await server.inject({
+                method: 'POST',
+                url: `/api/v1/boost/proofs/${txid}`
+            })
+
+            expect(response.statusCode).to.equal(200)
+            
+        })
+
+        it("GET '/api/v1/boost/proofs should list all proofs", async () => {
+
+            const response = await server.inject({
+                method: 'GET',
+                url: `/api/v1/boost/proofs`
+            })
+
+            expect(response.statusCode).to.equal(200)
+            
+        })
+
+        it("GET '/api/v1/boost/proofs should allow to filter proofs by tag", async () => {
+
+            const response = await server.inject({
+                method: 'GET',
+                url: `/api/v1/boost/proofs?tag=askbitcoin.ai`
+            })
+
+            expect(response.statusCode).to.equal(200)
+            
+        })
     })
 })

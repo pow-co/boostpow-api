@@ -1,11 +1,18 @@
 import { expect } from '../utils'
 import * as boost from '../../boost'
+import { run } from '../../run'
+
+import { BoostPowJob } from 'boostpow'
 
 describe("Boost Utilities", () => {
 
-    it.skip('#getBoostJobsFromTxHex should return jobs from a txhex', async () => {
+    it('#getBoostJobsFromTxHex should return jobs from a txhex', async () => {
 
-        const result = await boost.getBoostJobsFromTxHex('')
+        const txhex = await run.blockchain.fetch('6468fccbee68f5a3ddf92a5ad0f3d540c87edcbdc0206c4d7cb3799c2bd91b2e')
+
+        const result = await boost.getBoostJobsFromTxHex(txhex)
+
+        expect(result[0].difficulty).to.be.equal(1)
 
     })
 
@@ -25,37 +32,31 @@ describe("Boost Utilities", () => {
 
     })
 
-    it.skip('#persistBoostJob should take a BoostPowJob and return a database record object', async () => {
+    it('#importBoostJob should import a boost job', async () => {
 
-       // const result = await boost.persistBoostJob('')
+        try {
 
-    })
+            const txhex = await run.blockchain.fetch('b740679666126027ca342d1fa180e22a5487b55932b05eb5c921214729169862')
 
-    it.skip('#getBoostJob should get a boost job given a txid', async () => {
+            const job = BoostPowJob.fromRawTransaction(txhex)
 
-        const result = await boost.getBoostJob('6468fccbee68f5a3ddf92a5ad0f3d540c87edcbdc0206c4d7cb3799c2bd91b2e')
+            await boost.importBoostJob(job)
 
-        expect(result)
+            await boost.importBoostJob(job, 'b740679666126027ca342d1fa180e22a5487b55932b05eb5c921214729169862')
 
+        } catch(error) {
+
+            console.error(error)
+
+        }
+    
     })
 
     it('#importBoostProofByTxid should return a proof given a txid', async () => {
 
         const result = await boost.importBoostProofByTxid('d1d26fa621f87dfc82ed1d8aa765b35172d04b32297025e5fa4df8044a829f92')
 
-        expect(result)
-
-    })
-
-    it.skip('#importBoostProofFromTxHex should call importBoostProof to import', async () => {
-
-        const result = await boost.importBoostProofFromTxHex('')
-
-    })
-
-    it.skip("#importBoostProof should import a proof transaction by hex", async () => {
-
-        //const result = await boost.importBoostProof({ tx_hex: '' })
+        expect(result).to.be.not.null
 
     })
 

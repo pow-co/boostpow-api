@@ -1,4 +1,3 @@
-import { Transaction } from 'bsv'
 
 import { getBoostJobsFromTxHex, importBoostJob, importBoostJobFromTxid } from '../../boost'
 
@@ -10,9 +9,9 @@ import { log } from '../../log'
 
 import { Op } from 'sequelize'
 
-import { badRequest } from 'boom'
+import { badRequest, notFound } from 'boom'
 
-export async function index(request, hapi) {
+export async function index(request) {
 
   const where = {
     spent: false,
@@ -25,106 +24,43 @@ export async function index(request, hapi) {
     where['tag'] = request.query.tag
   }
 
-  console.log('boost.jobs.list', { where })
+  const limit = request.query.limit || 25;
 
-  try {
+  let jobs = await models.BoostJob.findAll({
+    where,
+    order: [['difficulty', 'asc']],
+    limit
+  })
 
-    const limit = request.query.limit || 25;
-
-    let jobs = await models.BoostJob.findAll({
-      where,
-      order: [['difficulty', 'asc']],
-      limit
-    })
-
-    return { jobs }
-
-  } catch(error) {
-
-    return hapi.response({ error: error.message }).code(500)
-
-  }
-
-}
-
-export async function spent(request, hapi) {
-
-  try {
-
-    const limit = request.query.limit || 25;
-
-    let jobs = await models.BoostJob.findAll({
-      where: {
-        spent: true,
-        script: {
-          [Op.ne]: null
-        }
-      },
-      order: [['createdAt', 'desc']],
-      limit
-    })
-
-    return { jobs }
-
-  } catch(error) {
-
-    return hapi.response({ error: error.message }).code(500)
-
-  }
+  return { jobs }
 
 }
 
 export async function show(request, hapi) {
 
-  try {
+  let { txid } = request.params
 
-    let { txid } = request.params
+  const where = {
+    txid
+  };
 
-    const where = {
-      txid
-    };
+  let job = await models.BoostJob.findOne({ where })
 
-    if (txid.match('_')) {
+  if (!job) {
 
-      const vout = txid.split('_')[1]
-
-      where['vout'] = txid.split('_')[1]
-
-    }
-
-    let job = await models.BoostJob.findOne({ where })
-
-    return hapi.response({ job: job.toJSON() }).code(200)
-
-  } catch(error) {
-
-    console.error(error)
-
-    return hapi.response({ error }).code(500)
+    return notFound()
 
   }
+
+  return hapi.response({ job: job.toJSON() }).code(200)
 
 }
 
 export async function createByTxid(request, hapi) {
 
-  try {
+  let job = await importBoostJobFromTxid(request.params.txid)
 
-    console.log('create by txid', request.params)
-
-    let job = await importBoostJobFromTxid(request.params.txid)
-
-    console.log({ job })
-
-    return { job }
-
-  } catch(error) {
-
-    log.error('api.BoostJobs.createbyTxid', error)
-
-    return badRequest(error)
-
-  }
+  return { job }
 
 }
 

@@ -1,6 +1,8 @@
 
 import { expect, server } from '../utils'
 
+import { run } from '../../run'
+
 describe("API - Boost Jobs", () => {
 
   it('POST /api/v1/boost/jobs should import a job txhex', async () => {
@@ -18,10 +20,37 @@ describe("API - Boost Jobs", () => {
 
   })
 
+  it('POST /api/v1/boost/jobs should import a job txhex', async () => {
+
+    const txid = '275667cfab138f1d780c0fe52fb2d1720d4cab2029aaf94b91e5752bbfa94dc9'
+
+    const hex = await run.blockchain.fetch(txid)
+
+    const response = await server.inject({
+      url: '/api/v1/boost/jobs',
+      method: 'POST',
+      payload: {
+        transaction: hex
+      }
+    })
+
+  })
+
   it('GET /api/v1/boost/jobs should list available jobs', async () => {
 
     const response = await server.inject({
       url: '/api/v1/boost/jobs',
+      method: 'GET'
+    })
+
+    expect(response.statusCode).to.be.equal(200)
+
+  })
+
+  it('GET /api/v1/boost/jobs should allow tag and content to be specified', async () => {
+
+    const response = await server.inject({
+      url: '/api/v1/boost/jobs?tag=askbitcoin&content=37c268f072b782a020efc5b3f0c4c0511c74f7b84084f08dabe6808099cb8e2a',
       method: 'GET'
     })
 
@@ -37,6 +66,17 @@ describe("API - Boost Jobs", () => {
     })
 
     expect(response.statusCode).to.be.equal(200)
+
+  })
+
+  it('GET /api/v1/boost/jobs/{txid} should return 404 if the job does not exist', async () => {
+
+    const response = await server.inject({
+      url: '/api/v1/boost/jobs/293fd925a7ec53d52df73d8e77db6e2f3a73838294262ba7549922fb3f75b437_0',
+      method: 'GET'
+    })
+
+    expect(response.statusCode).to.be.equal(404)
 
   })
 

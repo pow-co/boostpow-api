@@ -18,6 +18,7 @@ import { log } from './log'
 import { fetch, broadcast } from 'powco'
 
 import config from './config'
+
 import { getSpendingTransaction } from './spends'
 
 export interface BoostJob {
@@ -387,11 +388,10 @@ export async function importBoostJobFromTxid(txid: string) {
       return record
     }
 
-    let result = await persistBoostJob(job)
-
-    return result;
+    return persistBoostJob(job)
 
   }))
 
   return records
+
 }
