@@ -1,4 +1,6 @@
+
 import * as whatsonchain from '../../whatsonchain'
+
 import { expect } from '../utils'
 
 describe("Whatsonchain API", () => {
@@ -35,8 +37,6 @@ describe("Whatsonchain API", () => {
 
     it("getBlockPages should transactions in a block with more than 100", async () => {
 
-
-
         const hash = '000000000000000000885a4d8e9912f085b42288adc58b3ee5830a7da9f4fef4'
 
         const result = await whatsonchain.getBlockPages({
@@ -47,4 +47,5 @@ describe("Whatsonchain API", () => {
         expect(result[0]).to.be.equal('51c4933d986da4c0de51ea8446b7db4aa1753f205c594591a09998b1d05d7cfe')
         
     })
+    
 })
