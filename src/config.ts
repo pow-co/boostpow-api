@@ -37,12 +37,6 @@ export function loadFromFiles() {
 
 loadFromFiles()
 
-process.on('SIGHUP', () => {
-
-  loadFromFiles()
-
-})
-
 nconf.defaults({
   host: '0.0.0.0',
   port: '5200',
