@@ -50,7 +50,7 @@ export async function index(request, hapi) {
 
   const query = {
     where,
-    order: [['createdAt', 'desc']],
+    order: [['timestamp', 'asc']],
     limit,
     offset
   }
