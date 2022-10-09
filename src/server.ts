@@ -257,7 +257,10 @@ export async function buildServer(): Server {
       validate: {
         query: Joi.object({
           limit: Joi.number().optional(),
-          tag: Joi.string().optional()
+          tag: Joi.string().optional(),
+          offset: Joi.number().optional(),
+          start: Joi.number().optional(),
+          end: Joi.number().optional()
         })
       }
     }
@@ -414,6 +417,41 @@ export async function buildServer(): Server {
     documentationPath: '/api',
     grouping: 'tags'
   }
+
+  // Transform non-boom errors into boom ones
+  server.ext('onPreResponse', (request, h) => {
+    // Transform only server errors 
+    if (request.response.isBoom) {
+
+      log.error('hapi.error.response', request.response)
+
+      const statusCode = request.response.output.statusCode || 500
+
+      log.error('hapi.error.response', request.response)
+
+      if (statusCode === 500) {
+
+        const response = {
+          statusCode,
+          error: request.response.error || request.response.message,
+          message: request.response.message
+        }
+  
+        return h.response(response).code(statusCode)
+
+      } else {
+    
+        return h.response(request.response.output).code(statusCode)
+
+      }
+
+    } else {
+      // Otherwise just continue with previous response
+      return h.continue
+
+    }
+    })
+  
 
   await server.register([
       Inert,

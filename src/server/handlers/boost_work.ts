@@ -5,6 +5,8 @@ import models from '../../models'
 
 import { log } from '../../log'
 
+import { Op } from 'sequelize'
+
 export async function createByTxid(request, hapi) {
 
   let result = await importBoostProofByTxid(request.params.txid)
@@ -20,17 +22,42 @@ export async function index(request, hapi) {
   const where = {
   }
 
+  console.log('QUERY', request.query)
+
   if (request.query.tag) {
     where['tag'] = request.query.tag
   }
 
   const limit = request.query.limit || 25;
 
-  let work = await models.BoostWork.findAll({
+  const offset = request.query.offset || 0;
+
+  if (request.query.start) {
+
+    where['timestamp'] = {
+      [Op.gte]: new Date(request.query.start * 1000)
+    }
+
+  }
+
+  if (request.query.end) {
+
+    where['timestamp'] = {
+      [Op.lte]: new Date(request.query.end * 1000)
+    }
+    
+  }
+
+  const query = {
     where,
     order: [['createdAt', 'desc']],
-    limit
-  })
+    limit,
+    offset
+  }
+
+  log.info('boostpow.work.query', query)
+
+  let work = await models.BoostWork.findAll(query)
 
   return { work }
 
