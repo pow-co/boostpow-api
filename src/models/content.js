@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Content.init({
     txid: DataTypes.STRING,
-    contentType: DataTypes.STRING,
+    content_type: DataTypes.STRING,
     content_json: DataTypes.JSON,
     content_text: DataTypes.TEXT,
     content_bytes: DataTypes.BLOB
