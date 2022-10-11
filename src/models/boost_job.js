@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+
+      models.BoostJob.hasMany(models.Content, {
+        as: 'content',
+        foreignKey: 'txid',
+        sourceKey: 'content'
+      })
       // define association here
     }
   };
