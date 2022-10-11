@@ -10,12 +10,24 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+
+      models.Content.hasMany(models.BoostWork, {
+        as: 'boost_work',
+        foreignKey: 'content',
+        sourceKey: 'txid'
+      })
+
+      models.Content.hasMany(models.BoostJob, {
+        as: 'boost_jobs',
+        foreignKey: 'content',
+        sourceKey: 'txid'
+      })
       // define association here
     }
   }
   Content.init({
     txid: DataTypes.STRING,
-    contentType: DataTypes.STRING,
+    content_type: DataTypes.STRING,
     content_json: DataTypes.JSON,
     content_text: DataTypes.TEXT,
     content_bytes: DataTypes.BLOB

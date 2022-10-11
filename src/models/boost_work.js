@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      models.BoostWork.hasMany(models.Content, {
+        as: 'content',
+        foreignKey: 'txid',
+        sourceKey: 'content'
+      })
     }
   };
   BoostWork.init({

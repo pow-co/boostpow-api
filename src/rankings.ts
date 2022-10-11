@@ -66,7 +66,63 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
     })
 
-    return proofs
+
+    const contents = await models.Content.findAll({
+
+      where: {
+
+        txid: {
+          [Op.in]: proofs.map(proof => proof.content)
+        },
+
+        content_type: {
+          [Op.ne]: null
+        }
+      }
+
+    })
+
+    const contentsMap = contents.reduce((map, content) => {
+
+      map[content.txid] = {
+        content_type: content.content_type,
+        content_text: content.content_text,
+        txid: content.txid
+      }
+
+      return map
+
+    }, {})
+
+    const proofsWithContent = proofs.map(proof => {
+
+      const content = contentsMap[proof.content]
+
+      if (content) {
+
+        proof.content_type = content.content_type
+
+        proof.content_text = content.content_text
+
+      }
+
+      return {
+
+        content_txid: proof.content,
+
+        content_type: proof.content_type,
+
+        content_text: proof.content_text,
+
+        difficulty: parseFloat(proof.difficulty),
+
+        count: parseInt(proof.count)
+
+      }
+
+    })
+
+    return proofsWithContent;
 
 }
 

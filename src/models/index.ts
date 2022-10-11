@@ -30,4 +30,28 @@ fs
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+db.BoostJob.hasMany(db.Content, {
+  as: '_content',
+  foreignKey: 'txid',
+  sourceKey: 'content'
+})
+
+db.BoostWork.hasMany(db.Content, {
+  as: '_content',
+  foreignKey: 'txid',
+  sourceKey: 'content'
+})
+
+db.Content.hasMany(db.BoostWork, {
+  as: 'boost_work',
+  foreignKey: 'content',
+  sourceKey: 'txid'
+})
+
+db.Content.hasMany(db.BoostJob, {
+  as: 'boost_jobs',
+  foreignKey: 'content',
+  sourceKey: 'txid'
+})
+
 export default db

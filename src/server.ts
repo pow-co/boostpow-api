@@ -148,6 +148,45 @@ export async function buildServer(): Server {
     }
   })
 
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/boostpow/{tx_id}/new',
+    handler: handlers.BoostJobs.build,
+    options: {
+      description: 'Create new Boost Pow job script for payment',
+      tags: ['api', 'boostpow'],
+      validate: {
+        query: Joi.object({
+          currency: Joi.string().default('USD').optional(),
+          value: Joi.number().default(0.05).optional(),
+          difficulty: Joi.number().optional(),
+          category: Joi.string().optional(),
+          tag: Joi.string().optional()
+        }).label('NewBoostPowOptions'),
+        params: Joi.object({
+          tx_id: Joi.string().required()
+        })
+      },
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          network: Joi.string().required(),
+          outputs: Joi.array().items(Joi.object({
+            script: Joi.string().required(),
+            amount: Joi.number().integer().required()
+          }).required().label('PaymentRequestOutput')).required(),
+          creationTimestamp: Joi.number().integer().required(),
+          expirationTimestamp: Joi.number().integer().required(),
+          memo: Joi.string().optional(),
+          paymentUrl: Joi.string().required(),
+          merchantData: Joi.string().optional()
+        })
+          
+      }
+    }
+  })
+
   server.route({
     method: 'POST',
     path: '/api/v1/boost/proofs',
@@ -316,25 +355,6 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
-    path: '/api/v1/content/{txid}',
-    handler: () => {},
-    options: {
-      description: 'Show Content Jobs & Work',
-      notes: 'For applications looking to display work for a given piece of content, or miners looking to mine specific content. Includes jobs, work, and content metadata',
-      tags: ['beta', 'content'],
-      response: {
-        failAction: 'log'
-      },
-      validate: {
-        params: Joi.object({
-          txid: Joi.string().required()
-        })
-      }
-    }
-  })
-
-  server.route({
-    method: 'GET',
     path: '/api/v1/spends/{output_txid}/{output_index}',
     handler: handlers.Spends.show,
     options: {
@@ -403,6 +423,49 @@ export async function buildServer(): Server {
           address: Joi.string().required()
         })
       }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/content/{txid}',
+    handler: handlers.Content.show,
+    options: {
+      description: 'Get Metadata About Onchain Content by Txid',
+      tags: ['api', 'content'],
+      response: {
+        failAction: 'log'
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'POST',
+    path: '/api/v1/transactions',
+    handler: handlers.Transactions.create,
+    options: {
+      description: 'Submit new, signed transactions to the network',
+      tags: ['api', 'transactions'],
+      validate: {
+        failAction: 'log',
+        payload: Joi.object({
+          transaction: Joi.string().required()
+        }).label('SubmitTransaction')
+      },
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          payment: Joi.string().required(),
+          memo: Joi.string().optional(),
+          error: Joi.number().optional()
+        }).label('PaymentAck')
+      }
+
     }
   })
 
