@@ -1,7 +1,7 @@
 {
-   "name": "powco-api",
-   "version": "0.2.2",
-   "private": true,
+   "name": "boostpow-api",
+   "version": "0.3.0",
+   "private": false,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
       "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 src/test/**/*_test.ts --exit",
@@ -19,7 +19,7 @@
          ".tsx"
       ],
       "include": [
-         "src/",
+         "src/**.ts",
          "src/*.ts"
       ],
       "exclude": [
@@ -28,8 +28,11 @@
       "reporter": "lcov",
       "report-dir": "./coverage"
    },
-   "keywords": [],
-   "author": "Steven Zeiler",
+   "keywords": [
+      "proofofwork",
+      "bitcoin"
+   ],
+   "author": "POWCO",
    "license": "BSV",
    "dependencies": {
       "@hapi/hapi": "^20.2.2",
@@ -44,6 +47,7 @@
       "anypay-simple-wallet": "^0.2.1",
       "ascii-art": "^2.8.5",
       "async-redis": "^2.0.0",
+      "axios": "^1.1.2",
       "bitcoinfiles-sdk": "^2.4.17",
       "bitcoinjs-lib": "^5.2.0",
       "bitcoinjs-message": "^2.2.0",

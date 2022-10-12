@@ -3,7 +3,7 @@ export const API_BASE = 'https://pow.co/api/v1'
 
 import * as boostpow from 'boostpow'
 
-import axios from 'axios'
+const axios = require('axios')
 
 export async function getBoostJob(txid: string)  {
 

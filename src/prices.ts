@@ -1,5 +1,5 @@
 
-import axios from 'axios'
+const axios = require('axios')
 
 import BigNumber from 'bignumber.js'
 import config from './config'
