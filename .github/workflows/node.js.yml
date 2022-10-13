@@ -41,6 +41,11 @@ jobs:
       - name: Install typescript
         run: npm install -g typescript
 
+      - name: Install typescript
+        run: npx sequelize db:migrate --url=$TEST_DATABASE_URL
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+
       - name: Run Tests
         run: npm test
         env:
