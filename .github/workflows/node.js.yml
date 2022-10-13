@@ -42,4 +42,5 @@ jobs:
       - name: Run Tests
         run: npm test
         env:
-          DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+          TEST_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+
