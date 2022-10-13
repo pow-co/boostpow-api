@@ -72,7 +72,7 @@ describe("API - Boost Jobs", () => {
   it('GET /api/v1/boost/jobs/{txid} should return 404 if the job does not exist', async () => {
 
     const response = await server.inject({
-      url: '/api/v1/boost/jobs/293fd925a7ec53d52df73d8e77db6e2f3a73838294262ba7549922fb3f75b437_0',
+      url: '/api/v1/boost/jobs/fad3a6f86f7a61fad5790f9bb5696500ac8b88053738007e1b4048566a15366b',
       method: 'GET'
     })
 

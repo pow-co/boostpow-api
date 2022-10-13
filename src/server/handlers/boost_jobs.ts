@@ -48,6 +48,8 @@ export async function show(request, hapi) {
 
   let { txid } = request.params
 
+  txid = txid.split('_')[0]
+
   const where = {
     txid
   };
@@ -56,17 +58,23 @@ export async function show(request, hapi) {
 
   if (!job) {
 
+    [job] = await importBoostJobFromTxid(txid)
+
+  }
+
+  if (!job) {
+
     return notFound()
 
   }
 
-  return hapi.response({ job: job.toJSON() }).code(200)
+  return hapi.response({ job }).code(200)
 
 }
 
-export async function createByTxid(request, hapi) {
+export async function createByTxid(request) {
 
-  let job = await importBoostJobFromTxid(request.params.txid)
+  let [job] = await importBoostJobFromTxid(request.params.txid)
 
   return { job }
 
