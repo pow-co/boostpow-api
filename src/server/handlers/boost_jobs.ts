@@ -56,7 +56,14 @@ export async function show(request, hapi) {
 
   if (!job) {
 
-    return notFound()
+    await importBoostJobFromTxid(txid)
+
+    job = await models.BoostJob.findOne({ where })
+
+    if (!job) {
+
+      return notFound()
+    }
 
   }
 

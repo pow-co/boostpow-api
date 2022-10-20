@@ -21,13 +21,13 @@ export async function start() {
 
   await server.start();
 
+  log.info(server.info)
+
   startCrawler({ name: 'boostpow_jobs_original' })
 
   startCrawler({ name: 'boostpow_jobs_onchain' })
 
   startCrawler({ name: 'boostpow_proofs_onchain' })
-
-  log.info(server.info)
 
 }
 
