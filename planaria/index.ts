@@ -1,18 +1,13 @@
 require("dotenv").config()
 
-const EventSource = require('eventsource')
-
 import * as boostpow from 'boostpow'
 
 import models from '../src/models'
-
-import * as rabbi from 'rabbi'
 
 import * as powco from '../src/powco'
 
 import * as whatsonchain from '../src/whatsonchain'
 
-//import { Crawler } from '../src/bitbus_crawler'
 import { Crawler } from './crawler'
 
 import { log } from '../src/log'
@@ -92,7 +87,7 @@ export async function sync() {
 
     query: {
       q: {
-        find: { "out.s0": "boostpow", "blk.i": { "$gt": 738000 } },
+        find: { "out.s0": "boostpow", "blk.i": { "$gt": 600000 } },
       }
     },
 

@@ -9,7 +9,7 @@ import { log } from '../src/log'
 
 import delay from 'delay'
 
-const fetch = require('node-fetch')
+const axios = require('axios');
 
 const planaria_token = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxRlRyUWRaRjczd21tSFpVbzRhQzI1a0JWNUprWFRoeGl3IiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SHovaVkvTncvNmI0M1Q4WFZ0Ulk2SHdEMXQzOGM1RHJkVTFoTEYyLzhJeEhGZzJsSDQxeldzRG1vdUttemJPb2pJTXd4aVM5Qk9VNjFQNUhJK2x6bUxNPQ'
 
@@ -121,9 +121,9 @@ export class Crawler extends EventEmitter {
 
       })
 
-      return fetch("https://txo.bitbus.network/block", {
+      console.log('PLANARIA BODY', body)
 
-        method: "post",
+      return axios.post("https://txo.bitbus.network/block", body, {
 
         headers: {
 
@@ -133,18 +133,23 @@ export class Crawler extends EventEmitter {
 
         },
 
-        body
-
+        responseType: 'stream'
+        
       })
       .then(async (res) => {
 
-        return res.body
+        return res.data
 
           .pipe(split2())
 
           .pipe(through2(async (chunk, enc, callback) => {
+
+
+            console.log('chunkraw', chunk.toString())
   
             let json: BitbusMessage = JSON.parse(chunk.toString())
+
+            console.log('chunk', json)
   
             this.emit('chunk', json)
 
@@ -176,6 +181,10 @@ export class Crawler extends EventEmitter {
 
           })
   
+       })
+       .catch(error => {
+
+        console.error('planaria.error', error)
        })
 
     })
