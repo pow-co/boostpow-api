@@ -76,6 +76,29 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/boost/rankings/images',
+    handler: handlers.Rankings.images,
+    options: {
+      description: 'Rank image content by difficulty in a given time period',
+      tags: ['api', 'rankings', 'images'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp'),
+          tag: Joi.string().optional()
+        }).optional()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/boost/rankings/tags',
     handler: handlers.Rankings.tags,
     options: {
