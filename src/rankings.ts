@@ -8,6 +8,7 @@ interface RankContent {
     start_date?: Date;
     end_date?: Date;
     tag?: string;
+    images?: boolean;
 }
 
 interface Rankings {
@@ -66,8 +67,20 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
     })
 
+    var default_type = {
+      [Op.ne]: null
+    }
 
-    const contents = await models.Content.findAll({
+    
+    const image_type = {
+      [Op.like]: 'image%',
+      [Op.ne]: null
+    }
+
+    const content_type = params.images ? image_type : default_type
+
+
+    var contents = await models.Content.findAll({
 
       where: {
 
@@ -75,14 +88,15 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
           [Op.in]: proofs.map(proof => proof.content)
         },
 
-        content_type: {
-          [Op.ne]: null
-        }
+        content_type
       }
 
     })
 
-    const contentsMap = contents.reduce((map, content) => {
+    const contentsMap = contents.filter(content => {
+      return content.content_type.match(/image/)
+    }).
+    reduce((map, content) => {
 
       map[content.txid] = {
         content_type: content.content_type,
@@ -106,6 +120,11 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
       }
 
+      if (params.images && (!content || !content.content_type.match(/image/))) {
+        return
+
+      }
+
       return {
 
         content_txid: proof.content,
@@ -120,7 +139,7 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
       }
 
-    })
+    }).filter(proof => !!proof)
 
     return proofsWithContent;
 
