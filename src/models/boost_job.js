@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
         return parseFloat(this.getDataValue('profitability'))
       }
     },
+    miner: DataTypes.STRING,
     tx_hex: DataTypes.TEXT,
     timestamp: DataTypes.DATE,
     spent: DataTypes.BOOLEAN,

@@ -294,9 +294,11 @@ export async function buildServer(): Server {
       },
       validate: {
         query: Joi.object({
-          limit: Joi.number().optional(),
           content: Joi.string().optional(),
-          tag: Joi.string().optional()
+          tag: Joi.string().optional(),
+          miner: Joi.string().optional(),
+          limit: Joi.number().optional(),
+          offset: Joi.number().optional()
         })
       }
     }

@@ -114,17 +114,20 @@ export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
     timestamp = new Date()
   }
 
+  const jobObject = job.toObject()
+
   let params = {
     txid: job.txid,
-    content: job.toObject().content.toString(),
+    content: jobObject.content.toString(),
     script: job.toHex(),
     vout: job.vout,
     value: job.value,
     difficulty: job.difficulty,
-    category: job.toObject().category.toString(),
-    tag: job.toObject().tag.toString(),
-    userNonce: job.toObject().userNonce.toString(),
-    additionalData: job.toObject().additionalData.toString(),
+    category: jobObject.category.toString(),
+    tag: jobObject.tag.toString(),
+    userNonce: jobObject.userNonce.toString(),
+    additionalData: jobObject.additionalData.toString(),
+    miner: jobObject.minerPubKeyHash,
     timestamp
   }
 
@@ -285,7 +288,8 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
         tag: job.tag,
         timestamp,
         value: job.value,
-        tx_hex
+        tx_hex,
+        miner: proof.minerPubKeyHash
       })
 
       if (config.get('amqp_enabled')) {

@@ -32,6 +32,10 @@ export async function index(request) {
     where['tag'] = request.query.tag
   }
 
+  if (request.query.miner) {
+    where['miner'] = request.query.miner
+  }
+
   const limit = request.query.limit || 25;
 
   let jobs = await models.BoostJob.findAll({
