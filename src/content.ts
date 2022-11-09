@@ -5,7 +5,7 @@ import  * as http from 'superagent'
 
 const snarkdown = require('snarkdown')
 
-import { FetchPostDetail } from './twetch'
+import { postDetailQuery } from './twetch'
 
 import { Orm, create, findOne } from './orm'
 
@@ -112,7 +112,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
       if (!content_type) {
 
-        let twetch = await FetchPostDetail(txid)
+        let twetch = await postDetailQuery(txid)
 
         if (twetch) {
 
