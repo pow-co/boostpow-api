@@ -32,6 +32,29 @@ export async function index(request) {
     where['tag'] = request.query.tag
   }
 
+  if (request.query.maxDifficulty) {
+    where['difficulty'] = {
+      [Op.lte]: request.query.maxDifficulty
+    }
+  }
+  if (request.query.minDifficulty) {
+
+    if (where['difficulty']) {
+
+      where['difficulty'] = Object.assign(where['difficulty'], {
+        [Op.gte]: request.query.minDifficulty
+      })
+
+    } else {
+
+      where['difficulty'] = {
+        [Op.gte]: request.query.minDifficulty
+      }
+
+    }
+
+  }
+
   const limit = request.query.limit || 25;
 
   let jobs = await models.BoostJob.findAll({
