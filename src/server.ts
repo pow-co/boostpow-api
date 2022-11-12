@@ -296,7 +296,9 @@ export async function buildServer(): Server {
         query: Joi.object({
           limit: Joi.number().optional(),
           content: Joi.string().optional(),
-          tag: Joi.string().optional()
+          tag: Joi.string().optional(),
+          maxDifficulty: Joi.number().optional(),
+          minDifficulty: Joi.number().optional()
         })
       }
     }
