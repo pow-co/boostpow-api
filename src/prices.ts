@@ -42,15 +42,35 @@ interface QuoteDiffifculty {
 
 export async function quoteDifficulty({ currency, value, difficulty }: QuoteDiffifculty): Promise<DifficultyQuote> {
 
-  log.info('difficulty.quote', { currency, value, difficulty })
+  if (!currency && !value && !difficulty) {
+    throw new Error('Either difficulty or value must be provided')
+  }
 
-  const bsv_amount = await convertPrice(value, currency, 'BSV')
+  if (currency && !value) {
+
+    throw new Error('Provide either both currency and value or neither')
+  }
+
+  var bsv_amount;
+
+  if (!currency && !value && difficulty) {
+
+    // difficulty provided, give estimate 
+
+    bsv_amount = new BigNumber(difficulty).times(config.get('bsv_per_difficulty'))
+
+  } else {
+
+    log.info('difficulty.quote', { currency, value, difficulty })
+
+    bsv_amount = await convertPrice(value, currency, 'BSV')
+  }
 
   currency = 'BSV'
 
   if (!difficulty) {
 
-    difficulty = new BigNumber(value).dividedBy(config.get('bsv_per_difficulty')).toNumber()
+    difficulty = new BigNumber(bsv_amount).dividedBy(config.get('bsv_per_difficulty')).toNumber()
 
   }
 

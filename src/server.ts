@@ -181,8 +181,8 @@ export async function buildServer(): Server {
       tags: ['api', 'boostpow'],
       validate: {
         query: Joi.object({
-          currency: Joi.string().default('USD').optional(),
-          value: Joi.number().default(0.05).optional(),
+          currency: Joi.string().optional(),
+          value: Joi.number().optional(),
           difficulty: Joi.number().optional(),
           category: Joi.string().optional(),
           tag: Joi.string().optional()

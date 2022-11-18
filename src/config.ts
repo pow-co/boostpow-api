@@ -48,7 +48,8 @@ nconf.defaults({
   planaria_token: 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxRlRyUWRaRjczd21tSFpVbzRhQzI1a0JWNUprWFRoeGl3IiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SHovaVkvTncvNmI0M1Q4WFZ0Ulk2SHdEMXQzOGM1RHJkVTFoTEYyLzhJeEhGZzJsSDQxeldzRG1vdUttemJPb2pJTXd4aVM5Qk9VNjFQNUhJK2x6bUxNPQ',
   api_base: 'https://pow.co',
   notify_slack: false,
-  node_env: 'development'
+  node_env: 'development',
+  bsv_per_difficulty: 0.1
 })
 
 export default nconf

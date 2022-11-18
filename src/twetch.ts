@@ -1,4 +1,4 @@
-import { GraphQLClient, gql } from "graphql-request";
+const { GraphQLClient, gql }  = require("graphql-request");
 
 const graphqlAPI = "https://gw.twetch.app";
 //const authToken = process.env.TOKEN_TWETCH_AUTH;
