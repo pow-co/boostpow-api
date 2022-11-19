@@ -57,11 +57,15 @@ export async function index(request) {
 
   }
 
+  where['profitability'] = {
+    [Op.gt]: 0
+  }
+
   const limit = request.query.limit || 25;
 
   let jobs = await models.BoostJob.findAll({
     where,
-    order: [['difficulty', 'asc']],
+    order: [['profitability', 'desc']],
     limit
   })
 
