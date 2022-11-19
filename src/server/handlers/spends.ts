@@ -3,28 +3,49 @@ import { getSpendingTransaction } from "../../spends"
 
 export async function show(req, h) {
 
-    const { output_txid, output_index } = req.params
+  const { output_txid, output_index } = req.params
 
-    const output = {
-        hash: output_txid,
-        index: output_index
+  const output = {
+      hash: output_txid,
+      index: output_index
+  }
+
+    return {
+          
+        spent: false,
+
+        output
     }
 
-    const result = await getSpendingTransaction(output)
 
-    if (result) {
+  try {
 
-        return Object.assign({ spent: true }, result)
+      const result = await getSpendingTransaction(output)
 
-    } else {
+      if (result) {
 
-        return {
-            
-            spent: false,
+          return Object.assign({ spent: true }, result)
 
-            output
-        }
+      } else {
 
+          return {
+              
+              spent: false,
+
+              output
+          }
+
+      }
+
+  } catch(error) {
+
+    return {
+          
+        spent: false,
+
+        output
     }
+
+  }
 
 }
