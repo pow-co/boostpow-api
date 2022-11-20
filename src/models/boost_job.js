@@ -24,13 +24,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   BoostJob.init({
-    id: {
-      primaryKey: true,
-      type: DataTypes.INTEGER,
-      get() {
-        return parseInt(this.getDataValue('id'))
-      }
-    },
     content: DataTypes.STRING,
     difficulty: {
       type: DataTypes.DECIMAL,
