@@ -21,11 +21,15 @@ export async function start() {
 
   await server.start();
 
-  startCrawler({ name: 'boostpow_jobs_original' })
+  if (config.get('planaria_enabled')) {
 
-  startCrawler({ name: 'boostpow_jobs_onchain' })
+    startCrawler({ name: 'boostpow_jobs_original' })
 
-  startCrawler({ name: 'boostpow_proofs_onchain' })
+    startCrawler({ name: 'boostpow_jobs_onchain' })
+
+    startCrawler({ name: 'boostpow_proofs_onchain' })
+
+  }
 
   log.info(server.info)
 
