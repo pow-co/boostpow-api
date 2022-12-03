@@ -71,6 +71,8 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
         let resp = await http.head(`https://bitcoinfileserver.com/${txid}`)
 
+        console.log('HEADERS 1', resp.headers)
+
         content_type = resp.headers['content-type']
 
         content.content_type = content_type
@@ -100,6 +102,8 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
       let resp = await http.head(`https://bitcoinfileserver.com/${txid}`)
 
+      console.log('HEADERS 2', resp.headers)
+
       content_type = resp.headers['content-type']
 
     } catch(error) {
@@ -109,6 +113,8 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
     }
 
     try {
+
+      console.log('CONTENT TYPE', content_type)
 
       if (!content_type) {
 
@@ -124,7 +130,9 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
       }
 
-      if (content_type === 'text/markdown; charset=utf-8') {
+      if (content_type.match('text/markdown')) {
+
+        console.log('MARKDOWN')
 
         let { text } = await http.get(`https://bitcoinfileserver.com/${txid}`)
 

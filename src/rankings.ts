@@ -93,10 +93,10 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
     })
 
-    const contentsMap = contents.filter(content => {
+    /*const contentsMap = contents.filter(content => {
       return content.content_type.match(/image/)
-    }).
-    reduce((map, content) => {
+    }).*/
+    const contentsMap = contents.reduce((map, content) => {
 
       map[content.txid] = {
         content_type: content.content_type,
