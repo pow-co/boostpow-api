@@ -7,6 +7,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
+
   class BoostJob extends Model {
     /**
      * Helper method for defining associations.

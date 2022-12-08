@@ -6,6 +6,10 @@ import { createHash } from 'crypto'
 
 import models from './src/models'
 
+import * as http from 'superagent'
+
+import { fetch } from 'powco'
+
 const faultyJobsJson = require('./data/faulty_old_jobs.json')
 
 interface Outpoint {
@@ -18,22 +22,38 @@ interface FindSpendTransaction extends Outpoint {
 }
 
 interface SpendTransaction {
-
+    outputs: any[];
+    inputs: any[];
+    job_vout: number;
+    job_txid: string;
+    spend_vin: number;
+    spend_txid: string;
+    time: number;
 }
 
-async function findSpendTransaction({ txid, vout, scriptHash }: FindSpendTransaction): Promise<SpendTransaction | null> {
+async function getTimestamp(txid: string): Promise<any> {
+
+    let url =`https://api.whatsonchain.com/v1/bsv/main/tx/hash/${txid}`
+  
+    //let {data} = await axios.get(url)
+
+    const {body} = await http.get(url)
+  
+    return body.time * 1000
+  
+  }
+
+async function findSpendTransaction({ txid: job_txid, vout: job_vout, scriptHash }: FindSpendTransaction): Promise<SpendTransaction | null> {
 
     var spendTransaction: SpendTransaction;
 
     if (!scriptHash) {
 
-        const transaction = await getTransaction(txid)
+        const transaction: any = await getTransaction(job_txid)
 
-        const output = transaction.outputs[vout]
+        const output = transaction.outputs[job_vout]
 
         scriptHash = createHash('sha256').update(output._scriptBuffer).digest('hex').match(/.{2}/g).reverse().join("");
-
-        console.log({ scriptHash })
 
     }
 
@@ -45,16 +65,15 @@ async function findSpendTransaction({ txid, vout, scriptHash }: FindSpendTransac
 
     for (let {tx_hash} of history) {
         
-        const transaction = await getTransaction(tx_hash)
+        const transaction: any = await getTransaction(tx_hash)
 
+        for (let vin=0; vin< transaction.inputs.length; vin++) {
 
-        for (let vout=0; vout< transaction.inputs.length; vout++) {
+            const input = transaction.inputs[vin]
 
-            const input = transaction.inputs[vout]
+            if (input.prevTxId.toString('hex') === job_txid) {
 
-            if (input.prevTxId.toString('hex') === txid) {
-
-                spendTransaction = Object.assign(transaction, { txid, vout })
+                spendTransaction = Object.assign(transaction, { job_txid, job_vout, spend_txid: tx_hash, spend_vin: vin })
 
                 break;
             }
@@ -70,32 +89,96 @@ async function findSpendTransaction({ txid, vout, scriptHash }: FindSpendTransac
 
 async function main() {
 
-    //const scriptHash = '19f28bce6a9eccc35dc1aebfab16972481fedb6f8405edd5b624d94a228803b4'
-
     for (let redemption of faultyJobsJson.message.redemptions) {
 
-        console.log(redemption)
+        try {
 
-        var [txid, vout] = redemption.outpoint.split(':')
+            var [txid, vout] = redemption.outpoint.split(':')
 
-        txid = txid.substring(2)
+            txid = txid.substring(2)
+    
+            vout = parseInt(vout)
+    
+            const job = await models.BoostJob.findOne({
+                where: {
+                    txid
+                }
+            })
+    
+            if (!job || job.spent) { continue }
 
-        const job = await models.BoostJob.findOne({
-            where: {
-                txid
+            const existingProof = await models.BoostWork.findOne({
+                where: {
+                    job_txid: job.txid,
+                    job_vout: job.vout
+                }
+            })
+
+            if (existingProof) {
+                job.spent = true;
+                job.spent_txid = existingProof.spend_txid
+                job.spent_vout = existingProof.spend_vout
+
+                await job.save()
+
+                continue
             }
-        })
+    
+            const spendTransaction = await findSpendTransaction({
+                txid,
+                vout
+            })
 
-        const spendTransaction = await findSpendTransaction({
-            txid,
-            vout,
-            //scriptHash
-        })
+            console.log('JOB', job.toJSON())
+    
+            if (!spendTransaction) { continue }
+    
+            const input = spendTransaction.inputs[spendTransaction.spend_vin]
+    
+            const inputScript = input._scriptBuffer.toString('hex')
 
-        console.log({spendTransaction})
+            const timestamp = await getTimestamp(spendTransaction.spend_txid)
+
+            const txhex = await fetch(spendTransaction.spend_txid)
+
+            const [proof, isNew] = await models.BoostWork.findOrCreate({
+                where: {
+                    job_txid: job.txid,
+                    job_vout: job.vout
+                },
+                defaults: {
+                    job_txid: job.txid,
+                    job_vout: job.vout,
+                    spend_txid: spendTransaction.spend_txid,
+                    spend_vout: spendTransaction.spend_vin,
+                    //script: inputScript,
+                    difficulty: job.difficulty,
+                    tag: job.tag,
+                    timestamp,
+                    value: job.value,
+                    profitability: job.profitability,
+                    content: job.content,
+                    tx_hex: txhex
+                }
+            })
+
+            if (isNew) {
+
+                console.log('New Proof Created', proof.toJSON())
+
+            }
+    
+        } catch(error) {
+
+            console.error('error', error)
+
+            continue
+
+        }
+
+
 
     }
-
 
 }
 
