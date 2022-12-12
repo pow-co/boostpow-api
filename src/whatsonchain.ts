@@ -1,7 +1,6 @@
 
-const axios = require('axios')
 
-import { ExecSyncOptionsWithStringEncoding } from 'child_process';
+import axios from 'axios'
 
 interface WhatsonchainTransaction {
   txid: string;
