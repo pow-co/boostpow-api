@@ -60,7 +60,7 @@
       "moment": "^2.29.1",
       "nconf": "^0.12.0",
       "pg": "^8.4.0",
-      "powco": "^1.1.1",
+      "powco": "^1.2.2",
       "prom-client": "^14.0.1",
       "rabbi": "^1.20.1",
       "require-all": "^3.0.0",
@@ -76,8 +76,7 @@
       "txo": "0.0.21",
       "uuid": "^8.3.2",
       "winston": "^3.3.3",
-      "winston-loki": "^6.0.6",
-      "zeromq": "^6.0.0-beta.6"
+      "winston-loki": "^6.0.6"
    },
    "devDependencies": {
       "@hapi/code": "^8.0.7",

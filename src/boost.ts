@@ -15,9 +15,11 @@ import models from './models'
 
 import { log } from './log'
 
-import { fetch, broadcast } from 'powco'
+import { broadcast } from 'powco'
 
 import config from './config'
+
+import axios from 'axios'
 
 import { getSpendingTransaction } from './spends'
 
@@ -53,6 +55,14 @@ export function getBoostJobsFromTxHex(txhex: string): boost.BoostPowJob[] {
   }
   
   return jobs
+
+}
+
+export async function fetch(txid: string): Promise<string> {
+
+  const response = await axios.get(`https://api.whatsonchain.com/v1/bsv/main/tx/${txid}/hex`)
+
+  return response.data
 
 }
 

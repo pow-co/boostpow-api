@@ -2,6 +2,8 @@
 
 import axios from 'axios'
 
+import * as http from 'superagent'
+
 interface WhatsonchainTransaction {
   txid: string;
   hash: string;
@@ -16,9 +18,9 @@ export async function getTransaction(txid: string): Promise<WhatsonchainTransact
 
   let url =`https://api.whatsonchain.com/v1/bsv/main/tx/hash/${txid}`
 
-  let {data} = await axios.get(url)
+  let {body} = await http.get(url)
 
-  return data
+  return body
 
 }
 
