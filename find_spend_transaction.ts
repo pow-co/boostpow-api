@@ -1,7 +1,5 @@
 import { getTransaction } from "./src/powco";
 
-import axios from 'axios'
-
 import { createHash } from 'crypto'
 
 import models from './src/models'
@@ -9,6 +7,8 @@ import models from './src/models'
 import * as http from 'superagent'
 
 import { fetch } from 'powco'
+
+import { shuffle } from './src/utils'
 
 const faultyJobsJson = require('./data/faulty_old_jobs.json')
 
@@ -35,8 +35,6 @@ async function getTimestamp(txid: string): Promise<any> {
 
     let url =`https://api.whatsonchain.com/v1/bsv/main/tx/hash/${txid}`
   
-    //let {data} = await axios.get(url)
-
     const {body} = await http.get(url)
   
     return body.time * 1000
@@ -59,7 +57,7 @@ async function findSpendTransaction({ txid: job_txid, vout: job_vout, scriptHash
 
     let url = `https://api.whatsonchain.com/v1/bsv/main/script/${scriptHash}/history`
 
-    let { data: history } = await axios.get(url)
+    let { body: history } = await http.get(url)
 
     // for each item in the history check if that transaction spends the target transaction
 
@@ -87,6 +85,104 @@ async function findSpendTransaction({ txid: job_txid, vout: job_vout, scriptHash
 
 }
 
+async function importForJob(job: any) {
+
+
+    if (!job || job.spent) { return }
+
+    const existingProof = await models.BoostWork.findOne({
+        where: {
+            job_txid: job.txid,
+            job_vout: job.vout
+        }
+    })
+
+    if (existingProof) {
+        job.spent = true;
+        job.spent_txid = existingProof.spend_txid
+        job.spent_vout = existingProof.spend_vout
+
+        await job.save()
+
+        return
+    }
+
+    console.log('JOB', job.toJSON())
+
+    const spendTransaction = await findSpendTransaction({
+        txid: job.txid,
+        vout: job.vout
+    })
+
+    if (!spendTransaction) { return }
+
+    const input = spendTransaction.inputs[spendTransaction.spend_vin]
+
+    const inputScript = input._scriptBuffer.toString('hex')
+
+    const timestamp = await getTimestamp(spendTransaction.spend_txid)
+
+    const txhex = await fetch(spendTransaction.spend_txid)
+
+    const [proof, isNew] = await models.BoostWork.findOrCreate({
+        where: {
+            job_txid: job.txid,
+            job_vout: job.vout
+        },
+        defaults: {
+            job_txid: job.txid,
+            job_vout: job.vout,
+            spend_txid: spendTransaction.spend_txid,
+            spend_vout: spendTransaction.spend_vin,
+            //script: inputScript,
+            difficulty: job.difficulty,
+            tag: job.tag,
+            timestamp,
+            value: job.value,
+            profitability: job.profitability,
+            content: job.content,
+            tx_hex: txhex
+        }
+    })
+
+    job.spent = true;
+    job.spent_txid = proof.spend_txid
+    job.spent_vout = proof.spend_vout
+
+    await job.save()
+
+    if (isNew) {
+
+        console.log('New Proof Created', proof.toJSON())
+
+    }
+
+}
+
+async function all() {
+
+    const jobs = await models.BoostJob.findAll({
+        where: {
+            spent: false
+        }
+    })
+
+    for (let job of shuffle(jobs)) {
+
+        try {
+
+            await importForJob(job)
+
+        } catch(error) {
+
+            console.error('error', error)
+    
+        }
+    }
+
+}
+
+
 async function main() {
 
     for (let redemption of faultyJobsJson.message.redemptions) {
@@ -104,69 +200,8 @@ async function main() {
                     txid
                 }
             })
-    
-            if (!job || job.spent) { continue }
 
-            const existingProof = await models.BoostWork.findOne({
-                where: {
-                    job_txid: job.txid,
-                    job_vout: job.vout
-                }
-            })
-
-            if (existingProof) {
-                job.spent = true;
-                job.spent_txid = existingProof.spend_txid
-                job.spent_vout = existingProof.spend_vout
-
-                await job.save()
-
-                continue
-            }
-    
-            const spendTransaction = await findSpendTransaction({
-                txid,
-                vout
-            })
-
-            console.log('JOB', job.toJSON())
-    
-            if (!spendTransaction) { continue }
-    
-            const input = spendTransaction.inputs[spendTransaction.spend_vin]
-    
-            const inputScript = input._scriptBuffer.toString('hex')
-
-            const timestamp = await getTimestamp(spendTransaction.spend_txid)
-
-            const txhex = await fetch(spendTransaction.spend_txid)
-
-            const [proof, isNew] = await models.BoostWork.findOrCreate({
-                where: {
-                    job_txid: job.txid,
-                    job_vout: job.vout
-                },
-                defaults: {
-                    job_txid: job.txid,
-                    job_vout: job.vout,
-                    spend_txid: spendTransaction.spend_txid,
-                    spend_vout: spendTransaction.spend_vin,
-                    //script: inputScript,
-                    difficulty: job.difficulty,
-                    tag: job.tag,
-                    timestamp,
-                    value: job.value,
-                    profitability: job.profitability,
-                    content: job.content,
-                    tx_hex: txhex
-                }
-            })
-
-            if (isNew) {
-
-                console.log('New Proof Created', proof.toJSON())
-
-            }
+            await importForJob(job)
     
         } catch(error) {
 
@@ -182,5 +217,5 @@ async function main() {
 
 }
 
-main()
+all()
 
