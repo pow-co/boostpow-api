@@ -5,7 +5,7 @@ import  * as http from 'superagent'
 
 const snarkdown = require('snarkdown')
 
-import { postDetailQuery } from './twetch'
+//import { postDetailQuery } from './twetch'
 
 import { Orm, create, findOne } from './orm'
 
@@ -116,7 +116,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
       console.log('CONTENT TYPE', content_type)
 
-      if (!content_type) {
+      /*if (!content_type) {
 
         let twetch = await postDetailQuery(txid)
 
@@ -129,6 +129,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
         }
 
       }
+      */
 
       if (content_type.match('text/markdown')) {
 
