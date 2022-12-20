@@ -146,7 +146,13 @@ export async function build(req) {
 
     if (category && !isHex(category)) {
 
-      category = Buffer.from(category).toString('hex')
+      category = Buffer.from(category, 'utf8').toString('hex')
+
+    }
+
+    if (tag && !isHex(tag)) {
+
+      tag = Buffer.from(tag, 'utf8').toString('hex')
 
     }
 

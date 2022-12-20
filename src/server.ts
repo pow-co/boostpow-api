@@ -149,7 +149,7 @@ export async function buildServer(): Server {
     options: {
       description: 'Build Boost Job Bitcoin Script ASM from JSON',
       notes: 'Provide a Boost Job data structure and receive a boost job script in response. Useful for clients that do not want to include a boostpow sdk',
-      tags: ['api', 'scripts'],
+      tags: ['api', 'boostpow', 'scripts'],
       response: {
         failAction: 'log',
         schema: Joi.object({
@@ -161,7 +161,7 @@ export async function buildServer(): Server {
       validate: {
         payload: Joi.object({
           content: Joi.string().required(),
-          diff: Joi.number().required(),
+          difficulty: Joi.number().required(),
           category: Joi.string().optional(),
           tag: Joi.string().optional(),
           additionalData: Joi.string().optional(),
