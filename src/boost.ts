@@ -19,7 +19,7 @@ import { broadcast } from 'powco'
 
 import config from './config'
 
-import axios from 'axios'
+import * as http from 'superagent'
 
 import { getSpendingTransaction } from './spends'
 
@@ -60,9 +60,11 @@ export function getBoostJobsFromTxHex(txhex: string): boost.BoostPowJob[] {
 
 export async function fetch(txid: string): Promise<string> {
 
-  const response = await axios.get(`https://api.whatsonchain.com/v1/bsv/main/tx/${txid}/hex`)
+  const url = `https://api.whatsonchain.com/v1/bsv/main/tx/${txid}/hex`
 
-  return response.data
+  let {body} = await http.get(url)
+
+  return body
 
 }
 
