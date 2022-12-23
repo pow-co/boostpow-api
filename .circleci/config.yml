@@ -47,9 +47,27 @@ jobs:
             docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
             docker push proofofwork/boostpow-api:$CIRCLE_BRANCH
 
+  deploy:
+    docker:
+      - image: circleci/node:16
+    steps:
+      - run:
+          name: Deploy to Web Servers
+          command: |
+            mkdir ~/.ssh && touch ~/.ssh/known_hosts
+            echo 'pow.co ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBOed9xWurUoTT+vTe90SDfnAUfg83GCaO8tcxg04wcH2Z+YQUH8su4OzSdXuNvI5lS1CkJqvyaXehNFa0+eMfpc=' >> ~/.ssh/known_hosts
+            ssh root@pow.co "chef-client -o recipe[pow.co::api]"
+
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
       - build_docker
+      - deploy:
+         requires:
+           - build_docker
+         filters:
+           branches:
+             only:
+               - master
