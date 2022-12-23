@@ -75,29 +75,40 @@ export async function index(request) {
 
 export async function show(request, hapi) {
 
-  let { txid } = request.params
+  try {
 
-  txid = txid.split('_')[0]
+    let { txid } = request.params
 
-  const where = {
-    txid
-  };
+    txid = txid.split('_')[0]
 
-  let job = await models.BoostJob.findOne({ where })
+    const where = {
+      txid
+    };
 
-  if (!job) {
+    let job = await models.BoostJob.findOne({ where })
 
-    [job] = await importBoostJobFromTxid(txid)
+    if (!job) {
 
+      [job] = await importBoostJobFromTxid(txid)
+
+    }
+
+    if (!job) {
+
+      return notFound()
+
+    }
+
+    return hapi.response({ job }).code(200)
+
+  } catch(error) {
+
+    console.error('server.handlers.boost_jobs.show.error', error)
+
+    return badRequest(error)
+    
   }
 
-  if (!job) {
-
-    return notFound()
-
-  }
-
-  return hapi.response({ job }).code(200)
 
 }
 

@@ -62,15 +62,51 @@ export async function fetch(txid: string): Promise<string> {
 
   const url = `https://api.whatsonchain.com/v1/bsv/main/tx/${txid}/hex`
 
-  let {body} = await http.get(url)
+  let result = await http.get(url)
 
-  return body
+  console.log(result)
+
+  if (result.status === 200) {
+
+    return result.text
+
+  }
+
+}
+
+export async function fetchWithRetry({txid, maxRetries, delayPeriod}: {txid: string, maxRetries?: number, delayPeriod?: number}): Promise<string> {
+
+  var txhex;
+
+  for (let i=0; i<maxRetries || 10; i++) {
+
+    console.log('fetch with retry', { attempt: i+1, txid })
+
+    try {
+
+      txhex = await fetch(txid)
+
+    } catch(error) {
+
+      console.error('getBoostJobsFromTxid.error', {txid})
+
+    }
+
+    if (txhex) { break }
+
+    await delay(delayPeriod || 1000)
+
+  }
+
+  return txhex
 
 }
 
 export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJob[]> {
 
-  const txhex = await fetch(txid)
+  const txhex = await fetchWithRetry({ txid })
+
+  console.log({txhex})
 
   const tx = new bsv.Transaction(txhex)
 
