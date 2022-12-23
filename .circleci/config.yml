@@ -40,12 +40,12 @@ jobs:
       - setup_remote_docker
       - run:
           name: Build docker image
-          command: docker build -t proofofwork/powco-api:$CIRCLE_BRANCH . 
+          command: docker build -t proofofwork/boostpow-api:$CIRCLE_BRANCH . 
       - run:
           name: Push to Docker Hub
           command: |
             docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
-            docker push proofofwork/powco-api:$CIRCLE_BRANCH
+            docker push proofofwork/boostpow-api:$CIRCLE_BRANCH
 
 
 workflows:
