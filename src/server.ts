@@ -143,6 +143,33 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/boost/miners',
+    handler: handlers.Miners.index,
+    options: {
+      description: 'List Boost Miners Including Work Performed',
+      notes: 'Allows for ranking based on boostpow performed within startDate and endDate parameters',
+      tags: ['api', 'miners'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          miners: Joi.array().items(Joi.object({
+            minerPubKey: Joi.string().required(),
+            count: Joi.number().required(),
+            sum: Joi.number().required()
+          })).required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          startDate: Joi.date().optional(),
+          endDate: Joi.date().optional()
+        })
+      }
+    }
+  })
+
+  server.route({
     method: 'POST',
     path: '/api/v1/boost/scripts',
     handler: handlers.Scripts.create,
