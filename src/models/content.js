@@ -30,7 +30,8 @@ module.exports = (sequelize, DataTypes) => {
     content_type: DataTypes.STRING,
     content_json: DataTypes.JSON,
     content_text: DataTypes.TEXT,
-    content_bytes: DataTypes.BLOB
+    content_bytes: DataTypes.BLOB,
+    map: DataTypes.JSON
   }, {
     sequelize,
     modelName: 'Content',
