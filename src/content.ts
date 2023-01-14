@@ -5,6 +5,8 @@ import  * as http from 'superagent'
 
 const snarkdown = require('snarkdown')
 
+import { fetch } from 'powco'
+
 //import { postDetailQuery } from './twetch'
 
 import { Orm, create, findOne } from './orm'
@@ -53,6 +55,189 @@ class Content extends Orm {
     
 }
 
+import * as Txo from 'txo'
+
+const isJSON = require('is-json');
+
+import * as bsv from 'bsv-2'
+
+interface Event {
+  app: string;
+  type: string;
+  content: any;
+  author: string;
+  txid: string;
+  tx_index: number;
+  txo: any;
+  media_type: string;
+  encoding: string;
+}
+
+async function parseEventOutputs(txhex: string): Promise<Event[]> {
+
+  const txo = await Txo.fromTx(txhex)
+
+  return txo.out.map((output, index) => {
+
+    const s2 = output.s2.toLowerCase().trim()
+
+    if (s2 === 'onchain.sv' || s2 === 'onchain') {
+
+      console.log({ output })
+
+      const app = output.s3
+
+      if (!app) { return }
+
+      const type = output.s4
+
+      if (!type) { return }
+
+      const s5 = output.s5 || output.ls5
+
+      if (!isJSON(s5)) {
+
+        return
+      }
+
+      const content = JSON.parse(s5)
+
+      const result = {
+        app,
+        type,
+        content,
+        txo: output,
+        media_type: 'application/json',
+        encoding: 'utf8'
+      }
+
+      if (output.s6 === '|' &&
+        (output.s7 === '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva' || output.s7 === 'AIP') &&
+        output.s8 === 'BITCOIN_ECDSA')
+      {
+
+        const message = Buffer.from(s5, 'utf8')
+
+        const identity = output.s9
+        const signature = output.s10
+
+        if (identity && signature) {
+            
+            const address = new bsv.Address().fromString(identity)
+  
+            const verified = bsv.Bsm.verify(message, signature, address)
+  
+            if (verified) {
+  
+              result['author'] = identity
+  
+              result['signature'] = signature
+  
+            }
+  
+        }
+
+      }
+
+      result['tx_index'] = index
+      result['txid'] = txo['tx']['h']
+
+      return result
+
+    }
+
+  })
+  .filter(output => !!output)
+
+}
+
+interface BFile {
+  txid: string;
+  vout: number;
+  data: Buffer;
+  media_type: string;
+  encoding?: string;
+  filename?: string;
+}
+
+async function parseBOutputs(txhex: string): Promise<BFile[]> {
+
+  const txo = await Txo.fromTx(txhex)
+
+  return txo.out.map((output, index) => {
+
+    const s2 = output.s2.toLowerCase().trim()
+
+    if (s2 === 'B' || s2 === '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut') { // B Protocol Prefix
+
+      console.log({ output })
+
+      const app = output.s3
+
+      if (!app) { return }
+
+      const type = output.s4
+
+      if (!type) { return }
+
+      const s5 = output.s5 || output.ls5
+
+      if (!isJSON(s5)) {
+
+        return
+      }
+
+      const content = JSON.parse(s5)
+
+      const result = {
+        app,
+        type,
+        content,
+        txo: output,
+        media_type: 'application/json',
+        encoding: 'utf8'
+      }
+
+      if (output.s6 === '|' &&
+        (output.s7 === '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva' || output.s7 === 'AIP') &&
+        output.s8 === 'BITCOIN_ECDSA')
+      {
+
+        const message = Buffer.from(s5, 'utf8')
+
+        const identity = output.s9
+        const signature = output.s10
+
+        if (identity && signature) {
+            
+            const address = new bsv.Address().fromString(identity)
+  
+            const verified = bsv.Bsm.verify(message, signature, address)
+  
+            if (verified) {
+  
+              result['author'] = identity
+  
+              result['signature'] = signature
+  
+            }
+  
+        }
+
+      }
+
+      result['tx_index'] = index
+      result['txid'] = txo['tx']['h']
+
+      return result
+
+    }
+
+  })
+  .filter(output => !!output)
+
+}
+
 export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
   log.info('content.cacheContent', { txid })
@@ -62,6 +247,52 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
   let content = await findOne<Content>(Content,{
     where: { txid }
   })
+
+  if (!content) {
+
+    const hex = await fetch(txid)
+
+    console.log('content.hex', hex)
+
+    const bFiles = await parseBOutputs(hex)
+
+    for (let bfile of bFiles) {
+
+      console.log("bfile detected", bfile)
+    }
+
+    const [event] = await parseEventOutputs(hex)
+
+    if (event) {
+
+      const { app, type, content } = event
+
+      console.log('create event content', {
+        txid,
+        content_json: content,
+        content_type: 'application/json',
+        map: {
+          app,
+          type
+        }
+      })
+
+      let record = await create<Content>(Content, {
+        txid,
+        content_json: content,
+        content_type: 'application/json',
+        map: {
+          app,
+          type
+        }
+      })
+
+      return [record, true]
+    }
+
+
+    // get the raw transaction details and parse any known content
+  }
 
   if (content && !content.content_type) {
 
@@ -137,7 +368,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
         let { text } = await http.get(`https://bitcoinfileserver.com/${txid}`)
 
-        content_text = snarkdown(text)
+        content_text = text
 
         content_bytes = Buffer.from(text) 
 

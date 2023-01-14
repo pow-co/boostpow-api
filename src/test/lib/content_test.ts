@@ -42,7 +42,23 @@ describe("Caching Blockchain Content", () => {
 
     });
 
-    it('content has many boostpow jobs', async () => {
+    it('#cacheContent should cache a URL linked on chain', async () => {
+
+        const txid = '3cd2d6b4108abbd34283f9a76471a992836bf71ea5397fa5529a0fbe3991ee32'
+
+        const [content] = await cacheContent(txid)
+
+        expect(content.get('content_type')).to.be.equal('application/json')
+
+        expect(content.get('map')['app']).to.be.equal('pow.co')
+
+        expect(content.get('map')['type']).to.be.equal('url')
+
+        expect(content.get('content_json')['url']).to.be.equal('https://bitchatnitro.com/channels/powco-development')
+
+    });
+
+    it.skip('#cacheContent should cache a RUN OrderLock transaction', async () => {
 
 
     })
