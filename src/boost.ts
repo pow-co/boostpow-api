@@ -104,7 +104,7 @@ export async function fetchWithRetry({txid, maxRetries, delayPeriod}: {txid: str
 
 export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJob[]> {
 
-  const txhex = await fetchWithRetry({ txid })
+  const txhex = await fetch(txid)
 
   console.log({txhex})
 
