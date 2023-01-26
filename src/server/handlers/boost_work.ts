@@ -69,7 +69,7 @@ export async function create(request, hapi) {
 
   log.info('importBoostProofFromTxHex', {tx_hex})
 
-  let result = await importBoostProofFromTxHex(tx_hex)
+  let result = await importBoostProofFromTxHex(tx_hex, { trusted: true })
 
   log.info('importBoostProofFromTxHex.result', { tx_hex, result })
 

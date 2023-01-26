@@ -106,25 +106,8 @@ export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJ
 
   const txhex = await fetch(txid)
 
-  console.log({txhex})
+  return getBoostJobsFromTxHex(txhex)
 
-  const tx = new bsv.Transaction(txhex)
-
-  var i = 0;
-
-  let jobs: boost.BoostPowJob[] = tx.outputs.reduce((jobs, vout) => {
-
-    let job = boost.BoostPowJob.fromRawTransaction(txhex, i)
-
-    if (job) { jobs.push(job) }
-
-    i++
-
-    return jobs
-
-  }, [])
-
-  return jobs
 
 }
 
@@ -227,7 +210,7 @@ export async function importBoostProofByTxid(txid: string): Promise<any> {
 
 }
 
-export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
+export async function importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: boolean}): Promise<any> {
 
   // ensure the transaction is broadcast to the network first
 
@@ -235,42 +218,50 @@ export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
 
   var isBroadcast = false;
 
-  try {
+  if (!trusted) {
 
-    const result = await fetch(tx.hash)
-
-    isBroadcast = !!result
-
-  } catch(error) {
-
-    log.debug('powco.fetch.error', error)
-
-  }
- 
-  if (!isBroadcast) {
-    
     try {
 
-      log.info('powco.broadcast', { txhex })
+      const result = await fetch(tx.hash)
 
-      //broadcast transaction
-      await broadcast(txhex)
-
-      log.info('powco.broadcast.response', { txhex, txid: tx.hash })
+      isBroadcast = !!result
 
     } catch(error) {
 
-      log.error('powco.broadcast.error', error)
-
-      throw error
+      log.debug('powco.fetch.error', error)
 
     }
+ 
+    if (!isBroadcast) {
+      
+      try {
 
+        log.info('powco.broadcast', { txhex })
+
+        //broadcast transaction
+        await broadcast(txhex)
+
+        log.info('powco.broadcast.response', { txhex, txid: tx.hash })
+
+      } catch(error) {
+
+        log.error('powco.broadcast.error', error)
+
+        throw error
+
+      }
+
+    }
+    
   }
 
   let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
 
-  importBoostProofByTxid(tx.hash)
+  if (!trusted) {
+
+    importBoostProofByTxid(tx.hash)
+    
+  }
 
   return importBoostProof(proof, txhex)
 
@@ -393,23 +384,52 @@ export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
     return record
 
-  } else {
+  }
 
-    let hex = await fetch(job.txid)
+  if (!txhex) {
 
-    if (!hex) {
-
-      let response = await broadcast(txhex)
-
-      log.info('broadcast.response', response)
-
-    }
-
-    return importBoostJobFromTxid(job.txid)
+    txhex = await fetch(job.txid)
 
   }
 
+  return importBoostJobFromTxid(job.txid)
+
 }
+
+
+export async function importBoostJobFromTxHex(txhex: string) {
+
+  log.info('boost.importBoostJobFromTxhex', { txhex })
+
+  let jobs: BoostPowJob[] = await getBoostJobsFromTxHex(txhex)
+
+  let records = await Promise.all(jobs.map(async job => {
+
+    let record = await models.BoostJob.findOne({
+
+      where: {
+
+        vout: job.vout,
+
+        txid: job.txid
+
+      }
+
+    })
+
+    if (record && record.script) {
+
+      return record
+    }
+
+    return persistBoostJob(job)
+
+  }))
+
+  return records
+
+}
+
 
 export async function importBoostJobFromTxid(txid: string) {
 
