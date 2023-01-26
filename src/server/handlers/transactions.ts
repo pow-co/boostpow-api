@@ -1,10 +1,11 @@
 
 
 import { run } from '../../run'
+import { fetch } from '../../boost'
 
 export async function show(request, hapi) {
 
-  let txhex = await run.blockchain.fetch(request.params.txid)
+  let txhex = await fetch(request.params.txid)
 
   return hapi.response({
 
