@@ -83,6 +83,6 @@ export default async function main() {
 
 if (require.main === module) {
 
-  start()
+  main()
 
 }
