@@ -10,7 +10,9 @@
       "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
       "cover:unit": "nyc --silent npm run test:unit",
       "cover:integration": "nyc --silent --no-clean npm run test:integration",
-      "cover:report": "nyc report --reporter=lcov --reporter=text"
+      "cover:report": "nyc report --reporter=lcov --reporter=text",
+      "db:migrate": "sequelize db:migrate --url=$DATABASE_URL",
+      "rabbi:init": "ts-node src/rabbi/init.ts"
    },
    "nyc": {
       "check-coverage": false,

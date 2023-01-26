@@ -10,3 +10,4 @@ get402.json
 .nyc_output/
 coverage/
 .runcache
+powco_db_data

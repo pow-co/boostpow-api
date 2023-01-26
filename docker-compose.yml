@@ -1,0 +1,44 @@
+version: '3.8'
+
+services: 
+  node_backend: 
+    container_name: node_backend
+    image: node:16
+    build:
+      context: .
+    ports:
+      - '8000:8000'
+    environment:
+    - DATABASE_URL=postgres://powco_db_user:powco_db_password@database:5432/powco_db_dev
+    - AMQP_URL=amqp://guest:guest@message_exchange:5672/
+    - amqp_enabled=true
+    - PGUSER=powco_db_user
+    - PGPASSWORD=powco_db_password
+    - PGDATABASE=powco_db_dev
+    - PGHOST=db # NAME OF THE SERVICE
+    depends_on: 
+      - database
+      - message_exchange
+
+  database:
+    container_name: db
+    image: 'postgres:12'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=powco_db_user
+      - POSTGRES_PASSWORD=powco_db_password
+      - POSTGRES_DB=powco_db_dev
+    volumes:
+      - ./powco_db_data:/var/lib/postgresql/data  
+      
+  message_exchange:
+    container_name: message_exchange
+    image: 'rabbitmq:3-management'
+    ports:
+      - '5672:5672'
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=/
+      
