@@ -17,34 +17,11 @@ The goal of Boost Server is to provide a realiable, real-time index of Boost POW
 
 ### Docker
 ```
-docker run -d -p 5200:5200 proofofwork/boostpow
-# or
 docker-compose up
 
 ```
 
-### Linux
-```
-apt-get install boostpow
-
-systemctl start boostpow
-
-```
-### OSX
-
-```
-brew install boostpow
-
-brew services start boostpow
-```
-
-### NPM
-
-```
-yarn global add boostpow
-
-boostpow start
-```
+Once running, navigate to `http://localhost:8000/api` to get started using the API
 
 
 ## Usage
