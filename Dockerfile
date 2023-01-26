@@ -13,4 +13,5 @@ RUN npm install
 # Bundle app source
 COPY . /usr/src/app
 
-CMD npm start
+ENTRYPOINT ["./entrypoint.sh"]
+
