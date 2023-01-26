@@ -114,9 +114,24 @@ export async function show(request, hapi) {
 
 export async function createByTxid(request) {
 
-  let [job] = await importBoostJobFromTxid(request.params.txid)
+  try {
 
-  return { job }
+    const { txid } = request.params
+
+    log.info('server.handlers.boost_jobs.createByTxid', { txid })
+
+    let [job] = await importBoostJobFromTxid(request.params.txid)
+
+    return { job }
+
+  } catch(error) {
+
+    log.error('server.handlers.boost_jobs.createdByTxid.error', error)
+    console.log(error)
+
+    return badRequest(error)
+
+  }
 
 }
 
