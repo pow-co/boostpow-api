@@ -4,7 +4,9 @@ const winston = require('winston');
 import config from './config'
 
 const transports = [
-  new winston.transports.Console(),
+  new winston.transports.Console({
+    level: 'info'
+  }),
 ]
 
 if (config.get('loki_host')) {

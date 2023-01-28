@@ -392,7 +392,7 @@ export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
   }
 
-  return importBoostJobFromTxid(job.txid)
+  return importBoostJobFromTxHex(txhex)
 
 }
 
