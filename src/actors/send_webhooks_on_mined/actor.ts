@@ -33,8 +33,6 @@ export async function start() {
 
     await sendWebhooks(work)
 
-    channel.ack(msg);
-
   });
 
 }

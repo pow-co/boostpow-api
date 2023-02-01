@@ -31,8 +31,6 @@ export async function start() {
 
       console.log('boost.job.imported', JSON.stringify(result))
 
-      channel.ack(msg);
-
     } catch(error) {
 
       console.error(error.message)
@@ -64,8 +62,6 @@ export async function start() {
 
       console.log('boost.proof.imported', JSON.stringify(result))
       */
-
-      channel.ack(msg);
 
     } catch(error) {
 

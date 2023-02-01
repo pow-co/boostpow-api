@@ -52,8 +52,6 @@ export async function start() {
 
     }
 
-    channel.ack(msg);
-
   });
 
   Actor.create({
@@ -74,8 +72,6 @@ export async function start() {
       notify(`A New Boost Proof Was Mined\n\nhttps://whatsonchain.com/tx/${json.spend_txid}`)
 
     }
-
-    channel.ack(msg);
 
   });
 

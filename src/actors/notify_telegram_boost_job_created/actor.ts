@@ -22,8 +22,6 @@ export async function start() {
 
     log.info(json);
 
-    channel.ack(msg);
-
   });
 
 }

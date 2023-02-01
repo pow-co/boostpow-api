@@ -75,8 +75,6 @@ export async function start() {
 
     log.info(msg.content.toString());
 
-    channel.ack(msg);
-
   });
 
   (async () => {

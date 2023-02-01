@@ -39,8 +39,6 @@ export async function start() {
       bContent: `A New Boost Job Was Published\n\nhttps://whatsonchain.com/tx/${json.txid}`
     })
 
-    channel.ack(msg);
-
   });
 
 }

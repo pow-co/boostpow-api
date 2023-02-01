@@ -62,8 +62,6 @@ export const plugin = (() => {
 
         io.emit('boostpow.job.created', json)
 
-        channel.ack(msg);
-
       });
 
       Actor.create({
@@ -79,8 +77,6 @@ export const plugin = (() => {
 
         io.emit('boostpow.job.created', json)
 
-        channel.ack(msg);
-
       });
 
       Actor.create({
@@ -95,8 +91,6 @@ export const plugin = (() => {
       .start(async (channel, msg, json) => {
 
         io.emit('boostpow.proof.created', json)
-
-        channel.ack(msg);
 
       });
 
