@@ -85,8 +85,6 @@ export const plugin = (() => {
 
         events.emit('askbitcoin.question.created', json)
 
-        channel.ack(msg);
-
       });
 
       Actor.create({
@@ -104,8 +102,6 @@ export const plugin = (() => {
 
         events.emit('boostpow.job.created', json)
 
-        channel.ack(msg);
-
       });
 
       Actor.create({
@@ -122,8 +118,6 @@ export const plugin = (() => {
         console.log('boostpow.proof.created', json)
 
         events.emit('boostpow.proof.created', json)
-
-        channel.ack(msg);
 
       });
 
