@@ -23,6 +23,8 @@ import { load } from './server/handlers'
 import { register as prometheus } from './metrics'
 
 import { plugin as socketio } from './socket.io/plugin'
+import { plugin as websockets } from './ws/plugin'
+
 
 const handlers = load(join(__dirname, './server/handlers'))
 
@@ -42,6 +44,7 @@ export async function buildServer(): Server {
   });
 
   await server.register(socketio);
+  await server.register(websockets);
 
   server.route({
     method: 'GET',
