@@ -42,12 +42,14 @@
       "@hapi/vision": "^6.1.0",
       "@koa/cors": "^3.1.0",
       "@runonbitcoin/easy-b": "^0.2.2",
+      "@runonbitcoin/tokenkit": "^1.1.0",
       "@twetch/sdk": "^0.2.12",
       "@types/axios": "^0.14.0",
       "ascii-art": "^2.8.5",
       "axios": "^1.2.1",
       "bignumber.js": "^9.1.0",
       "bitcoinjs-message": "^2.2.0",
+      "bmapjs": "^0.4.0-beta.21",
       "boom": "^7.3.0",
       "boostpow": "^1.5.0",
       "bsv": "^1.5.5",
@@ -68,6 +70,7 @@
       "pg": "^8.4.0",
       "powco": "^1.2.2",
       "prom-client": "^14.0.1",
+      "protobufjs": "^7.2.1",
       "rabbi": "^1.20.1",
       "require-all": "^3.0.0",
       "run-sdk": "^0.6.41",
@@ -88,14 +91,15 @@
    "devDependencies": {
       "@hapi/code": "^8.0.7",
       "@hapi/lab": "^24.6.0",
-      "@types/mocha": "^10.0.0",
-      "@types/node": "^8.0.29",
+      "@types/mocha": "^10.0.1",
+      "@types/node": "^8.10.66",
       "chai": "^4.3.6",
       "chai-as-promised": "^7.1.1",
       "mocha": "^9.1.2",
       "nyc": "^15.1.0",
       "sequelize-cli": "^6.4.1",
-      "ts-node": "3.3.0",
-      "typescript": "^3.3.3333"
+      "ts-node": "^10.9.1",
+      "typedoc": "^0.23.24",
+      "typescript": "^4.9.5"
    }
 }

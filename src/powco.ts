@@ -4,14 +4,6 @@ import * as bsv from 'bsv'
 
 import { run } from './run'
 
-export async function fetch(txid: string): Promise<string> {
-
-}
-
-export async function broadcast(hex: string): Promise<string> {
-
-}
-
 export async function submitBoostProofTransaction(hex: string): Promise<any> {
 
   let { body } = http.post('https://pow.co/node/api/boost_proof_transactions')

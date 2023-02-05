@@ -13,7 +13,7 @@ export interface Record {
 
 }
 
-interface FindOrCreate {
+export interface FindOrCreate {
 
   where: any;
 
