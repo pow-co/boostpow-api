@@ -13,7 +13,7 @@ import { Orm, create, findOne } from './orm'
 
 import { log } from './log'
 
-class Content extends Orm {
+export class Content extends Orm {
 
     static model = models.Content
 
@@ -167,47 +167,44 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
 
   return txo.out.map((output, index) => {
 
-    const s2 = output.s2.toLowerCase().trim()
+    console.log('OUPUT', output)
+
+    const s2 = output.s2.trim()
 
     if (s2 === 'B' || s2 === '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut') { // B Protocol Prefix
 
-      console.log({ output })
+      console.log('B FOUND', { output })
 
-      const app = output.s3
+      const content = output.s3 || output.ls3
 
-      if (!app) { return }
 
       const type = output.s4
 
       if (!type) { return }
 
-      const s5 = output.s5 || output.ls5
-
-      if (!isJSON(s5)) {
-
-        return
-      }
-
-      const content = JSON.parse(s5)
-
       const result = {
-        app,
-        type,
+        type: 'B',
         content,
         txo: output,
-        media_type: 'application/json',
+        media_type: type,
         encoding: 'utf8'
       }
 
-      if (output.s6 === '|' &&
-        (output.s7 === '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva' || output.s7 === 'AIP') &&
-        output.s8 === 'BITCOIN_ECDSA')
+      if (output.s7 === '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5' && output.s8 === 'SET' && output.s9 === 'app' && output.s10) {
+
+        result['app'] = output.s10
+
+      }
+
+      /*if (output.s13 === '|' &&
+        (output.s14 === '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva' || output.s14 === 'AIP') &&
+        output.s15 === 'BITCOIN_ECDSA')
       {
 
-        const message = Buffer.from(s5, 'utf8')
+        const message = Buffer.from(s7, 'utf8')
 
-        const identity = output.s9
-        const signature = output.s10
+        const identity = output.s16
+        const signature = output.s17
 
         if (identity && signature) {
             
@@ -225,10 +222,12 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
   
         }
 
-      }
+      }*/
 
       result['tx_index'] = index
       result['txid'] = txo['tx']['h']
+
+      console.log('RESULT---', result)
 
       return result
 
@@ -316,6 +315,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     // get the raw transaction details and parse any known content
   }
+  /*
 
   if (content && !content.content_type) {
 
@@ -341,7 +341,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     })()
 
-  }
+  }*/
 
   if (!content) {
 

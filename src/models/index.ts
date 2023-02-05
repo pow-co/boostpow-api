@@ -16,7 +16,7 @@ const env = nconf.get('node_env');
 
 const config = require(__dirname + '/../../config/config.json')[env];
 
-interface Database {
+export interface Database {
 
   BoostJob: any;
   BoostWork: any;

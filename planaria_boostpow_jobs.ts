@@ -1,6 +1,6 @@
 require("dotenv").config()
 
-import * as models from './src/models'
+import models from './src/models'
 
 import { log } from './src/log'
 
