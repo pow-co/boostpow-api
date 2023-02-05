@@ -4,12 +4,12 @@ import { log } from './log'
 
 import { Crawler } from '../planaria/crawler'
 
-interface Script {
+export interface Script {
     hash: string;
     index: number;
 }
 
-interface Input {
+export interface Input {
     i: number;
     seq: number;
     e: {
@@ -18,7 +18,7 @@ interface Input {
     }
 }
 
-interface Output {}
+export interface Output {}
 
 export interface PlanariaResult {
     _id: string;

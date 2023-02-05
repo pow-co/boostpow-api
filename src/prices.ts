@@ -29,12 +29,12 @@ export function toSatoshis(bsv_amount: number): number {
   return new BigNumber(bsv_amount).times(100000000).toNumber()
 }
 
-interface DifficultyQuote {
+export interface DifficultyQuote {
   satoshis: number;
   difficulty: number;
 }
 
-interface QuoteDiffifculty {
+export interface QuoteDiffifculty {
   currency: string;
   value: number;
   difficulty: number;

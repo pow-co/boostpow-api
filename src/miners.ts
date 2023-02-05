@@ -3,7 +3,7 @@ import models from "./models";
 import { Op } from "sequelize";
 import * as moment from 'moment'
 
-interface ListMiners {
+export interface ListMiners {
     startDate?: Date;
     endDate?: Date;
 }
@@ -74,7 +74,7 @@ export async function listMiners(params: ListMiners = {}): Promise<any> {
 
 }
 
-interface ListMinerWork {
+export interface ListMinerWork {
 
 }
 

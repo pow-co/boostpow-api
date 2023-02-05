@@ -30,7 +30,7 @@ export async function submitJobTransaction(hex: string): Promise<any> {
 
 }
 
-interface Job {
+export interface Job {
   content: string;
   difficulty: number;
   category: string;

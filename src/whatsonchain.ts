@@ -4,7 +4,7 @@ import axios from 'axios'
 
 import * as http from 'superagent'
 
-interface WhatsonchainTransaction {
+export interface WhatsonchainTransaction {
   txid: string;
   hash: string;
   time: number;
@@ -24,7 +24,7 @@ export async function getTransaction(txid: string): Promise<WhatsonchainTransact
 
 }
 
-interface Block {
+export interface Block {
   hash: string;
   confirmations: number;
   size: number;
@@ -103,7 +103,7 @@ export async function getBlockByHash({ hash }): Promise<Block> {
 
 }
 
-interface GetBlockPages {
+export interface GetBlockPages {
   number: number;
   hash: string;
 }

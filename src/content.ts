@@ -155,6 +155,7 @@ interface BFile {
   txid: string;
   vout: number;
   data: Buffer;
+  content: string;
   media_type: string;
   encoding?: string;
   filename?: string;
@@ -254,11 +255,33 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     console.log('content.hex', hex)
 
-    const bFiles = await parseBOutputs(hex)
+    const [bFile] = await parseBOutputs(hex)
 
-    for (let bfile of bFiles) {
+    if (bFile) {
 
-      console.log("bfile detected", bfile)
+      const {content } = bFile
+
+      console.log('create event content', {
+        txid,
+        content_type: bFile.media_type,
+        content_text: bFile.content,
+        map: {
+          //app,
+          //type
+        }
+      })
+
+      let record = await create<Content>(Content, {
+        txid,
+        content_type: bFile.media_type,
+        content_text: bFile.content,
+        map: {
+          //app,
+          //type
+        }
+      })
+
+      return [record, true]
     }
 
     const [event] = await parseEventOutputs(hex)

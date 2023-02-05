@@ -4,19 +4,19 @@ import { log } from './log';
 
 import models from './models'
 
-interface RankContent {
+export interface RankContent {
     start_date?: Date;
     end_date?: Date;
     tag?: string;
     images?: boolean;
 }
 
-interface Rankings {
+export interface Rankings {
     query: RankContent;
     result: RankedContent;
 }
 
-interface RankedContent {
+export interface RankedContent {
     content: string;
     difficulty: number;
     rank: number;
@@ -145,7 +145,7 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
 
 }
 
-interface RankedTags {
+export interface RankedTags {
     query: RankContent;
 }
 

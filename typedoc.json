@@ -1,0 +1,18 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "./src/index.ts",
+        "./src/main.ts",
+        "src/orm.ts",
+        "src/content.ts",
+        "src/boost.ts",
+        "src/taal",
+        "src/models/*.ts",
+        "src/rankings.ts",
+        "src/whatsonchain.ts",
+        "src/*.ts",
+        "src/actors/**/*.ts"
+    ],
+    "out": "doc",
+    "exclude": ["src/test", "node_modules", "bin"]
+}
