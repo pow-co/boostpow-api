@@ -2,9 +2,9 @@
 
 require('dotenv').config();
 
-import { Actor, Joi, log } from 'rabbi';
+import { Actor, log } from 'rabbi';
 
-import { importBoostJobFromTxid, importBoostProof } from '../../src/boost'
+import { importBoostJobFromTxid } from '../../boost'
 
 export async function start() {
 
