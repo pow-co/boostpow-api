@@ -10,7 +10,7 @@ export default async function main() {
 
   const ticker = "BSV";
   const blockHeight = -10; // Number. If negative then it's number from the tip.
-  const dataDir = `${__dirname}/../..`;
+  const dataDir = process.env.bsv_spv_listener_directory || `${__dirname}/../..`;
   const port = 5200; // Same as Masters port above
   const listener = new Listener({ name: "powco-test-listener", ticker, blockHeight, dataDir });
 
