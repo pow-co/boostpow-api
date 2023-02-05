@@ -7,6 +7,8 @@ const snarkdown = require('snarkdown')
 
 import { fetch } from 'powco'
 
+import { parse } from '../includes/easy-b'
+
 //import { postDetailQuery } from './twetch'
 
 import { Orm, create, findOne } from './orm'
@@ -177,17 +179,41 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
 
       const content = output.s3 || output.ls3
 
-
       const type = output.s4
+
+      const encoding = output.s5;
 
       if (!type) { return }
 
-      const result = {
-        type: 'B',
-        content,
-        txo: output,
-        media_type: type,
-        encoding: 'utf8'
+      var result, content_base64;
+
+      const bFileResult = parse(txhex)
+
+      console.log('--bFileResult--', bFileResult)
+
+      if (type.match('image')) {
+          
+        const data = bFileResult.buff.toString('base64')
+
+        result = {
+          type: 'B',
+          content: data,
+          data,
+          txo: output,
+          media_type: type,
+          encoding: 'base64'
+        }
+
+      } else {
+
+        result = {
+          type: 'B',
+          content,
+          txo: output,
+          media_type: type,
+          encoding: 'utf8'
+        }
+  
       }
 
       if (output.s7 === '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5' && output.s8 === 'SET' && output.s9 === 'app' && output.s10) {
@@ -258,26 +284,16 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     if (bFile) {
 
-      const {content } = bFile
-
-      console.log('create event content', {
+      console.log('---create event content---', {
         txid,
         content_type: bFile.media_type,
-        content_text: bFile.content,
-        map: {
-          //app,
-          //type
-        }
+        content_text: bFile.content
       })
 
       let record = await create<Content>(Content, {
         txid,
         content_type: bFile.media_type,
         content_text: bFile.content,
-        map: {
-          //app,
-          //type
-        }
       })
 
       return [record, true]
@@ -312,36 +328,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
       return [record, true]
     }
 
-
-    // get the raw transaction details and parse any known content
   }
-  /*
-
-  if (content && !content.content_type) {
-
-    (async () => {
-
-      try {
-
-        let resp = await http.head(`https://bitcoinfileserver.com/${txid}`)
-
-        console.log('HEADERS 1', resp.headers)
-
-        content_type = resp.headers['content-type']
-
-        content.content_type = content_type
-
-        await content.save()
-
-      } catch(error) {
-
-        log.error('content.cacheContent.error', error.response.error)
-
-      }
-
-    })()
-
-  }*/
 
   if (!content) {
 
@@ -368,26 +355,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     try {
 
-      console.log('CONTENT TYPE', content_type)
-
-      /*if (!content_type) {
-
-        let twetch = await postDetailQuery(txid)
-
-        if (twetch) {
-
-          content_type = 'twetch'
-
-          content_json = twetch
-
-        }
-
-      }
-      */
-
       if (content_type.match('text/markdown')) {
-
-        console.log('MARKDOWN')
 
         let { text } = await http.get(`https://bitcoinfileserver.com/${txid}`)
 
