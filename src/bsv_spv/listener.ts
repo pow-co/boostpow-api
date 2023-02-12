@@ -1,4 +1,4 @@
-import { start } from "repl";
+require('dotenv').config()
 import { importBoostProofFromTxHex, importBoostJobFromTxHex } from "../boost";
 import { log } from "../log";
 
@@ -10,8 +10,10 @@ export default async function main() {
 
   const ticker = "BSV";
   const blockHeight = -10; // Number. If negative then it's number from the tip.
-  const dataDir = process.env.bsv_spv_listener_directory || `${__dirname}/../..`;
-  const port = 5200; // Same as Masters port above
+  const dataDir = `${process.env.bsv_spv_datadir}` || `${__dirname}/../..`;
+  const port = 5251; // Same as Masters port above
+
+  console.log("LISTENER DATA DIR", dataDir)
   const listener = new Listener({ name: "powco-test-listener", ticker, blockHeight, dataDir });
 
   const onBlock = ({
@@ -77,6 +79,7 @@ export default async function main() {
   });
 
   listener.syncBlocks(onBlock);
+
   listener.connect({ port });
 
 }

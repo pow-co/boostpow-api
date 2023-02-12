@@ -312,7 +312,7 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
 
     if (!proof_record) {
 
-      log.info('boost.importBoostProof.recordNotFound')
+      log.info('boost.importBoostProof.recordNotFound', { spentTxid: proof.spentTxid })
 
       proof_record = await models.BoostWork.create({
         job_txid: proof.spentTxid,

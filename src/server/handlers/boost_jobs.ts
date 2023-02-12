@@ -141,19 +141,29 @@ export async function create(request, hapi) {
   // look up on by txid blockchain
   // if not on chain, broadcast then import
 
-  const { transaction } = request.payload
+  try {
 
-  log.info('boost.job.tx.import', { transaction })
+    const { transaction } = request.payload
 
-  let jobs = getBoostJobsFromTxHex(transaction)
+    log.info('boost.job.tx.import', { transaction })
 
-  let records = await Promise.all(jobs.map((job) => importBoostJob(job, transaction)))
+    let jobs = getBoostJobsFromTxHex(transaction)
 
-  log.info('boost.job.tx.import.response', { records })
+    let records = await Promise.all(jobs.map((job) => importBoostJob(job, transaction)))
 
-  let json = flatten(records).map(record => record.toJSON())
+    log.info('boost.job.tx.import.response', { records })
 
-  return hapi.response({ jobs: json }).code(200)
+    let json = flatten(records).map(record => record.toJSON())
+
+    return hapi.response({ jobs: json }).code(200)
+
+  } catch(error) {
+
+    log.error('boost.job.tx.import.error', error)
+
+    return { jobs: [] }
+
+  }
 
 }
 

@@ -76,3 +76,4 @@ export async function create(request, hapi) {
   return hapi.response({ work: result.toJSON() }).code(200)
 
 }
+

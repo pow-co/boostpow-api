@@ -50,7 +50,8 @@ nconf.defaults({
   api_base: 'https://pow.co',
   notify_slack: false,
   node_env: 'development',
-  bsv_per_difficulty: 0.1
+  bsv_per_difficulty: 0.1,
+  bsv_spv_enabled: false
 })
 
 export default nconf

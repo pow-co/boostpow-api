@@ -7,6 +7,8 @@ import { start as slack } from './actors/slack_boost_job_created/actor'
 
 import { startCrawler } from './crawlers';
 
+import startSPV from './bsv_spv/main'
+
 import config from './config';
 
 export async function start() {
@@ -21,6 +23,12 @@ export async function start() {
 
   await server.start();
 
+  if (config.get('bsv_spv_enabled')) {
+
+    startSPV()
+
+  }
+
   if (config.get('planaria_enabled')) {
 
     startCrawler({ name: 'boostpow_jobs_original' })
@@ -31,7 +39,7 @@ export async function start() {
 
   }
 
-  log.info(server.info)
+  log.info('server.started', server.info)
 
 }
 
