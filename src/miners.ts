@@ -4,31 +4,31 @@ import { Op } from "sequelize";
 import * as moment from 'moment'
 
 export interface ListMiners {
-    startDate?: Date;
-    endDate?: Date;
+    start_date?: Date;
+    end_date?: Date;
 }
 
 export async function listMiners(params: ListMiners = {}): Promise<any> {
 
-    let { startDate, endDate } = params
+    let { start_date, end_date } = params
 
-    if (startDate) {
+    if (start_date) {
 
-        startDate = moment(startDate).toDate()
+        start_date = moment(start_date).toDate()
 
     } else {
 
-        startDate = new Date(0)
+        start_date = new Date(0)
 
     }
 
-    if (endDate) {
+    if (end_date) {
 
-        endDate = moment(endDate).toDate()
+        end_date = moment(end_date).toDate()
 
     } else {
 
-        endDate = new Date()
+        end_date = new Date()
     }
 
     const where = {
@@ -37,15 +37,15 @@ export async function listMiners(params: ListMiners = {}): Promise<any> {
         }
     }
 
-    if (params?.startDate) {
+    if (params?.start_date) {
         where["timestamp"] = {
-            [Op.gte]: params.startDate
+            [Op.gte]: params.start_date
         }
     }
 
-    if (params?.endDate) {
+    if (params?.end_date) {
         where["timestamp"] = {
-            [Op.lte]: params.endDate
+            [Op.lte]: params.end_date
         }
     }
 
@@ -54,10 +54,11 @@ export async function listMiners(params: ListMiners = {}): Promise<any> {
         attributes: [
             "minerPubKey",
             [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
-            [Sequelize.fn("SUM", Sequelize.col("difficulty")), "sum"],
+            [Sequelize.fn("SUM", Sequelize.col("difficulty")), "difficulty"],
+            [Sequelize.fn("SUM", Sequelize.col("value")), "satoshis"],
         ],
         group: "minerPubKey",
-        order: [['sum', 'desc']]
+        order: [['difficulty', 'desc']]
     })
 
     miners = miners.map(miner => {
@@ -65,12 +66,13 @@ export async function listMiners(params: ListMiners = {}): Promise<any> {
         return {
             minerPubKey: miner.get('minerPubKey'),
             count: parseInt(miner.get('count')),
-            sum: parseFloat(miner.get('sum'))
+            difficulty: parseFloat(miner.get('difficulty')),
+            satoshis: parseFloat(miner.get('satoshis'))
         }
 
     })
 
-    return {miners, startDate, endDate}
+    return {miners, start_date, end_date}
 
 }
 

@@ -121,7 +121,7 @@ export async function getBoostProof(txid: string): Promise<{ proof: boost.BoostP
 
 }
 
-export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
+export async function persistBoostJob(job: BoostPowJob, tx_hex: string): Promise<BoostJob> {
 
   let record = await models.BoostJob.findOne({
     where: { txid: job.txid }
@@ -145,19 +145,25 @@ export async function persistBoostJob(job: BoostPowJob): Promise<BoostJob> {
     timestamp = new Date()
   }
 
+  const jobObject = job.toObject()
+
   let params = {
     txid: job.txid,
-    content: job.toObject().content.toString(),
+    content: jobObject.content.toString(),
     script: job.toHex(),
     vout: job.vout,
     value: job.value,
     difficulty: job.difficulty,
-    category: job.toObject().category.toString(),
-    tag: job.toObject().tag.toString(),
-    userNonce: job.toObject().userNonce.toString(),
-    additionalData: job.toObject().additionalData.toString(),
+    category: jobObject.category.toString(),
+    tag: jobObject.tag.toString(),
+    userNonce: jobObject.userNonce.toString(),
+    additionalData: jobObject.additionalData.toString(),
+    minerPubKeyHash: jobObject.minerPubKeyHash.toString(),
+    tx_hex,
     timestamp
   }
+
+  log.info('persistBoostJob', params)
 
   record = await models.BoostJob.create(params)
 
@@ -211,6 +217,8 @@ export async function importBoostProofByTxid(txid: string): Promise<any> {
 }
 
 export async function importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: boolean}): Promise<any> {
+
+  log.info('importBoostProofFromTxHex', { txhex, trusted })
 
   // ensure the transaction is broadcast to the network first
 
@@ -388,6 +396,8 @@ export async function importBoostJob(job: BoostPowJob, txhex?: string) {
 
   if (!txhex) {
 
+    log.info('txhex.null.fetch', { job_txid: job.txid })
+
     txhex = await fetch(job.txid)
 
   }
@@ -422,7 +432,7 @@ export async function importBoostJobFromTxHex(txhex: string) {
       return record
     }
 
-    return persistBoostJob(job)
+    return persistBoostJob(job, txhex)
 
   }))
 
@@ -435,7 +445,9 @@ export async function importBoostJobFromTxid(txid: string) {
 
   log.info('boost.importBoostJobFromTxid', { txid })
 
-  let jobs: BoostPowJob[] = await getBoostJobsFromTxid(txid)
+  const txhex = await fetch(txid)
+
+  let jobs: BoostPowJob[] = await getBoostJobsFromTxHex(txhex)
 
   let records = await Promise.all(jobs.map(async job => {
 
@@ -456,7 +468,7 @@ export async function importBoostJobFromTxid(txid: string) {
       return record
     }
 
-    return persistBoostJob(job)
+    return persistBoostJob(job, txhex)
 
   }))
 

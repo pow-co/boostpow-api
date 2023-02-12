@@ -151,7 +151,7 @@ export async function buildServer(): Server {
     handler: handlers.Miners.index,
     options: {
       description: 'List Boost Miners Including Work Performed',
-      notes: 'Allows for ranking based on boostpow performed within startDate and endDate parameters',
+      notes: 'Allows for ranking based on boostpow performed within start_date and end_date parameters',
       tags: ['api', 'miners'],
       response: {
         failAction: 'log',
@@ -159,14 +159,15 @@ export async function buildServer(): Server {
           miners: Joi.array().items(Joi.object({
             minerPubKey: Joi.string().required(),
             count: Joi.number().required(),
-            sum: Joi.number().required()
+            difficulty: Joi.number().required(),
+            satoshis: Joi.number().required()
           })).required()
         })
       },
       validate: {
         query: Joi.object({
-          startDate: Joi.date().optional(),
-          endDate: Joi.date().optional()
+          start_date: Joi.date().optional(),
+          end_date: Joi.date().optional()
         })
       }
     }

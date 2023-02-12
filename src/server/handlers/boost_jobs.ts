@@ -149,6 +149,8 @@ export async function create(request, hapi) {
 
     let jobs = getBoostJobsFromTxHex(transaction)
 
+    log.info('getBoostJobsFromTxHex.result', jobs)
+
     let records = await Promise.all(jobs.map((job) => importBoostJob(job, transaction)))
 
     log.info('boost.job.tx.import.response', { records })

@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     tag: DataTypes.STRING,
     additionalData: DataTypes.TEXT,
     userNonce: DataTypes.STRING,
+    minerPubKeyHash: DataTypes.STRING,
     txid: DataTypes.STRING,
     vout: DataTypes.INTEGER,
     value: DataTypes.INTEGER,
