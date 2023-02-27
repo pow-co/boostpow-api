@@ -35,7 +35,7 @@ export const plugin = (() => {
         }
 
         function sendBoostpowProofCreatedMessage(content) {
-          socket.send(JSON.stringify({ type: 'boostpow.job.created', content }))
+          socket.send(JSON.stringify({ type: 'boostpow.proof.created', content }))
         }
 
         events.on('boostpow.job.created', sendBoostpowJobCreatedMessage)
