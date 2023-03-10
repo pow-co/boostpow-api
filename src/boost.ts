@@ -158,7 +158,7 @@ export async function persistBoostJob(job: BoostPowJob, tx_hex: string): Promise
     tag: jobObject.tag.toString(),
     userNonce: jobObject.userNonce.toString(),
     additionalData: jobObject.additionalData.toString(),
-    minerPubKeyHash: jobObject.minerPubKeyHash.toString(),
+    minerPubKeyHash: typeof jobObject.minerPubKeyHash !== 'undefined' ? jobObject.minerPubKeyHash.toString() : "",
     tx_hex,
     timestamp
   }
