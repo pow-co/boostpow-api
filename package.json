@@ -11,7 +11,8 @@
       "cover:unit": "nyc --silent npm run test:unit",
       "cover:integration": "nyc --silent --no-clean npm run test:integration",
       "cover:report": "nyc report --reporter=lcov --reporter=text",
-      "db:migrate": "sequelize db:migrate --url=$DATABASE_URL",
+      "db:migrate": "NODE_ENV=development ts-node -r dotenv/config ./node_modules/sequelize-cli/lib/sequelize db:migrate ",
+      "db:migrate:production": "NODE_ENV=production ts-node -r dotenv/config ./node_modules/sequelize-cli/lib/sequelize db:migrate ",
       "rabbi:init": "ts-node src/rabbi/init.ts"
    },
    "workspaces": [

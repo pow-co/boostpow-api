@@ -16,6 +16,15 @@ The goal of Boost Server is to provide a realiable, real-time index of Boost POW
 ## Installation
 
 ### Docker
+Copy .env.example to .env
+
+Change settings in .env as needed, for developing through dev-container no changes needed.
+
+```
+npm run db:migrate
+```
+
+
 ```
 docker-compose up
 
