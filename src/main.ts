@@ -1,4 +1,6 @@
 
+require('dotenv').config()
+
 import { buildServer } from './server'
 
 import { log } from './log'
@@ -11,7 +13,11 @@ import startSPV from './bsv_spv/main'
 
 import config from './config';
 
-export async function start() {
+import { schedule } from 'node-cron'
+
+import { cacheAllTimeframes } from './rankings'
+
+export async function start(): Promise<void> {
 
   const server = await buildServer();
 
@@ -40,6 +46,14 @@ export async function start() {
   }
 
   log.info('server.started', server.info)
+
+  log.info('cache_refresh_cron_enabled', config.get('cache_refresh_cron_enabled'))
+
+  if (process.env.cache_refresh_cron_enabled) {
+
+    schedule(process.env.cache_refresh_cron_pattern, cacheAllTimeframes)
+
+  }
 
 }
 

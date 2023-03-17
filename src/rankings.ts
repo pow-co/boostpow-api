@@ -4,6 +4,10 @@ import { log } from './log';
 
 import models from './models'
 
+import redis from './redis'
+
+import * as moment from 'moment'
+
 export interface RankContent {
     start_date?: Date;
     end_date?: Date;
@@ -188,3 +192,97 @@ export async function rankTags(params: RankContent = {}): Promise<RankedTags[]> 
     return proofs
 
 }
+
+type timeframes = 'last-hour' | 'last-day' | 'last-week' | 'last-month' | 'last-year' | 'all-time'
+
+export async function cacheAllTimeframes(): Promise<void> {
+
+  log.info('rankings.cacheAllTimeFrames', {})
+
+  await cacheTimeframe['last-hour']
+  await cacheTimeframe['last-day']
+  await cacheTimeframe['2-days']
+  await cacheTimeframe['3-days']
+  await cacheTimeframe['last-week']
+  await cacheTimeframe['last-month']
+  await cacheTimeframe['last-year']
+  await cacheTimeframe['all-time']
+
+}
+
+export async function cacheTimeframe({ timeframe }):  Promise<RankedContent[]> {
+
+  const now = moment()
+
+  let start = now
+
+  switch(timeframe) {
+
+    case 'last-hour':
+
+      start = now.subtract(1, 'hour')
+
+    case 'last-day':
+
+      start = now.subtract(1, 'day')
+
+    case '2-days':
+
+      start = now.subtract(2, 'days')
+
+    case '3-days':
+
+      start = now.subtract(3, 'days')
+
+    case 'last-week':
+
+      start = now.subtract(1, 'week')
+
+    case 'last-month':
+
+      start = now.subtract(1, 'month')
+
+    case 'last-year':
+
+      start = now.subtract(1, 'year')
+
+    case 'all-time':
+
+      start = now.subtract(100, 'years')
+
+  }
+
+  const start_date = start.toDate()
+
+  const result = await rankContent({ start_date })
+
+  await redis.set(`rankings_by_timeframe:${timeframe}`, JSON.stringify(result))
+
+  return result
+
+}
+
+export async function rankContentWithCache({ timeframe, tag }: { timeframe: timeframes, tag?: string }):  Promise<RankedContent[]> {
+
+  const cachedResult = await redis.get(`rankings_by_timeframe:${timeframe}`)
+
+  if (cachedResult) {
+
+    console.log('cachedResult found')
+
+    const json = JSON.parse(cachedResult)
+
+    console.log('FIRST ITEM', json[0])
+
+    return json
+
+  } else {
+
+    console.log('no cacehed result')
+
+    return cacheTimeframe({ timeframe })
+
+  }
+
+}
+

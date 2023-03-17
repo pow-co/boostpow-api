@@ -51,7 +51,9 @@ nconf.defaults({
   notify_slack: false,
   node_env: 'development',
   bsv_per_difficulty: 0.1,
-  bsv_spv_enabled: false
+  bsv_spv_enabled: false,
+  cache_refresh_cron_enabled: false,
+  cache_refresh_cron_pattern: '* * * * *'
 })
 
 export default nconf
