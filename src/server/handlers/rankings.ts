@@ -1,5 +1,5 @@
 
-import { rankContent, rankTags } from '../../rankings'
+import { rankContent, rankTags, rankContentWithCache } from '../../rankings'
 
 export async function index(req) {
 
@@ -20,6 +20,20 @@ export async function index(req) {
     })
 
     return { rankings }
+
+}
+
+const timeframes = ['last-day', 'last-week', 'last-month', 'last-year', 'all-time']
+
+export async function byTimeframe(req) {
+
+  let { timeframe, tag } = req.params
+
+  const rankings = await rankContentWithCache({
+    timeframe, tag
+  })
+
+  return { rankings }
 
 }
 

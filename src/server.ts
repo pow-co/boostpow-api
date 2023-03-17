@@ -79,6 +79,29 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/boost/rankings/{timeframe}',
+    handler: handlers.Rankings.byTimeframe,
+    options: {
+      description: 'Rank content by difficulty with caching by timeframe',
+      tags: ['api', 'rankings'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        params: Joi.object({
+          timeframe: Joi.string().required().valid(
+            'last-hour', 'last-day', '2-days', '3-days', 'last-week', 'last-month', 'last-year', 'all-time'
+          )
+        }).required()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/boost/rankings/images',
     handler: handlers.Rankings.images,
     options: {
