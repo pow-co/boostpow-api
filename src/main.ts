@@ -15,7 +15,7 @@ import config from './config';
 
 import { schedule } from 'node-cron'
 
-import { cacheAllTimeframes } from './rankings'
+import { cacheTimeframe } from './rankings'
 
 export async function start(): Promise<void> {
 
@@ -49,9 +49,41 @@ export async function start(): Promise<void> {
 
   log.info('cache_refresh_cron_enabled', config.get('cache_refresh_cron_enabled'))
 
-  if (process.env.cache_refresh_cron_enabled) {
+  schedule('* * * * *', async () => {
 
-    schedule('* * * * *', cacheAllTimeframes)
+    try {
+
+      //const result = await cacheAllTimeframes()
+      const hour = await cacheTimeframe({ timeframe: 'last-hour' })
+      console.log({ hour })
+      await cacheTimeframe({ timeframe: 'last-day' })
+      await cacheTimeframe({ timeframe: 'last-week' })
+      await cacheTimeframe({ timeframe: 'last-month' })
+      await cacheTimeframe({ timeframe: 'last-year' })
+      await cacheTimeframe({ timeframe: 'all-time' })
+
+      console.log('cache all timeframes complete')
+
+    } catch(error) {
+
+       console.error('cache_refresh_cron_enabled', error)
+
+    }
+
+
+  })
+
+  try {
+
+    await cacheTimeframe({ timeframe: 'last-day' })
+    await cacheTimeframe({ timeframe: 'last-week' })
+    await cacheTimeframe({ timeframe: 'last-month' })
+    await cacheTimeframe({ timeframe: 'last-year' })
+    await cacheTimeframe({ timeframe: 'all-time' })
+
+  } catch(error) {
+
+       console.error('cache_refresh_cron_enabled', error)
 
   }
 

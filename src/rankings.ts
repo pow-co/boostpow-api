@@ -1,4 +1,6 @@
 
+require('dotenv').config()
+
 import { Op } from 'sequelize'
 import { log } from './log';
 
@@ -216,57 +218,61 @@ export async function cacheTimeframe({ timeframe }):  Promise<RankedContent[]> {
 
   const now = moment()
 
-  let start = now
+  let start;
 
   switch(timeframe) {
 
     case 'last-hour':
 
-      start = now.subtract(1, 'hour')
+      start = moment().subtract(1, 'hour')
 
       break;
 
     case 'last-day':
 
-      start = now.subtract(1, 'day')
+      start = moment().subtract(1, 'day')
 
       break;
 
     case '2-days':
 
-      start = now.subtract(2, 'days')
+      start = moment().subtract(2, 'days')
 
       break;
 
     case '3-days':
 
-      start = now.subtract(3, 'days')
+      start = moment().subtract(3, 'days')
 
       break;
 
     case 'last-week':
 
-      start = now.subtract(1, 'week')
+      start = moment().subtract(1, 'week')
 
       break;
 
     case 'last-month':
 
-      start = now.subtract(1, 'month')
+      start = moment().subtract(1, 'month')
 
       break;
 
     case 'last-year':
 
-      start = now.subtract(1, 'year')
+      start = moment().subtract(1, 'year')
 
       break;
 
     case 'all-time':
 
-      start = now.subtract(100, 'years')
+      start = moment().subtract(100, 'years')
 
       break;
+
+    default:
+
+      start = moment().subtract(1, 'day')
 
   }
 
@@ -290,15 +296,17 @@ export async function rankContentWithCache({ timeframe, tag }: { timeframe: time
 
     const json = JSON.parse(cachedResult)
 
-    console.log('FIRST ITEM', json[0])
-
     return json
 
   } else {
 
-    console.log('no cacehed result')
+    console.log('no cached result')
 
-    return cacheTimeframe({ timeframe })
+    const result = await cacheTimeframe({ timeframe })
+
+    console.log(`cacheTimeframe.${timeframe}`, result)
+
+    return result
 
   }
 

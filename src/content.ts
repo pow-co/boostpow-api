@@ -85,8 +85,6 @@ async function parseEventOutputs(txhex: string): Promise<Event[]> {
 
     if (s2 === 'onchain.sv' || s2 === 'onchain') {
 
-      console.log({ output })
-
       const app = output.s3
 
       if (!app) { return }
@@ -169,13 +167,9 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
 
   return txo.out.map((output, index) => {
 
-    console.log('OUPUT', output)
-
     const s2 = output.s2.trim()
 
     if (s2 === 'B' || s2 === '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut') { // B Protocol Prefix
-
-      console.log('B FOUND', { output })
 
       const content = output.s3 || output.ls3
 
@@ -188,8 +182,6 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
       var result, content_base64;
 
       const bFileResult = parse(txhex)
-
-      console.log('--bFileResult--', bFileResult)
 
       if (type.match('image')) {
           
@@ -253,8 +245,6 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
       result['tx_index'] = index
       result['txid'] = txo['tx']['h']
 
-      console.log('RESULT---', result)
-
       return result
 
     }
@@ -278,17 +268,9 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     const hex = await fetch(txid)
 
-    console.log('content.hex', hex)
-
     const [bFile] = await parseBOutputs(hex)
 
     if (bFile) {
-
-      console.log('---create event content---', {
-        txid,
-        content_type: bFile.media_type,
-        content_text: bFile.content
-      })
 
       let record = await create<Content>(Content, {
         txid,
@@ -304,16 +286,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
     if (event) {
 
       const { app, type, content } = event
-
-      console.log('create event content', {
-        txid,
-        content_json: content,
-        content_type: 'application/json',
-        map: {
-          app,
-          type
-        }
-      })
 
       let record = await create<Content>(Content, {
         txid,
@@ -342,8 +314,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
     try {
 
       let resp = await http.head(`https://bitcoinfileserver.com/${txid}`)
-
-      console.log('HEADERS 2', resp.headers)
 
       content_type = resp.headers['content-type']
 
