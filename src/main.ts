@@ -51,7 +51,7 @@ export async function start(): Promise<void> {
 
   if (process.env.cache_refresh_cron_enabled) {
 
-    schedule(process.env.cache_refresh_cron_pattern, cacheAllTimeframes)
+    schedule('* * * * *', cacheAllTimeframes)
 
   }
 
