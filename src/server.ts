@@ -4,6 +4,8 @@ import { Server } from '@hapi/hapi'
 
 import { log } from './log'
 
+import config from './config'
+
 const Joi = require('joi')
 
 import * as schema from './server/schema'
@@ -44,7 +46,12 @@ export async function buildServer(): Server {
   });
 
   await server.register(socketio);
-  await server.register(websockets);
+
+  if (config.get('websockets_enabled') || process.env.websockets_enabled) {
+
+    await server.register(websockets);
+
+  }
 
   server.route({
     method: 'GET',
