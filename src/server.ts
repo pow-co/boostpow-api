@@ -225,6 +225,50 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/api/v1/script-shortcodes/{uid}',
+    handler: handlers.ScriptShortcodes.show,
+    options: {
+      description: 'Show Shortened Link for Script in Paymails',
+      tags: ['api', 'scripts'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          uid: Joi.string().required(),
+          script: Joi.string().required()
+        }).label('ScriptShortcode').required()
+      },
+      validate: {
+        params: Joi.object({
+          uid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'POST',
+    path: '/api/v1/script-shortcodes',
+    handler: handlers.ScriptShortcodes.create,
+    options: {
+      description: 'Create Shortened Link for Script in Paymails',
+      notes: 'Returns existing shortcode if already present',
+      tags: ['api', 'scripts'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          uid: Joi.string().required(),
+          script: Joi.string().required()
+        }).label('ScriptShortcode').required()
+      },
+      validate: {
+        payload: Joi.object({
+          script: Joi.string().required()
+        })
+      }
+    }
+  })
 
   server.route({
     method: 'GET',
