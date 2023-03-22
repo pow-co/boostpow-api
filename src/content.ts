@@ -7,7 +7,7 @@ const snarkdown = require('snarkdown')
 
 import { fetch } from 'powco'
 
-import { parse } from '../includes/easy-b'
+import { parse } from '@runonbitcoin/easy-b'
 
 //import { postDetailQuery } from './twetch'
 
