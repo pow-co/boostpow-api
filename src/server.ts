@@ -490,7 +490,21 @@ export async function buildServer(): Server {
       description: 'Get Metadata About Onchain Content by Txid',
       tags: ['api', 'content'],
       response: {
-        failAction: 'log'
+        failAction: 'log',
+        schema: Joi.object({
+          content: Joi.object({
+            content_type: Joi.string(),
+            content_text: Joi.string(),
+            content_json: Joi.object().optional(),
+            map: Joi.object().optional(),
+            createdAt: Joi.date()
+          }).required(),
+          tags: Joi.array().items(Joi.object({
+            utf8: Joi.string().required(),
+            hex: Joi.string().required(),
+            difficulty: Joi.number().required()
+          }))
+        }).label('Content')
       },
       validate: {
         params: Joi.object({
