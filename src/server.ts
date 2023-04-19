@@ -61,6 +61,12 @@ export async function buildServer(): Server {
     }
   })
 
+  const Ranking = Joi.object({
+	content_txid: Joi.string().required(),
+	content_type: Joi.string(),
+	difficulty: Joi.number().required()
+  })
+
   server.route({
     method: 'GET',
     path: '/api/v1/powco/feeds/multi-day',
@@ -71,17 +77,10 @@ export async function buildServer(): Server {
       response: {
         failAction: 'log',
         schema: Joi.object({
-          rankings: Joi.any().required(),
-          days: Joi.array().required()
+          rankings: Joi.array().items(Ranking).required(),
+          days: Joi.array().items(Joi.array().items(Ranking))
         })
       },
-      validate: {
-        query: Joi.object({
-          start_date: Joi.number().optional().description('unix timestamp'),
-          end_date: Joi.number().optional().description('unix timestamp'),
-          tag: Joi.string().optional()
-        }).optional()
-      }
     }
   })
 
