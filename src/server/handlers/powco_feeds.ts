@@ -1,11 +1,11 @@
 
-import { get_multi_day_feed } from '../../feeds/multi_day_feed'
+import { getCachedMultiDayFeed } from '../../feeds/multi_day_feed'
 
 export async function multiDay(req) {
 
-  const days = await get_multi_day_feed({ days: 7 })
+  const days = await getCachedMultiDayFeed()
 
-  const rankings = days.flatten()
+  const rankings = days.flat()
 
   return {
 

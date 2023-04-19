@@ -8,7 +8,7 @@ import models from './models'
 
 import redis from './redis'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 export interface RankContent {
     start_date?: Date;
@@ -23,13 +23,15 @@ export interface Rankings {
 }
 
 export interface RankedContent {
-    content: string;
+    content_txid: string;
     difficulty: number;
     rank: number;
     tag: number;
 }
 
 export async function rankContent (params: RankContent = {}): Promise<RankedContent[]> {
+
+    console.log('rankContent', params)
 
     const where = {}
 

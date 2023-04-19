@@ -13,7 +13,7 @@ export async function index(req) {
         end_date = new Date(end_date * 1000)
     }
 
-    const rankings: RankedContent = await rankContent({
+    const rankings: RankedContent[] = await rankContent({
         start_date,
         end_date,
         tag

@@ -64,7 +64,7 @@ export async function buildServer(): Server {
   server.route({
     method: 'GET',
     path: '/api/v1/powco/feeds/multi-day',
-    handler: handlers.PowcoFeeds.multiDayFeed,
+    handler: handlers.PowcoFeeds.multiDay,
     options: {
       description: 'Should return the multi-day feed for the home page',
       tags: ['api', 'feeds', 'multi-day'],
