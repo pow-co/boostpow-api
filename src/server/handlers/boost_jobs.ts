@@ -15,7 +15,7 @@ import config from '../../config'
 
 import { BoostPowJob } from 'boostpow'
 
-import * as moment from 'moment'
+import moment from 'moment'
 
 import { quoteDifficulty } from '../../prices'
 

@@ -1,7 +1,7 @@
 import {Sequelize} from "sequelize";
 import models from "./models";
 import { Op } from "sequelize";
-import * as moment from 'moment'
+import moment from 'moment'
 
 export interface ListMiners {
     start_date?: Date;

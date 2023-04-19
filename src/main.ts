@@ -17,6 +17,8 @@ import { schedule } from 'node-cron'
 
 import { cacheTimeframe } from './rankings'
 
+import { cacheMultiDayFeed } from './feeds/multi_day_feed'
+
 export async function start(): Promise<void> {
 
   const server = await buildServer();
@@ -63,6 +65,8 @@ export async function start(): Promise<void> {
       await cacheTimeframe({ timeframe: 'all-time' })
 
       console.log('cache all timeframes complete')
+
+      await cacheMultiDayFeed();
 
     } catch(error) {
 
