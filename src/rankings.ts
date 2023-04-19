@@ -36,18 +36,18 @@ export async function rankContent (params: RankContent = {}): Promise<RankedCont
     const where = {}
 
     if (params.start_date) {
+
+      if (!where['timestamp']) { where['timestamp'] = {} }
   
-      where['timestamp'] = {
-        [Op.gte]: params.start_date
-      }
+      where['timestamp'][Op.gte] = params.start_date
     
     }
   
     if (params.end_date) {
+ 
+      if (!where['timestamp']) { where['timestamp'] = {} }
   
-      where['timestamp'] = {
-        [Op.lte]: params.end_date
-      }
+      where['timestamp'][Op.lte] = params.end_date
   
     }
 

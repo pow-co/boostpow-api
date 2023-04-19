@@ -38,7 +38,8 @@ export async function get_multi_day_feed({ days }: { days?: number }): Promise<R
     let end_date = moment().subtract(i, 'days').toDate()
 
     let rankedContent = await rankContent({
-      start_date
+      start_date,
+      end_date
     })
 
     rankedContent = rankedContent.filter((ranking) => {
