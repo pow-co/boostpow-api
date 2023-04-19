@@ -1,5 +1,5 @@
 
-import { rankContent, rankTags, rankContentWithCache } from '../../rankings'
+import { rankContent, rankTags, rankContentWithCache, RankedContent } from '../../rankings'
 
 export async function index(req) {
 
@@ -13,7 +13,7 @@ export async function index(req) {
         end_date = new Date(end_date * 1000)
     }
 
-    const rankings = await rankContent({
+    const rankings: RankedContent = await rankContent({
         start_date,
         end_date,
         tag

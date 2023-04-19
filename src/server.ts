@@ -63,6 +63,30 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/powco/feeds/multi-day',
+    handler: handlers.PowcoFeeds.multiDayFeed,
+    options: {
+      description: 'Should return the multi-day feed for the home page',
+      tags: ['api', 'feeds', 'multi-day'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required(),
+          days: Joi.array().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp'),
+          tag: Joi.string().optional()
+        }).optional()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/boost/rankings',
     handler: handlers.Rankings.index,
     options: {
