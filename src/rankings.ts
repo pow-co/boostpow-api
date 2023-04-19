@@ -282,7 +282,7 @@ export async function cacheTimeframe({ timeframe }):  Promise<RankedContent[]> {
 
   const result = await rankContent({ start_date })
 
-  await redis.set(`rankings_by_timeframe:${timeframe}`, JSON.stringify(result))
+  await redis.set(`rankings_by_timeframe:${timeframe}`, JSON.stringify(result.slice(0, 100)))
 
   return result
 
