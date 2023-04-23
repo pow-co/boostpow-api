@@ -1,0 +1,14 @@
+[Unit]
+Description=pow.co bmap transaction ingestor actor via rabbitmq
+Documentation=https://pow.co
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/boostpow-api
+ExecStart=/usr/bin/ts-node src/actors/ingest_bmap_transactions/actor.ts
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

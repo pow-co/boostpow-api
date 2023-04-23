@@ -1,0 +1,14 @@
+[Unit]
+Description=pow.co network listener worker
+Documentation=https://pow.co
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/bsv-spv-powco
+ExecStart=/usr/bin/node listener.js 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
