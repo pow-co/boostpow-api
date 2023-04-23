@@ -4,7 +4,7 @@ require('dotenv').config();
 
 import { Actor, log } from 'rabbi';
 
-import models from '../../models'
+import * as models from '../../models'
 
 import { sendWebhooks } from '../../webhooks'
 
@@ -14,9 +14,9 @@ export async function start() {
 
   Actor.create({
 
-    exchange: 'proofofwork',
+    exchange: 'powco',
 
-    routingkey: 'bmap.transaction.rawtx',
+    routingkey: 'bmap.transaction.discovered',
 
     queue: 'ingest_bmap_transaction',
 
@@ -24,6 +24,8 @@ export async function start() {
   .start(async (channel, msg, json) => {
 
     const { bob, bmap } = json
+
+    console.log({bob, bmap}, 'bmap.transaction.discovered')
 
     const [record, isNew] = await ingestBmapTransaction({ bob, bmap })
 
