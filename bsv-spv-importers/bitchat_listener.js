@@ -25,50 +25,6 @@ async function startAmqp() {
 
 startAmqp()
 
-const { TransformTx, bobFromRawTx }  = require('bmapjs')
-
-/** Example
- *
- *
- * {
-  tx: {
-    h: 'f9fc39e00bdfb26762d6d70ffe4fdba4841dec83c65bc06a9f9a7cbaa1c5b49e'
-  },
-  in: [ { i: 0, e: [Object], seq: 4294967295 } ],
-  B: [
-    {
-      content: 'Success! I am detecting bitchat transactions in real time using bsv-spv  :D',
-      'content-type': 'text/plain',
-      encoding: 'utf-8'
-    }
-  ],
-  MAP: [
-    {
-      cmd: 'SET',
-      app: 'chat.pow.co',
-      type: 'message',
-      paymail: 'owenkellogg@relayx.io',
-      context: 'channel',
-      channel: 'test'
-    }
-  ],
-  lock: 0
-}
-
-****/
-
-
-async function parseTransaction(tx) {
-
-	const hex = tx.toHex()
-
-	const bob = await bobFromRawTx(hex)
-
-	let transformed = await TransformTx(bob)
-
-	return [hex, bob, transformed]
-
-}
 
 const onBlock = ({
   header,
