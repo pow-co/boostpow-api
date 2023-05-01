@@ -636,6 +636,68 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/api/v1/personal-interests/{txid}',
+    handler: handlers.PersonalInterests.show,
+    options: {
+      description: 'Find and show Personal Interest smart object',
+      tags: ['api', 'personal-interests'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          personal_interests: Joi.array().items(Joi.object({
+            owner: Joi.string(),
+            origin: Joi.string(),
+            location: Joi.string(),
+            topic: Joi.string(),
+            value: Joi.number(),
+            weight: Joi.number(),
+            createdAt: Joi.date(),
+            updatedAt: Joi.date()
+          }))
+        })
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/owners/{owner}/personal-interests',
+    handler: handlers.PersonalInterests.index,
+    options: {
+      description: 'List Personal Interest smart object given an Owner address',
+      tags: ['api', 'personal-interests'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          owner: Joi.string().required(),
+          personal_interests: Joi.array().items(Joi.object({
+            owner: Joi.string(),
+            origin: Joi.string(),
+            location: Joi.string(),
+            topic: Joi.string(),
+            value: Joi.number(),
+            weight: Joi.number(),
+            createdAt: Joi.date(),
+            updatedAt: Joi.date()
+          }))
+        })
+      },
+      validate: {
+        params: Joi.object({
+          owner: Joi.string().required()
+        })
+      }
+    }
+  })
+
+
   const swaggerOptions = {
     info: {
       title: 'Powco API Docs',
