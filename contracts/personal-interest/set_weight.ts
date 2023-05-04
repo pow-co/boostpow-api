@@ -1,16 +1,17 @@
 
 import axios from 'axios'
+
 import { PersonalInterest } from './src/contracts/personalInterest'
 //import { PersonalInterest } from './dist/src/contracts/personalInterest'
 import {
-    findSig,
-    MethodCallOptions,
     bsv,
     TestWallet,
     DefaultProvider,
     sha256,
     toByteString,
-    PubKey
+    PubKey,
+    findSig,
+    MethodCallOptions
 } from 'scrypt-ts'
 
 import * as dotenv from 'dotenv'
@@ -27,51 +28,35 @@ const privateKey = bsv.PrivateKey.fromWIF(process.env.PRIVATE_KEY || '')
 // See https://scrypt.io/docs/how-to-deploy-and-call-a-contract/#prepare-a-signer-and-provider
 const signer = new TestWallet(
     privateKey,
-    new DefaultProvider({network: bsv.Networks.mainnet })
+    new DefaultProvider({network:bsv.Networks.mainnet})
 )
 
 async function main() {
+
     await PersonalInterest.compile()
 
-    const amount = parseInt(process.argv[4] || '1000')
+    const txid = process.argv[2]
 
-    const ownerAddress = process.argv[2] || privateKey.toPublicKey().toHex()
+    console.log(signer.connectedProvider, 'connectedProvider')
 
-    console.log(privateKey.publicKey.toString())
-    console.log(privateKey.publicKey.toAddress().toString(), '--address--')
+    const tx = await signer.connectedProvider.getTransaction(txid)
 
-    //process.exit(0)
+    const weight = parseInt(process.argv[3])
 
-    const owner = PubKey(ownerAddress)
-
-    const instance = new PersonalInterest(
-        toByteString(process.argv[3] || 'music.house.soul', true),
-        owner,
-        1n
-    )
+    const instance = PersonalInterest.fromTx(tx, 0)
 
     // Connect to a signer.
     await instance.connect(signer)
 
-    // Contract deployment.
-    const deployTx = await instance.deploy(amount)
-
-    console.log('PersonalInterest contract deployed: ', deployTx.id)
-
-    const { data } = await axios.get('https://pow.co/api/v1/personal-interests/'+deployTx.id)
-
-    console.log(data, 'imported')
-
-    const { tx: callTx } = await instance.methods.setWeight(2n, (sigResps) =>{
+    const { tx: callTx } = await instance.methods.setWeight(weight, (sigResps) =>{
       return findSig(sigResps, privateKey.publicKey)
     }, {
-      pubKeyOrAddrToSign: privateKey.publicKey.toAddress()
+      pubKeyOrAddrToSign: privateKey.publicKey
     } as MethodCallOptions<PersonalInterest>)
 
     console.log('PersonalInterest contract call Tx: ', callTx)
 
     console.log('PersonalInterest contract called: ', callTx.id)
-
 
 }
 
