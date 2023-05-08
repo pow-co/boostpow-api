@@ -31,7 +31,8 @@ module.exports = (sequelize, DataTypes) => {
     content_json: DataTypes.JSON,
     content_text: DataTypes.TEXT,
     content_bytes: DataTypes.BLOB,
-    map: DataTypes.JSON
+    map: DataTypes.JSON,
+    context_txid: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Content',

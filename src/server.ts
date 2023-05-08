@@ -612,6 +612,29 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/content/{txid}/replies',
+    handler: handlers.Replies.index,
+    options: {
+      description: 'List Replies for Any Content',
+      tags: ['api', 'replies'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          replies: Joi.array()
+        }).label('ContentReplies')
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+
+
+  server.route({
     method: 'POST',
     path: '/api/v1/transactions',
     handler: handlers.Transactions.create,
