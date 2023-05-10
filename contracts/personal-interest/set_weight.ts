@@ -48,10 +48,18 @@ async function main() {
     // Connect to a signer.
     await instance.connect(signer)
 
-    const { tx: callTx } = await instance.methods.setWeight(weight, (sigResps) =>{
+    const nextInstance = instance.next()
+
+    nextInstance.weight = 2n
+
+    const { tx: callTx } = await instance.methods.setWeight(2n, (sigResps) =>{
       return findSig(sigResps, privateKey.publicKey)
     }, {
-      pubKeyOrAddrToSign: privateKey.publicKey
+      next:{
+        instance: nextInstance,
+        balance: instance.balance
+      },
+      pubKeyOrAddrToSign: privateKey.publicKey.toAddress()
     } as MethodCallOptions<PersonalInterest>)
 
     console.log('PersonalInterest contract call Tx: ', callTx)
