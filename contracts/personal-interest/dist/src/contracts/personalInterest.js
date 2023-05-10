@@ -15,14 +15,20 @@ class PersonalInterest extends scrypt_ts_1.SmartContract {
         this.owner = owner;
         this.weight = weight;
     }
-    setValue(signature) {
-        (0, scrypt_ts_1.assert)(this.checkSig(signature, this.owner), `checkSig failed, pubkey: ${this.owner}`);
-    }
     setWeight(weight, signature) {
-        this.weight = weight;
         (0, scrypt_ts_1.assert)(this.checkSig(signature, this.owner), `checkSig failed, pubkey: ${this.owner}`);
+        this.weight = weight;
+        // Ensure Contract State Remains Locked With Exact Satoshis Value
+        const amount = this.ctx.utxo.value;
+        let outputs = this.buildStateOutput(amount);
+        if (this.changeAmount > 0n) {
+            outputs += this.buildChangeOutput();
+        }
+        (0, scrypt_ts_1.assert)(this.ctx.hashOutputs == (0, scrypt_ts_1.hash256)(outputs), 'hashOutputs mismatch');
     }
     remove(signature) {
+        // No assertion that the state out remains the same. By calling remove() you essentially
+        // destroy the smart contract and may reclaim all the satoshis
         (0, scrypt_ts_1.assert)(this.checkSig(signature, this.owner), `checkSig failed, pubkey: ${this.owner}`);
     }
 }
@@ -35,9 +41,6 @@ __decorate([
 __decorate([
     (0, scrypt_ts_1.prop)(true)
 ], PersonalInterest.prototype, "weight", void 0);
-__decorate([
-    (0, scrypt_ts_1.method)()
-], PersonalInterest.prototype, "setValue", null);
 __decorate([
     (0, scrypt_ts_1.method)()
 ], PersonalInterest.prototype, "setWeight", null);
