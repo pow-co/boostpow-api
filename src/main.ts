@@ -7,6 +7,8 @@ import { log } from './log'
 
 import { start as slack } from './actors/slack_boost_job_created/actor'
 
+import { start as bmap } from './actors/ingest_bmap_transactions/actor'
+
 import { startCrawler } from './crawlers';
 
 import startSPV from './bsv_spv/main'
@@ -26,6 +28,14 @@ export async function start(): Promise<void> {
   if (config.get('notify_slack')) {
 
     slack();
+
+  }
+
+  if (process.env.AMQP_URL) {
+
+    console.log('bmap.importer.start')
+
+    bmap();
 
   }
 

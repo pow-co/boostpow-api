@@ -4,11 +4,13 @@ require('dotenv').config();
 
 import { Actor, log } from 'rabbi';
 
-import * as models from '../../models'
+import models from '../../models'
 
 import { sendWebhooks } from '../../webhooks'
 
 import { ingestBmapTransaction } from '../../bmap'
+
+import { cacheContent } from '../../content'
 
 export async function start() {
 
@@ -27,12 +29,42 @@ export async function start() {
 
     console.log({bob, bmap}, 'bmap.transaction.discovered')
 
-    const [record, isNew] = await ingestBmapTransaction({ bob, bmap })
+    const [tx, isNew] = await ingestBmapTransaction({ bob, bmap })
 
     if (isNew) {
 
-      console.log('ingested new bmap transaction', record.toJSON())
+      console.log('ingested new bmap transaction', tx.toJSON())
     }
+
+    if (tx.bmap && tx.bmap && tx.bmap.MAP && tx.bmap.MAP[0].context === 'tx'  && tx.bmap.MAP[0].tx != 'null'){
+
+      console.log(tx.bmap.MAP)
+
+      let originalPost = await models.Content.findOne({
+        where: {
+          txid: tx.bmap.MAP[0].tx
+        }
+      })
+
+      if (originalPost) {
+
+        console.log(originalPost.toJSON(), 'OP')
+
+        console.log(tx)
+
+        let [content] = await cacheContent(tx.txid)
+        
+        if (!content.get('context_txid')) {
+
+          await content.set('context_txid', tx.bmap.MAP[0].tx)
+
+          console.log(content.toJSON(), 'reply.imported')
+
+        }
+
+      }
+    }
+
 
   });
 
