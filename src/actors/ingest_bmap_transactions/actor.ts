@@ -62,6 +62,12 @@ export async function start() {
 
         }
 
+        if (!content.bmap) {
+
+          await content.set('bmap', tx.bmap)
+
+        }
+
       }
     }
 

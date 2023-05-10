@@ -15,6 +15,8 @@ import { Orm, create, findOne } from './orm'
 
 import { log } from './log'
 
+const { TransformTx, bobFromRawTx }  = require('bmapjs')
+
 export class Content extends Orm {
 
     static model = models.Content
@@ -100,7 +102,7 @@ async function parseEventOutputs(txhex: string): Promise<Event[]> {
         return
       }
 
-      const content = JSON.parse(s5)
+      var content = JSON.parse(s5)
 
       const result = {
         app,
@@ -171,7 +173,7 @@ async function parseBOutputs(txhex: string): Promise<BFile[]> {
 
     if (s2 === 'B' || s2 === '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut') { // B Protocol Prefix
 
-      const content = output.s3 || output.ls3
+      var content = output.s3 || output.ls3
 
       const type = output.s4
 
@@ -260,34 +262,40 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
   var isNew = false;
 
-  let content = await findOne<Content>(Content,{
+  var content: Content = await findOne<Content>(Content,{
     where: { txid }
   })
 
-  if (!content) {
+  let hex: string;
 
-    const hex = await fetch(txid)
+  let bmap: any;
+
+  if (!content || !content.get('bmap')) {
+
+    hex = await fetch(txid)
+
+    bmap = await parseBMAPTransaction(hex)
+
 
     const [bFile] = await parseBOutputs(hex)
 
     if (bFile) {
 
-      let record = await create<Content>(Content, {
+      content = await create<Content>(Content, {
         txid,
         content_type: bFile.media_type,
         content_text: bFile.content,
       })
 
-      return [record, true]
     }
 
     const [event] = await parseEventOutputs(hex)
 
     if (event) {
 
-      const { app, type, content } = event
+      const { app, type, content: content_json } = event
 
-      let record = await create<Content>(Content, {
+      content = await create<Content>(Content, {
         txid,
         content_json: content,
         content_type: 'application/json',
@@ -297,7 +305,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
         }
       })
 
-      return [record, true]
     }
 
   }
@@ -340,7 +347,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
         log.error('content.cacheContent.error', error.response.error)
 
     }
-    
+
     content = await create<Content>(Content, {
       
       txid,
@@ -357,6 +364,31 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
   }
 
+  if (bmap && !content.get('bmap')) {
+
+    await content.set('bmap', bmap)
+
+  }
+    
   return [content, isNew];
 
 }
+
+async function parseBMAPTransaction(hex: string): Promise<any | undefined> {
+
+  try {
+
+    const bob = await bobFromRawTx(hex)
+
+    let transformed = await TransformTx(bob)
+
+    return transformed
+
+  } catch(error) {
+
+    return;
+
+  }
+
+}
+
