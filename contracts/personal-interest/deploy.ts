@@ -10,7 +10,7 @@ import {
     DefaultProvider,
     sha256,
     toByteString,
-    PubKey
+    PubKey,
 } from 'scrypt-ts'
 
 import * as dotenv from 'dotenv'
@@ -62,10 +62,18 @@ async function main() {
 
     console.log(data, 'imported')
 
+    const nextInstance = instance.next()
+
+    nextInstance.weight = 2n
+
     const { tx: callTx } = await instance.methods.setWeight(2n, (sigResps) =>{
       return findSig(sigResps, privateKey.publicKey)
     }, {
-      pubKeyOrAddrToSign: privateKey.publicKey.toAddress()
+      pubKeyOrAddrToSign: privateKey.publicKey.toAddress(),
+      next:{
+        instance:nextInstance,
+        balance:instance.balance
+      }
     } as MethodCallOptions<PersonalInterest>)
 
     console.log('PersonalInterest contract call Tx: ', callTx)
