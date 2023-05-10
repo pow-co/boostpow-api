@@ -62,7 +62,7 @@ export async function start() {
 
         }
 
-        if (!content.bmap) {
+        if (!content.get('bmap')) {
 
           await content.set('bmap', tx.bmap)
 
