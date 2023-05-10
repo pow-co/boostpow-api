@@ -369,6 +369,30 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
     await content.set('bmap', bmap)
 
   }
+
+  /*
+   * Index Bitcoin Schema "Replies"
+  */
+  if (!content.get('context_txid') && bmap && bmap.MAP && bmap.MAP[0].context === 'tx'  && bmap.MAP[0].tx != 'null') {
+
+    let originalPost = await models.Content.findOne({
+      where: {
+        txid: bmap.MAP[0].tx
+      }
+    })
+
+    if (originalPost) {
+
+      if (!content.get('context_txid')) {
+
+        await content.set('context_txid', bmap.MAP[0].tx)
+
+        console.log(content.toJSON(), 'reply.imported')
+
+      }
+
+    }
+  }
     
   return [content, isNew];
 
