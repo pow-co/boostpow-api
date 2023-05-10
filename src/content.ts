@@ -344,7 +344,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     } catch(error) {
 
-        log.error('content.cacheContent.error', error.response.error)
+        log.error('content.cacheContent.error', error)
 
     }
 

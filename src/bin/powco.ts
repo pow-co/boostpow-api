@@ -8,7 +8,7 @@ const program = createCommand()
 import { cacheContent } from '../content'
 
 program
-  .command('import-content <txid')
+  .command('cache-content <txid')
   .action(async (txid) => {
 
     try {
