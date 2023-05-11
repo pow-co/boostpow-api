@@ -276,7 +276,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     bmap = await parseBMAPTransaction(hex)
 
-
     const [bFile] = await parseBOutputs(hex)
 
     if (bFile) {
@@ -392,6 +391,27 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
       }
 
     }
+  }
+
+  /*
+
+  MAP: [
+    {
+      cmd: 'SET',
+      app: 'chat.pow.co',
+      type: 'message',
+      paymail: 'owenkellogg@relayx.io',
+      context: 'channel',
+      channel: 'powco-development'
+    }
+  ]
+
+  */
+
+  if (!content.get('bitchat_channel') && bmap && bmap.MAP && bmap.MAP[0].context === 'channel' && bmap.MAP[0].type === 'message') {
+
+    await content.set('bitchat_channel', bmap.MAP[0].channel)
+
   }
     
   return [content, isNew];

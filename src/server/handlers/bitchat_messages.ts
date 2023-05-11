@@ -5,11 +5,15 @@ import { badRequest } from 'boom'
 
 import models from '../../models'
 
+import { cacheContent } from '../../content'
+
 export async function show(req, h) {
 
   try { 
 
-    const message = await models.Contents.findOne({
+    await cacheContent(req.params.txid)
+
+    const message = await models.Content.findOne({
       where: {
         txid: req.params.txid,
         bitchat_channel: {
