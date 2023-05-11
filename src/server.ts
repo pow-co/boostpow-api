@@ -720,6 +720,69 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/api/v1/chat/channels/{channel}',
+    handler: handlers.BitchatChannels.show,
+    options: {
+      description: 'Show A Single Channel Including Recent Messages',
+      tags: ['api', 'chat'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          channel: Joi.object(),
+          messages: Joi.array()
+        }).label('ChannelWithMessages')
+      },
+      validate: {
+        params: Joi.object({
+          channel: Joi.string().required()
+        }),
+        query: Joi.object({
+          limit: Joi.number().optional(),
+          offset: Joi.number().optional()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/chat/messages/{txid}',
+    handler: handlers.BitchatMessages.show,
+    options: {
+      description: 'Get a Single Chat Message by Txid',
+      tags: ['api', 'chat'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          channel: Joi.object(),
+          messages: Joi.array()
+        }).label('ChannelWithMessages')
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/chat/channels',
+    handler: handlers.BitchatChannels.index,
+    options: {
+      description: 'List All Channels',
+      tags: ['api', 'replies'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          replies: Joi.array()
+        }).label('ContentReplies')
+      }
+    }
+  })
 
   const swaggerOptions = {
     info: {
