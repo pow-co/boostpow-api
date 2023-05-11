@@ -33,6 +33,8 @@ module.exports = (sequelize, DataTypes) => {
     content_bytes: DataTypes.BLOB,
     map: DataTypes.JSON,
     bmap: DataTypes.JSON,
+    bitchat_channel: DataTypes.STRING,
+    chain: DataTypes.STRING,
     context_txid: DataTypes.STRING
   }, {
     sequelize,
