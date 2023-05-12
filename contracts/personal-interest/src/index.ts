@@ -73,6 +73,7 @@ export async function detectInterestsFromTxHex(txhex: string): Promise<PersonalI
 
     try {
 
+      //@ts-ignore
       const interest = PersonalInterest.fromTx(tx, i)
 
       interests.push(interest)
