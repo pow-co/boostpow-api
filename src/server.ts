@@ -774,12 +774,16 @@ export async function buildServer(): Server {
     handler: handlers.BitchatChannels.index,
     options: {
       description: 'List All Channels',
-      tags: ['api', 'replies'],
+      tags: ['api', 'chat'],
       response: {
         failAction: 'log',
         schema: Joi.object({
-          replies: Joi.array()
-        }).label('ContentReplies')
+          channels: Joi.array().items(Joi.object({
+            channel: Joi.string().required(), 
+            last_message_bmap: Joi.object().required(), 
+            last_message_timestamp: Joi.date().required()
+          }))
+        }).label('ChatChannels')
       }
     }
   })

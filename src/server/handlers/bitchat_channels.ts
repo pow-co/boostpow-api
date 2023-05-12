@@ -9,14 +9,8 @@ export async function index(req, h) {
 
   try { 
 
-    const channels = await models.Content.findAll({
-      where: {
-        bitchat_channel: {
-          [Op.ne]: null
-        }
-      },
-      group: ['bitchat_channel'],
-      attributes: ['bitchat_channel']
+    const channels = await models.ChatChannel.findAll({
+      order: [['last_message_timestamp', 'desc']]
     })
 
     return { channels }

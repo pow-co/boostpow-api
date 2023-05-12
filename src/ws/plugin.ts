@@ -12,7 +12,7 @@ import { Actor } from 'rabbi'
 
 import { EventEmitter } from "events";
 
-import { getConnection, getChannel, publish } from 'rabbi'
+import { getChannel, publish } from 'rabbi'
 
 const events = new EventEmitter()
 
@@ -24,31 +24,63 @@ function sendMessage(socket:WebSocket, type:string, content:any) {
 
 }
 
+async function handleConnectionChatChannel(socket: WebSocket, request, channel: string) {
+
+  sendMessage(socket, `websockets.chat.channels.${channel}.connected`, { success:true })
+
+  const amqpChannel = await getChannel()
+
+  const queue = uuid()
+
+  amqpChannel.assertQueue(queue)
+
+  const routingKey = `chat.channels.${channel}.message`
+
+  amqpChannel.bindQueue(queue, 'powco', routingKey)
+
+  amqpChannel.consume(queue, (msg) => {
+
+    if (!msg) { return }
+
+    sendMessage(socket, routingKey,  JSON.parse(msg.content.toString()))
+
+    amqpChannel.ack(msg)
+
+  })
+
+  socket.on('close', () => {
+
+    amqpChannel.deleteQueue(queue)
+
+  }) 
+
+}
+
 async function handleConnectionChats(socket, request) {
 
   sendMessage(socket, 'websockets.chats.connected', { success:true })
 
   sendMessage(socket, 'websockets.bmap.connected', { success:true })
 
-  const channel = await getChannel()
+  const amqpChannel = await getChannel()
 
   const queue = uuid()
 
-  channel.assertQueue(queue)
+  amqpChannel.assertQueue(queue)
 
-  channel.bindQueue(queue, 'proofofwork', 'bmap.bitchat.transaction.discovered')
+  amqpChannel.bindQueue(queue, 'powco', 'chat.message')
 
-  channel.consume(queue, (msg) => {
+  amqpChannel.consume(queue, (msg) => {
 
     sendMessage(socket, 'bitchat.transaction.discovered', msg.content.toString())
 
-    channel.ack(msg)
+    amqpChannel.ack(msg)
 
   })
 
   socket.on('close', () => {
 
-    channel.deleteQueue(queue)
+    amqpChannel.deleteQueue(queue)
 
   }) 
 
@@ -74,17 +106,11 @@ async function handleConnectionSuperchats(socket, request) {
 
 async function handleConnectionBMAP(socket, request) {
 
-  console.log('WEBSOCKETS BMAP CONNECTED')
-
   sendMessage(socket, 'websockets.bmap.connected', { success:true })
 
   const channel = await getChannel()
 
-  console.log('--got channel--')
-
   const queue = uuid()
-
-  console.log('QUEUE', queue)
 
   channel.assertQueue(queue, { autoDelete: true})
 
@@ -133,8 +159,6 @@ async function handleConnectionBoost(socket, request) {
 
 export const plugin = (() => {
 
-  getConnection()
-
   return {
 
     name: 'websockets',
@@ -156,7 +180,7 @@ export const plugin = (() => {
         })
       
         switch(request.url) {
-          case '/websockets/chats':
+          case '/websockets/chat':
             handleConnectionChats(socket, request)
             return;
           case '/websockets/posts':
@@ -174,10 +198,17 @@ export const plugin = (() => {
           case '/websockets/boost':
             handleConnectionBoost(socket, request)
             return;
-          default:
-            handleConnectionBoost(socket, request)
-            return
         }
+
+        if (request.url.match('/websockets/chat/channels/')) {
+
+          const channel = request.url.split('/').slice(-1)
+
+          handleConnectionChatChannel(socket, request, channel)
+
+        }
+
+        return handleConnectionBoost(socket, request)
 
       });
 

@@ -17,6 +17,8 @@ import { log } from './log'
 
 const { TransformTx, bobFromRawTx }  = require('bmapjs')
 
+import { publish } from 'rabbi'
+
 export class Content extends Orm {
 
     static model = models.Content
@@ -394,7 +396,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
   }
 
   /*
-
   MAP: [
     {
       cmd: 'SET',
@@ -405,12 +406,31 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
       channel: 'powco-development'
     }
   ]
-
   */
-
   if (!content.get('bitchat_channel') && bmap && bmap.MAP && bmap.MAP[0].context === 'channel' && bmap.MAP[0].type === 'message') {
 
-    await content.set('bitchat_channel', bmap.MAP[0].channel)
+    const channel = bmap.MAP[0].channel
+
+    const paymail = bmap.MAP[0].paymail
+
+    await content.set('bitchat_channel', channel)
+
+    publish('powco', `chat.channels.${channel}.message`, content.toJSON())
+
+    publish('powco', `chat.message`, content.toJSON())
+
+    if (paymail) {
+
+      publish('powco', `players.${paymail}.chat.message.published`, content.toJSON())
+      
+    } 
+
+    const [chatChannel] = await models.ChatChannel.findOrCreate({
+      where: { channel }
+    })
+    chatChannel.last_message_bmap = bmap
+    chatChannel.last_message_timestamp = content.get('createdAt')
+    chatChannel.save()
 
   }
     
