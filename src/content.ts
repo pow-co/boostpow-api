@@ -272,7 +272,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
   let bmap: any;
 
-  if (!content || !content.get('bmap')) {
+  if (!content) {
 
     hex = await fetch(txid)
 
