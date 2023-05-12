@@ -29,6 +29,8 @@ export async function index(req, h) {
 
     })
 
+    replies = replies.sort((a, b) => b.difficulty - a.difficulty)
+
     return { replies }
 
   }catch(error){
