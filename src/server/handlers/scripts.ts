@@ -24,11 +24,13 @@ export async function create(req, h) {
 
   const hex = job.toHex()
 
+  const asm = job.toASM()
+
   const json = job.toObject()
 
   return h.response({
 
-    script: { hex, json }
+    script: { hex, asm, json }
     
   }).code(201)
 
