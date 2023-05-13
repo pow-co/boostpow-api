@@ -238,7 +238,9 @@ export async function buildServer(): Server {
         failAction: 'log',
         schema: Joi.object({
           script: Joi.object({
-            hex: Joi.string().required()
+            hex: Joi.string().required(),
+            asm: Joi.string().required(),
+            json: Joi.object().required(),
           }).label('BoostJobScript').required()
         })
       },
