@@ -790,6 +790,27 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'POST',
+    path: '/api/v1/posts',
+    handler: handlers.content.create,
+    options: {
+      description: 'Submit Bitcoin Transactions Containing Posts To Index',
+      notes: 'Receives post transactions in hex form and indexes them if they are valid bitcoin transactions',
+      tags: ['api', 'content'],
+      response: {
+        failAction: 'log'
+      },
+      validate: {
+        payload: Joi.object({
+          transactions: Joi.array().items(Joi.object({
+            tx: Joi.string.required
+          })).required()
+        })
+      }
+    }
+  })
+
   const swaggerOptions = {
     info: {
       title: 'Powco API Docs',
