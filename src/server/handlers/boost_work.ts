@@ -35,7 +35,7 @@ export async function index(request, hapi) {
   if (request.query.start) {
 
     where['timestamp'] = {
-      [Op.gte]: new Date(request.query.start * 1000)
+      [Op.gte]: new Date(request.query.start)
     }
 
   }
@@ -51,7 +51,7 @@ export async function index(request, hapi) {
     } else {
 
       where['timestamp'] = {
-        [Op.lte]: new Date(request.query.end * 1000)
+        [Op.lte]: new Date(request.query.end)
       }
 
     }
