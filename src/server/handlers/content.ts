@@ -66,7 +66,7 @@ export async function create(request, hapi) {
     
     let records;
 
-    transactions.forEach(async tx => {
+    Promise.all(transactions.map(async tx => {
       
       log.info('post.content.tx.import', tx)
 
@@ -81,7 +81,7 @@ export async function create(request, hapi) {
       
       records.push(record)
 
-    });
+    }))
 
     let json = flatten(records).map(r => r.toJSON())
 
