@@ -42,10 +42,19 @@ export async function index(request, hapi) {
 
   if (request.query.end) {
 
-    where['timestamp'] = {
-      [Op.lte]: new Date(request.query.end * 1000)
+    if(where['timestamp']){
+
+      where['timestamp'] = Object.assign(where['timestamp'], {
+        [Op.lte]: request.query.end
+      })
+
+    } else {
+
+      where['timestamp'] = {
+        [Op.lte]: new Date(request.query.end * 1000)
+      }
+
     }
-    
   }
 
   const query = {
