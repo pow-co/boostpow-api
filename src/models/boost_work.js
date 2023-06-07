@@ -62,7 +62,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     minerPubKey: { type: DataTypes.STRING },
-    tx_hex: DataTypes.TEXT,
+    tx_hex: {
+	    type: DataTypes.TEXT,
+	    allowNull: false
+    },
     createdAt: { type: DataTypes.DATE },
     updatedAt: { type: DataTypes.DATE }
   }, {
