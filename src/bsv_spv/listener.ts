@@ -1,5 +1,5 @@
 require('dotenv').config()
-import { importBoostProofFromTxHex, importBoostJobFromTxHex } from "../boost";
+import { importBoostProofFromTxHex, importBoostJobFromTxHex, importBoostProofFromTxHexListener } from "../boost";
 import { log } from "../log";
 
 const { Listener } = require("bsv-spv");
@@ -54,7 +54,7 @@ export default async function main() {
 
               console.log('PROOF: ', proof)
 
-              const record = await importBoostProofFromTxHex(hex, { trusted: true })
+              const record = await importBoostProofFromTxHexListener(hex)
 
               log.info('bsv-p2p.proof.imported', record)
               
