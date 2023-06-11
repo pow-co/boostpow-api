@@ -216,7 +216,14 @@ export async function importBoostProofByTxid(txid: string): Promise<any> {
 
 }
 
-export async function importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: boolean}): Promise<any> {
+export async function importBoostProofFromTxHex(txhex: string): Promise<any> {
+  return  _importBoostProofFromTxHex(txhex, {trusted: false})
+}
+
+export async function importBoostProofFromTxHexListener(txhex:string): Promise<any> {
+  return _importBoostProofFromTxHex(txhex, {trusted: true})
+}
+async function _importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: boolean}): Promise<any> {
 
   log.info('importBoostProofFromTxHex', { txhex, trusted })
 
@@ -276,7 +283,6 @@ export async function importBoostProofFromTxHex(txhex: string, {trusted}: {trust
 }
 
 export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: string): Promise<any> { // proof_record
-
 
   if (!proof) { return }
 
