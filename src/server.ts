@@ -448,7 +448,9 @@ export async function buildServer(): Server {
           startTimestamp: Joi.number().optional().description('Filter Only Since UNIX Timestamp'),
           endTimestamp: Joi.number().optional().description('Filter Only After UNIX Timestamp'),
           maxDifficulty: Joi.number().optional(),
-          minDifficulty: Joi.number().optional()
+          minDifficulty: Joi.number().optional(),
+          minValue: Joi.number().optional(),
+          minProfitability: Joi.number().optional()
         })
       }
     }
