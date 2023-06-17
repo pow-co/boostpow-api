@@ -347,7 +347,7 @@ export async function buildServer(): Server {
     options: {
       description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
       notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
-      tags: ['api', 'work'],
+      tags: ['api', 'proofs'],
       response: {
         failAction: 'log'
       },
@@ -365,10 +365,28 @@ export async function buildServer(): Server {
     handler: handlers.BoostWork.index,
     options: {
       description: 'List Boostpow Proofs',
-      tags: ['api', 'work'],
+      tags: ['api', 'proofs'],
       response: {
         failAction: 'log'
       }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/boost/proofs/{txid}',
+    handler: handlers.BoostWork.createByTxid,
+    options: {
+      description: 'Get a boostpow proof or import it from blockchain',
+      tags: ['api', 'proofs'],
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        }).required()
+      },
+      response: {
+        failAction: 'log'
+      },
     }
   })
 
@@ -427,8 +445,12 @@ export async function buildServer(): Server {
           limit: Joi.number().optional(),
           content: Joi.string().optional(),
           tag: Joi.string().optional(),
+          startTimestamp: Joi.number().optional().description('Filter Only Since UNIX Timestamp'),
+          endTimestamp: Joi.number().optional().description('Filter Only After UNIX Timestamp'),
           maxDifficulty: Joi.number().optional(),
-          minDifficulty: Joi.number().optional()
+          minDifficulty: Joi.number().optional(),
+          minValue: Joi.number().optional(),
+          minProfitability: Joi.number().optional()
         })
       }
     }

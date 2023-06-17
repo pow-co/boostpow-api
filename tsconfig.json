@@ -9,7 +9,8 @@
     "allowJs": true,
     "module": "commonjs",
     "outDir": "dist",
-		"sourceRoot": ".",
+    "skipLibCheck": true,
+    "sourceRoot": ".",
     "inlineSourceMap": true,
     "types": ["node"]
   },

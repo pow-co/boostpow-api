@@ -23,6 +23,16 @@ import { cacheMultiDayFeed } from './feeds/multi_day_feed'
 
 export async function start(): Promise<void> {
 
+	
+  if (config.get('bsv_spv_directory')) {
+
+	  const SPV = await import('./bsv_spv_listener')
+
+	  SPV.default();
+
+	  console.log('spv.started');
+  }
+
   const server = await buildServer();
 
   if (config.get('notify_slack')) {

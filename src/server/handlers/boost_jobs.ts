@@ -34,11 +34,36 @@ export async function index(request) {
     where['tag'] = request.query.tag
   }
 
+  if (request.query.minValue) {
+    where['value'] = {
+      [Op.gte]: request.query.minValue
+    }
+  }
+
+  if (request.query.minProfitability) {
+    where['profitability'] = {
+      [Op.gte]: request.query.minProfitability
+    }
+  }
+
+  if (request.query.startTimestamp) {
+    where['timestamp'] = {
+      [Op.gte]:  new Date(request.query.startTimestamp * 1000)
+    }
+  }
+
+  if (request.query.endTimestamp) {
+    where['timestamp'] = {
+      [Op.lte]: new Date(request.query.endTimestamp * 1000)
+    }
+  }
+
   if (request.query.maxDifficulty) {
     where['difficulty'] = {
       [Op.lte]: request.query.maxDifficulty
     }
   }
+
   if (request.query.minDifficulty) {
 
     if (where['difficulty']) {
@@ -55,10 +80,6 @@ export async function index(request) {
 
     }
 
-  }
-
-  where['profitability'] = {
-    [Op.gt]: 0
   }
 
   const limit = request.query.limit || 25;
