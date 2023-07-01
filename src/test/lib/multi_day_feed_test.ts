@@ -1,7 +1,8 @@
 
 import { get_multi_day_feed } from  '../../feeds/multi_day_feed'
-import { expect} from '../utils'
-describe('Multi-Day Feed', () => {
+import { expect } from '../utils'
+
+describe('Multi-Day Feed', async () => {
 
   it.skip('should return five segments of data, one for each of the past five days', async () => {
 
@@ -11,6 +12,7 @@ describe('Multi-Day Feed', () => {
     //TODO: fix this test, the output of get_multi_day_feed does not contain ago
     // for (let day of days) {
 
+    // for (let day of days) {
     //   expect(day.ago).to.be.equal(1)
 
     //   expect(day.rankings.length).to.be.greaterThan(0)

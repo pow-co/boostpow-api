@@ -55,7 +55,7 @@
       "bitcoinjs-message": "^2.2.0",
       "bmapjs": "^0.4.0-beta.21",
       "boom": "^7.3.0",
-      "boostpow": "^1.5.0",
+      "boostpow": "^1.9.1",
       "bsv": "^1.5.5",
       "bsv-2": "npm:bsv@^2.0.10",
       "bsv-message": "^1.0.3",

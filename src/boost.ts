@@ -41,21 +41,7 @@ export function getBoostJobsFromTxHex(txhex: string): boost.BoostPowJob[] {
 
   const tx = new bsv.Transaction(txhex)
 
-  var index = 0
-  var jobs: boost.BoostPowJob[] = []
-
-  for (let output of tx.outputs) {
-
-    let job = boost.BoostPowJob.fromTransaction(txhex, index)
-
-    index +=1
-
-    if (job) { jobs.push(job) }
-
-  }
-  
-  return jobs
-
+  return Object.values(boost.transaction.fromTransaction(tx).jobs);
 }
 
 export async function fetch(txid: string): Promise<string> {
@@ -111,13 +97,13 @@ export async function getBoostJobsFromTxid(txid:string): Promise<boost.BoostPowJ
 
 }
 
-export async function getBoostProof(txid: string): Promise<{ proof: boost.BoostPowJobProof, tx_hex: string }> {
+export async function getBoostProofs(txid: string): Promise<{ proofs: Record<number,boost.BoostPowJobProof>, tx_hex: string }> {
 
   const tx_hex = await fetch(txid)
+  let proofs = boost.transaction.fromTransaction(new bsv.Transaction(tx_hex)).redemptions
 
-  let proof = boost.BoostPowJobProof.fromRawTransaction(tx_hex)
 
-  return { proof, tx_hex }
+  return { proofs, tx_hex }
 
 }
 
@@ -206,13 +192,13 @@ export async function getBoostJob(txid: string): Promise<BoostJob> {
 
 export async function importBoostProofByTxid(txid: string): Promise<any> {
 
-  const {proof, tx_hex} = await getBoostProof(txid)
+  const {proofs, tx_hex} = await getBoostProofs(txid)
 
-  if (!proof) {
+  if (Object.keys(proofs).length === 0) {
     return
   }
 
-  return importBoostProof(proof, tx_hex)
+  return importBoostProofs(proofs, tx_hex)
 
 }
 
@@ -269,8 +255,8 @@ async function _importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: b
     }
     
   }
+  let txDetails = boost.transaction.fromTransaction(tx);
 
-  let proof = boost.BoostPowJobProof.fromRawTransaction(txhex)
 
   if (!trusted) {
 
@@ -278,28 +264,29 @@ async function _importBoostProofFromTxHex(txhex: string, {trusted}: {trusted?: b
     
   }
 
-  return importBoostProof(proof, txhex)
+  return importBoostProofs(txDetails.redemptions, txhex)
 
 }
 
-export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: string): Promise<any> { // proof_record
+export async function importBoostProofs(proofs: Record<number,boost.BoostPowJobProof>, tx_hex: string): Promise<Record<number,boost.BoostPowJobProof>> { // proof_record
 
-  if (!proof) { return }
+  if (Object.keys(proofs).length===0) { return }
 
-  const timestamp = proof.time ? new Date(proof.time.number * 1000) : new Date()
+  let proof_records : Record<number,boost.BoostPowJobProof>={}
+  Object.keys(proofs).forEach(async (vout) => {
+    const curProof = proofs[vout];
+    const timestamp = curProof.time ? new Date(curProof.time.number * 1000) : new Date()
 
-  let where = {
-    txid: proof.spentTxid,
-    vout: proof.spentVout
-  }
-
-  let job = await models.BoostJob.findOne({
+    let where = {
+      txid: curProof.spentTxid,
+      vout: curProof.spentVout
+    }
+    let job = await models.BoostJob.findOne({
     where
   })
+    if (!job) {
 
-  if (!job) {
-
-    await importBoostJobFromTxid(proof.spentTxid)
+    await importBoostJobFromTxid(curProof.spentTxid)
 
     job = await models.BoostJob.findOne({
       where
@@ -309,30 +296,25 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
 
       return
     }
+  
 
   }
-
   let proof_record = await models.BoostWork.findOne({
     where: {
-      job_txid: proof.spentTxid
+      job_txid: curProof.spentTxid
     }
   })
-
-  if (job.spend_txid && proof_record) {
-
-    return proof_record
-
+  if(job.spend_txid && proof_record) {
+    proof_records[vout] = proof_record
+    
   } else {
-
-    if (!proof_record) {
-
-      log.info('boost.importBoostProof.recordNotFound', { spentTxid: proof.spentTxid })
-
+    if(!proof_record) {
+      log.info('boost.importBoostProof.recordNotFound', { spentTxid: curProof.spentTxid })
       proof_record = await models.BoostWork.create({
-        job_txid: proof.spentTxid,
-        job_vout: proof.spentVout,
-        spend_txid: proof.txid,
-        spend_vout: proof.vin,
+        job_txid: curProof.spentTxid,
+        job_vout: curProof.spentVout,
+        spend_txid: curProof.txid,
+        spend_vout: curProof.vin,
         content: job.content,
         difficulty: job.difficulty,
         tag: job.tag,
@@ -346,13 +328,10 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
         publish('powco', 'boostpow.proof.created', proof_record.toJSON());
 
       }
-
-
       job.spent = true;
-      job.spent_txid = proof.txid;
-      job.spent_vout = proof.vin;
+      job.spent_txid = curProof.txid;
+      job.spent_vout = curProof.vin;
       await job.save()
-
       if (config.get('amqp_enabled')) {
 
 
@@ -361,25 +340,22 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
         })
 
       }
-
     }
-
     let jobRecord = await models.BoostJob.findOne({
       where: {
-        txid: proof.spentTxid,
-        vout: proof.spentVout
+        txid: curProof.spentTxid,
+        vout: curProof.spentVout
       }
     })
 
-    jobRecord.spend_txid = proof.spentTxid
-    jobRecord.spend_vout = proof.spentVout
-    jobRecord.spent = true
-
-    await jobRecord.save()
-
+    jobRecord.spend_txid = curProof.spentTxid
+    jobRecord.spend_vout = curProof.spentVout
+    jobRecord.spent = true;
+    await jobRecord.save();
   }
+  });
 
-  return proof_record
+  return proof_records
 
 }
 

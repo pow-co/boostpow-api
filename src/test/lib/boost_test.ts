@@ -34,9 +34,9 @@ describe("Boost Utilities", () => {
 
     it('#getBoostProof should return a proof given a txid', async () => {
 
-        const result = await boost.getBoostProof('d1d26fa621f87dfc82ed1d8aa765b35172d04b32297025e5fa4df8044a829f92')
-        expect(result.proof).not.to.be.undefined;
-        expect(result.proof).to.be.instanceOf(BoostPowJobProof)
+        const result = await boost.getBoostProofs('d1d26fa621f87dfc82ed1d8aa765b35172d04b32297025e5fa4df8044a829f92')
+
+        expect(Object.keys(result.proofs).length).to.be.equal(1)
 
     })
 

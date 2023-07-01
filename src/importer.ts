@@ -1,7 +1,7 @@
 
-import { BoostPowJob, BoostPowJobProof, bsv } from "boostpow";
+import { BoostPowJob, BoostPowJobProof, bsv, transaction } from "boostpow";
 import delay = require("delay");
-import { importBoostProof } from "./boost";
+import { importBoostProofs } from "./boost";
 import { log } from "./log";
 
 import models from "./models";
@@ -14,21 +14,21 @@ class Importer {
 
     jobs: JobsMap = {};
 
-    async importProof(tx_hex: string): Promise<{job: BoostPowJob, proof: BoostPowJobProof}> {
+    async importProof(tx_hex: string): Promise<{job: BoostPowJob, proofs: Record<number,BoostPowJobProof>}> {
 
         log.info('importer.importProof', { tx_hex })
 
         const tx = new bsv.Transaction(tx_hex)
 
-        const proof = BoostPowJobProof.fromRawTransaction(tx_hex)
+        const proofs = transaction.fromTransaction(tx).redemptions;
 
-        if (!proof) { return }
+        if (Object.keys(proofs).length===0) { return }
 
-        const result = await importBoostProof(proof, tx_hex)
+        const result = await importBoostProofs(proofs, tx_hex)
 
-        log.info('importer.importProof.result', result.toJSON())
+        log.info('importer.importProof.results', result)
 
-        return { job: undefined, proof }
+        return { job: undefined, proofs }
 
     }
 
