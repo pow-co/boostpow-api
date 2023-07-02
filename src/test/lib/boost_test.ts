@@ -11,6 +11,7 @@ describe("Boost Utilities", () => {
     after(async () => {
         await models.BoostJob.destroy({where: {}});
         await models.BoostWork.destroy({where: {}});
+        await models.Event.destroy({where: {}});
     });
 
     it('#getBoostJobsFromTxHex should return jobs from a txhex', async () => {

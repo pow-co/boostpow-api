@@ -4,12 +4,15 @@ import { expect } from '../utils'
 import { cacheContent } from '../../content'
 import { exponentialBuckets } from 'prom-client'
 import { server } from '../mocks/server'
+import models from '../../models'
 
 describe("Caching Blockchain Content", () => {
-    before(() => {server.listen()})
-    afterEach(() => {server.resetHandlers()})
-    after(() => {server.close()})
-    
+    after(async () => {
+        await models.BoostJob.destroy({where: {}});
+        await models.BoostWork.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
+
     it("#cacheContent should fetch an image from the blockchain and record it in the database", async () => {
 
         const txid = '45f1ec3bab92324d9703ff165a0b9b42b38e55122c52a06037267f015844c5d4'
