@@ -8,8 +8,7 @@ import models from '../../models'
 
 describe("Caching Blockchain Content", () => {
     after(async () => {
-        await models.BoostJob.destroy({where: {}});
-        await models.BoostWork.destroy({where: {}});
+        await models.Content.destroy({where: {}});
         await models.Event.destroy({where: {}});
     });
 
@@ -54,6 +53,7 @@ describe("Caching Blockchain Content", () => {
         const txid = '3cd2d6b4108abbd34283f9a76471a992836bf71ea5397fa5529a0fbe3991ee32'
 
         const [content] = await cacheContent(txid)
+        console.log("content",content);
 
         expect(content.get('content_type')).to.be.equal('application/json')
 
