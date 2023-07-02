@@ -1,5 +1,7 @@
 import { server } from './mocks/server'
-
+import chaiAsPromised from 'chai-as-promised'
+import chai from 'chai'
+chai.use(chaiAsPromised)
 
 import { before, afterEach, after } from 'mocha'
 

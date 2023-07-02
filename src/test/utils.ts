@@ -11,10 +11,6 @@ import * as chai from 'chai'
 
 import models from '../models'
 
-const chaiAsPromised = require('chai-as-promised')
-
-chai.use(chaiAsPromised)
-
 const expect = chai.expect
 
 export { expect } 
