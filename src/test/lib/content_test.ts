@@ -3,16 +3,20 @@ import { expect } from '../utils'
 
 import { cacheContent } from '../../content'
 import { exponentialBuckets } from 'prom-client'
+import { server } from '../mocks/server'
 
 describe("Caching Blockchain Content", () => {
-
+    before(() => {server.listen()})
+    afterEach(() => {server.resetHandlers()})
+    after(() => {server.close()})
+    
     it("#cacheContent should fetch an image from the blockchain and record it in the database", async () => {
 
         const txid = '45f1ec3bab92324d9703ff165a0b9b42b38e55122c52a06037267f015844c5d4'
 
         const [result] = await cacheContent(txid)
 
-        expect(result.get('content_type')).to.be.equal('image/jpeg; binary')
+        expect(result.get('content_type')).to.be.equal('image/jpeg')
 
         expect(result.get('txid')).to.be.equal(txid)
 
@@ -26,7 +30,7 @@ describe("Caching Blockchain Content", () => {
 
         const [result, isNew] = await cacheContent(txid)
 
-        expect(result.get('content_type')).to.be.equal('image/jpeg; binary')
+        expect(result.get('content_type')).to.be.equal('image/jpeg')
 
         expect(isNew).to.be.equal(false)
 
@@ -38,7 +42,7 @@ describe("Caching Blockchain Content", () => {
 
         const [content] = await cacheContent(txid)
 
-        expect(content.get('content_type')).to.be.equal('text/markdown; binary; charset=utf-8')
+        expect(content.get('content_type')).to.be.equal('text/markdown')
 
     });
 

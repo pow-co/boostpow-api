@@ -4,8 +4,8 @@
    "private": false,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
-      "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 src/test/**/*_test.ts --exit",
-      "runtest": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 --exit $1",
+      "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 --file src/test/setupTests.ts src/test/**/*_test.ts --exit",
+      "runtest": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 --file src/test/setupTests.ts --exit $1",
       "start": "ts-node src/main.ts",
       "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
       "cover:unit": "nyc --silent npm run test:unit",
@@ -58,6 +58,7 @@
       "bsv-spv": "^0.5.7",
       "btoa": "^1.2.1",
       "commander": "^10.0.1",
+      "cross-fetch": "^3.1.7",
       "delay": "^5.0.0",
       "dotenv": "^16.0.3",
       "eventsource": "^2.0.2",

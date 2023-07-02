@@ -8,13 +8,7 @@ import { afterEach } from 'mocha'
 import models from '../../models'
 
 describe("Boost Utilities", () => {
-    before(
-        async () => {
-            server.listen();
-    })
-    afterEach(() => {server.resetHandlers()})
     after(async () => {
-        server.close();
         await models.BoostJob.destroy({where: {}});
         await models.BoostWork.destroy({where: {}});
     });
