@@ -1,7 +1,7 @@
 
 import * as assert from 'assert'
 
-import * as moment from 'moment' 
+import moment from 'moment' 
 
 export { assert }
 
