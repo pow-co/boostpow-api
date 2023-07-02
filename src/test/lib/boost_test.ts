@@ -5,11 +5,19 @@ import { run } from '../../run'
 import { BoostPowJob, BoostPowJobProof } from 'boostpow'
 import { server } from '../mocks/server'
 import { afterEach } from 'mocha'
+import models from '../../models'
 
 describe("Boost Utilities", () => {
-    before(() => {server.listen()})
+    before(
+        async () => {
+            server.listen();
+    })
     afterEach(() => {server.resetHandlers()})
-    after(() => {server.close()})
+    after(async () => {
+        server.close();
+        await models.BoostJob.destroy({where: {}});
+        await models.BoostWork.destroy({where: {}});
+    });
 
     it('#getBoostJobsFromTxHex should return jobs from a txhex', async () => {
 
