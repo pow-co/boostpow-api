@@ -6,6 +6,7 @@ import { handlers as ImportTestHandlers } from "./handlers/importer_test_handler
 import { handlers as WhatsonchainTestHandlers } from "./handlers/whatsonchain_test_handlers";
 import { handlers as BoostJobsTestHandlers } from "./handlers/boost_jobs_test_handlers";
 import { handlers as BoostProofsTestHandlers } from "./handlers/boost_proofs_test_handlers";
+import { handlers as TransactionTestHandlers } from "./handlers/transactions_test_handlers";
 export const handlers = [
     ...BoostTestHandlers,
     ...ContentTestHandlers,
@@ -13,4 +14,5 @@ export const handlers = [
     ...WhatsonchainTestHandlers,
     ...BoostJobsTestHandlers,
     ...BoostProofsTestHandlers,
+    ...TransactionTestHandlers,
 ];
