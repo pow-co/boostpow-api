@@ -200,6 +200,34 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/authors/{address}/jobs',
+    handler: handlers.Authors.show,
+    options: {
+      description: 'List Jobs Signed By a Given Author',
+      notes: 'Returns most recent results first',
+      tags: ['api', 'authors'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          job: schema.Job
+        })
+      },
+      validate: {
+        params: Joi.object({
+          address: Joi.string().required()
+        }),
+        query: Joi.object({
+          limit: Joi.number().optional(),
+          offset: Joi.number().optional(),
+          spent: Joi.boolean().optional()
+        })
+      }
+    }
+  })
+
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/boost/miners',
     handler: handlers.Miners.index,
     options: {
