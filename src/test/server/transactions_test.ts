@@ -1,11 +1,16 @@
 
+import models from '../../models';
 import { buildServer } from '../../server'
 
 import { expect, server } from '../utils'
 
 describe("API Server Posting Transactions", () => {
   var server;
-
+  after(async () => {
+        await models.BoostJob.destroy({where: {}});
+        await models.BoostWork.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
   before(async () => {
 
     server = await buildServer()

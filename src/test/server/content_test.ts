@@ -1,7 +1,12 @@
 
+import models from '../../models';
 import { expect, server } from '../utils'
 
 describe("Boost Proofs API", () => {
+    after(async () => {
+        await models.Content.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
 
     describe("Importing Boost Proofs", () => {
 
