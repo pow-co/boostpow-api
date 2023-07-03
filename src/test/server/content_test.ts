@@ -14,7 +14,7 @@ describe("Boost Proofs API", () => {
                 url: `/api/v1/content/${txid}`
             })
 
-            expect(result.content.content_type).to.equal('text/markdown; binary; charset=utf-8')
+            expect(result.content.content_type).to.equal('text/markdown')
             
         })
 
