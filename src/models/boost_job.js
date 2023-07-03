@@ -53,7 +53,9 @@ module.exports = (sequelize, DataTypes) => {
     spent_txid: DataTypes.STRING,
     spent_vout: DataTypes.INTEGER,
     createdAt: { type: DataTypes.DATE },
-    updatedAt: { type: DataTypes.DATE }
+    updatedAt: { type: DataTypes.DATE },
+    bitcoin_signed_message_address: { type: DataTypes.STRING },
+    bitcoin_signed_message_signature: { type: DataTypes.TEXT }
   }, {
     hooks: {
       beforeCreate: (job, options) => {
