@@ -53,7 +53,6 @@ describe("Caching Blockchain Content", () => {
         const txid = '3cd2d6b4108abbd34283f9a76471a992836bf71ea5397fa5529a0fbe3991ee32'
 
         const [content] = await cacheContent(txid)
-        console.log("content",content);
 
         expect(content.get('content_type')).to.be.equal('application/json')
 
