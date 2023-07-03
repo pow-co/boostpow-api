@@ -4,9 +4,11 @@ import { handlers as BoostTestHandlers } from "./handlers/boost_test_handlers";
 import { handlers as ContentTestHandlers } from "./handlers/content_test_handlers";
 import { handlers as ImportTestHandlers } from "./handlers/importer_test_handlers";
 import { handlers as WhatsonchainTestHandlers } from "./handlers/whatsonchain_test_handlers";
+import { handlers as BoostJobsTestHandlers } from "./handlers/boost_jobs_test_handlers";
 export const handlers = [
     ...BoostTestHandlers,
     ...ContentTestHandlers,
     ...ImportTestHandlers,
-    ...WhatsonchainTestHandlers
+    ...WhatsonchainTestHandlers,
+    ...BoostJobsTestHandlers
 ];

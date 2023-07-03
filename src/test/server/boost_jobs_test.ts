@@ -2,9 +2,14 @@
 import { expect, server } from '../utils'
 
 import { run } from '../../run'
+import models from '../../models';
 
 describe("API - Boost Jobs", () => {
-
+after(async () => {
+        await models.BoostJob.destroy({where: {}});
+        await models.BoostWork.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
   it('POST /api/v1/boost/jobs should import a job txhex', async () => {
 
     expect(

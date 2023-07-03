@@ -4,7 +4,12 @@ import models from '../../models'
 import { expect } from '../utils'
 
 describe('Unmined Jobs Processor', () => {
-
+  after(async () => {
+        await models.BoostJob.destroy({where: {}});
+        await models.BoostWork.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
+    
   before(async () => {
 
     await loaded()
