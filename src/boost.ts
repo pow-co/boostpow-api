@@ -64,7 +64,7 @@ export async function fetch(txid: string): Promise<string> {
 
   let result = await http.get(url)
 
-  console.log(result)
+ // console.log(result)
 
   if (result.status === 200) {
 

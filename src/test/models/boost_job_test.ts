@@ -4,7 +4,10 @@ import { expect } from '../utils'
 import models  from '../../models'
 
 describe("Boost Job Model", () => {
+after(async () => {
+        await models.BoostJob.destroy({where: {}});
 
+    });
     it('should set the profitability automatically', async () => {
 
         const params = {

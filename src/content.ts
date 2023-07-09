@@ -271,7 +271,6 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
   let hex: string;
 
   let bmap: any;
-
   if (!content) {
 
     hex = await fetch(txid)
@@ -298,7 +297,7 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
       content = await create<Content>(Content, {
         txid,
-        content_json: content,
+        content_json: content_json,
         content_type: 'application/json',
         map: {
           app,

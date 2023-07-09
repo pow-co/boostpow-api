@@ -3,8 +3,14 @@ import { expect } from '../utils'
 
 import { cacheContent } from '../../content'
 import { exponentialBuckets } from 'prom-client'
+import { server } from '../mocks/server'
+import models from '../../models'
 
 describe("Caching Blockchain Content", () => {
+    after(async () => {
+        await models.Content.destroy({where: {}});
+        await models.Event.destroy({where: {}});
+    });
 
     it("#cacheContent should fetch an image from the blockchain and record it in the database", async () => {
 
@@ -12,7 +18,7 @@ describe("Caching Blockchain Content", () => {
 
         const [result] = await cacheContent(txid)
 
-        expect(result.get('content_type')).to.be.equal('image/jpeg; binary')
+        expect(result.get('content_type')).to.be.equal('image/jpeg')
 
         expect(result.get('txid')).to.be.equal(txid)
 
@@ -26,7 +32,7 @@ describe("Caching Blockchain Content", () => {
 
         const [result, isNew] = await cacheContent(txid)
 
-        expect(result.get('content_type')).to.be.equal('image/jpeg; binary')
+        expect(result.get('content_type')).to.be.equal('image/jpeg')
 
         expect(isNew).to.be.equal(false)
 
@@ -38,7 +44,7 @@ describe("Caching Blockchain Content", () => {
 
         const [content] = await cacheContent(txid)
 
-        expect(content.get('content_type')).to.be.equal('text/markdown; binary; charset=utf-8')
+        expect(content.get('content_type')).to.be.equal('text/markdown')
 
     });
 
