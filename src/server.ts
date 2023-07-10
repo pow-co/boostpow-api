@@ -693,6 +693,42 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/personal-interests/{current_location}/removals/{removal_location}',
+    handler: handlers.PersonalInterests.remove,
+    options: {
+      description: 'Remove a personal interest from the database given a valid  removal tx location',
+      tags: ['api', 'personal-interests'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          personal_interest: Joi.array().items(Joi.object({
+            owner: Joi.string(),
+            origin: Joi.string(),
+            location: Joi.string(),
+            script_hash: Joi.string(),
+            script: Joi.string(),
+            removal_location: Joi.string(),
+            topic: Joi.string(),
+            value: Joi.number(),
+            weight: Joi.number(),
+            createdAt: Joi.date(),
+            updatedAt: Joi.date()
+          }))
+        })
+      },
+      validate: {
+        params: Joi.object({
+          current_location: Joi.string().required(),
+          removal_location: Joi.string().required()
+        })
+      }
+    }
+  })
+
+
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/owners/{owner}/personal-interests',
     handler: handlers.PersonalInterests.index,
     options: {

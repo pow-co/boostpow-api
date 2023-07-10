@@ -7,7 +7,7 @@ import { badRequest } from 'boom'
 
 import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../../contracts/personal-interest/src'
 
-import {findOrImportPersonalInterests }from '../../personal_interests'
+import { removeInterest, findOrImportPersonalInterests }from '../../personal_interests'
 
 export async function show(req, h) {
 
@@ -59,6 +59,22 @@ export async function index(req, h) {
     })
 
     return { owner, personal_interests }
+
+  } catch(error) {
+
+    return badRequest(error)
+
+  }
+
+}
+
+export async function remove(req, h) {
+
+  try {
+
+    const personal_interest = await removeInterest(req.params)
+
+    return { personal_interest }
 
   } catch(error) {
 

@@ -17,10 +17,13 @@ module.exports = (sequelize, DataTypes) => {
     owner: DataTypes.STRING,
     origin: DataTypes.STRING,
     location: DataTypes.STRING,
+    script_hash: DataTypes.STRING,
+    script: DataTypes.STRING,
     topic: DataTypes.STRING,
     value: DataTypes.INTEGER,
     weight: DataTypes.INTEGER,
-    active: DataTypes.BOOLEAN
+    active: DataTypes.BOOLEAN,
+    removal_location: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'PersonalInterest',
