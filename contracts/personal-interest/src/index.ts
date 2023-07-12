@@ -38,10 +38,12 @@ export async function main() {
 
     console.log({
       txid,
+      //@ts-ignore
       outputIndex: interest.from.outputIndex,
       topic: Buffer.from(interest.topic, 'hex').toString('utf8'),
       owner: new bsv.PublicKey(interest.owner).toAddress().toString(),
       weight: Number(interest.weight),
+      //@ts-ignore
       value: tx.outputs[interest.from.outputIndex].satoshis
     })
 
@@ -88,3 +90,8 @@ export async function detectInterestsFromTxHex(txhex: string): Promise<PersonalI
 
 }
 
+if (require.main === module) {
+
+  main()
+
+}
