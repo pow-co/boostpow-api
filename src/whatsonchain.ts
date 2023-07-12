@@ -14,6 +14,16 @@ export interface WhatsonchainTransaction {
   vout: any[];
 }
 
+export async function getScriptHistory({ scriptHash }:{ scriptHash: string }): Promise<{tx_hash: string, height: number}[]> {
+
+  let url = `https://api.whatsonchain.com/v1/bsv/main/script/${scriptHash}/history`
+
+  const { data } = await axios.get(url)
+
+  return data
+
+}
+
 export async function getTransaction(txid: string): Promise<WhatsonchainTransaction> {
 
   let url =`https://api.whatsonchain.com/v1/bsv/main/tx/hash/${txid}`

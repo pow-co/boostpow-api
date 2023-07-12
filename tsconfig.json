@@ -11,7 +11,7 @@
     "outDir": "dist",
 		"sourceRoot": ".",
     "inlineSourceMap": true,
-    "types": ["node"]
+    "types": ["node", "mocha"]
   },
   "ts-node": {
     "esm": true

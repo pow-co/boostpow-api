@@ -1,7 +1,7 @@
 
 import * as rankings from '../../rankings'
 
-import * as moment from 'moment'
+import moment from 'moment'
 import { expect } from '../utils';
 
 describe('Rankings', () => {

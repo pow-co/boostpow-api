@@ -31,6 +31,7 @@ const signer = new TestWallet(
 )
 
 async function main() {
+
     await PersonalInterest.compile()
 
     const amount = parseInt(process.argv[4] || '1000')
@@ -72,7 +73,8 @@ async function main() {
       pubKeyOrAddrToSign: privateKey.publicKey.toAddress(),
       next:{
         instance:nextInstance,
-        balance:instance.balance
+        //@ts-ignore
+        balance: instance.balance
       }
     } as MethodCallOptions<PersonalInterest>)
 
