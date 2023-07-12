@@ -16,7 +16,7 @@ export interface WhatsonchainTransaction {
 
 export async function getScriptHistory({ scriptHash }:{ scriptHash: string }): Promise<{tx_hash: string, height: number}[]> {
 
-  let url = `GET https://api.whatsonchain.com/v1/bsv/main/script/${scriptHash}/history`
+  let url = `https://api.whatsonchain.com/v1/bsv/main/script/${scriptHash}/history`
 
   const { data } = await axios.get(url)
 

@@ -693,7 +693,7 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
-    path: '/api/v1/personal-interests/{current_location}/removals/{removal_location}',
+    path: '/api/v1/personal-interests/{current_location}/removals',
     handler: handlers.PersonalInterests.remove,
     options: {
       description: 'Remove a personal interest from the database given a valid  removal tx location',
@@ -719,7 +719,7 @@ export async function buildServer(): Server {
       validate: {
         params: Joi.object({
           current_location: Joi.string().required(),
-          removal_location: Joi.string().required()
+          removal_location: Joi.string().optional()
         })
       }
     }

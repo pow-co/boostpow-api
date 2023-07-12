@@ -3,6 +3,8 @@ import * as bsv from 'bsv'
 
 import models from '../../models'
 
+import { Op } from 'sequelize'
+
 import { badRequest } from 'boom'
 
 import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../../contracts/personal-interest/src'
@@ -15,7 +17,7 @@ export async function show(req, h) {
 
     const txid = req.params.txid
 
-   let personal_interests = await findOrImportPersonalInterests(txid)
+    let personal_interests = await findOrImportPersonalInterests(txid)
 
     return { personal_interests }
 
@@ -55,7 +57,8 @@ export async function index(req, h) {
     const owner = req.params.owner
 
     let personal_interests = await models.PersonalInterest.findAll({
-      where: { owner }
+      where: { owner },
+      removal_location: { [Op.eq]: null }
     })
 
     return { owner, personal_interests }

@@ -23,5 +23,5 @@
       }
     ]
   },
-  "include": ["src/contracts/**.ts"]
+  "include": ["src/contracts/**.ts", "src/*.ts"]
 }

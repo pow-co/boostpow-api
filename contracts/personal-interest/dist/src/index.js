@@ -25,10 +25,12 @@ async function main() {
     for (let interest of interests) {
         console.log({
             txid,
+            //@ts-ignore
             outputIndex: interest.from.outputIndex,
             topic: Buffer.from(interest.topic, 'hex').toString('utf8'),
             owner: new scrypt_ts_1.bsv.PublicKey(interest.owner).toAddress().toString(),
             weight: Number(interest.weight),
+            //@ts-ignore
             value: tx.outputs[interest.from.outputIndex].satoshis
         });
     }
@@ -47,6 +49,7 @@ async function detectInterestsFromTxHex(txhex) {
     const tx = new scrypt_ts_1.bsv.Transaction(txhex);
     for (let i = 0; i < tx.outputs.length; i++) {
         try {
+            //@ts-ignore
             const interest = personalInterest_1.PersonalInterest.fromTx(tx, i);
             interests.push(interest);
         }
@@ -56,4 +59,7 @@ async function detectInterestsFromTxHex(txhex) {
     return interests;
 }
 exports.detectInterestsFromTxHex = detectInterestsFromTxHex;
+if (require.main === module) {
+    main();
+}
 //# sourceMappingURL=index.js.map
