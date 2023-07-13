@@ -106,4 +106,8 @@ export function detectInterestsFromTxHex(txhex: string): {interest:PersonalInter
 
 }
 
-main()
+if (require.main === module) {
+
+  main()
+
+}
