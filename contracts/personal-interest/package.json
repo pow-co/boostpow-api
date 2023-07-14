@@ -5,7 +5,7 @@
   "author": "powco",
   "scripts": {
     "prebuild": "npm run clean",
-    "build": "tsc",
+    "build": "tsc --version && tsc",
     "deploy": "npx ts-node ./deploy.ts",
     "clean": "rimraf scrypt.index.json && rimraf dist && rimraf artifacts",
     "pretest": "npm run build",
@@ -13,8 +13,7 @@
     "testnet": "npm run build && mocha 'dist/tests/testnet/**/*.js' --timeout 1200000",
     "genprivkey": "npx ts-node tests/utils/privateKey.ts",
     "lint": "eslint . --ext .js,.ts --fix && prettier --write --ignore-unknown \"**/*\"",
-    "lint-check": "eslint . --ext .js,.ts && prettier --check --ignore-unknown \"**/*\"",
-    "prepare": "husky install"
+    "lint-check": "eslint . --ext .js,.ts && prettier --check --ignore-unknown \"**/*\""
   },
   "main": "./dist/src/index.js",
   "lint-staged": {
@@ -48,6 +47,7 @@
     "prettier": "^2.8.2",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
+    "ts-patch": "^3.0.1",
     "typescript": "=4.8.4"
   },
   "license": "MIT"
