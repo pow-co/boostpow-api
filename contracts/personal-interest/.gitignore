@@ -1,7 +1,7 @@
 node_modules/
 #dist/
 out/
-artifacts/
+#artifacts/
 **/.env
 **/scrypt.index.json
 .vscode/*
