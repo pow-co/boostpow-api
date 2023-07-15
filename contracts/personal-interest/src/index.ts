@@ -51,6 +51,29 @@ export async function main() {
 
 }
 
+export async function getInterestFromLocation({ location }: { location: string }) {
+
+  await init()
+
+  const [txid, vout] = location
+
+  const hex = await blockchain.fetch(txid)
+
+  const tx = new bsv.Transaction(hex)
+
+  try {
+
+    //@ts-ignore
+    let interest = PersonalInterest.fromTx(tx, vout)
+
+    return interest
+
+  } catch(error) {
+
+  }
+
+}
+
 export async function detectInterestsFromTxid(txid: string): Promise<[PersonalInterest[], string]> {
 
   await init()

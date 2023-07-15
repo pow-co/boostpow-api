@@ -501,7 +501,11 @@ export async function buildServer(): Server {
         schema: Joi.object({
           job: Joi.object({
             id: Joi.number().required()
-          }).required()
+          }).required(),
+          jobs: Joi.array().items(Joi.object({
+            txid: Joi.string().required(),
+            vout: Joi.number().required()
+          })).optional()
         }).required()
       },
       validate: {
@@ -525,7 +529,11 @@ export async function buildServer(): Server {
         schema: Joi.object({
           job: Joi.object({
             id: Joi.number().required()
-          }).required()
+          }).required(),
+          jobs: Joi.array().items(Joi.object({
+            txid: Joi.string().required(),
+            vout: Joi.number().required()
+          })).optional()
         }).required()
       },
       validate: {
