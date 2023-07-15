@@ -77,21 +77,28 @@ export async function show(request, hapi) {
 
   try {
 
-    let { txid } = request.params
+    let { txid: location } = request.params
 
-    txid = txid.split('_')[0]
+    const [txid, vout] = location.split('_')
 
     const where = {
       txid
     };
 
-    let job = await models.BoostJob.findOne({ where })
+    if (vout) {
 
-    if (!job) {
+      where['vout'] = vout
+    }
 
-      [job] = await importBoostJobFromTxid(txid)
+    let jobs = await models.BoostJob.findAll({ where })
+
+    if (jobs.length == 0) {
+
+      jobs = await importBoostJobFromTxid(txid)
 
     }
+
+    const [job] = jobs
 
     if (!job) {
 
@@ -99,7 +106,7 @@ export async function show(request, hapi) {
 
     }
 
-    return hapi.response({ job }).code(200)
+    return hapi.response({ job, jobs }).code(200)
 
   } catch(error) {
 
@@ -120,9 +127,11 @@ export async function createByTxid(request) {
 
     log.info('server.handlers.boost_jobs.createByTxid', { txid })
 
-    let [job] = await importBoostJobFromTxid(request.params.txid)
+    let jobs = await importBoostJobFromTxid(request.params.txid)
 
-    return { job }
+    let [job] = jobs
+
+    return { job, jobs }
 
   } catch(error) {
 

@@ -8,11 +8,19 @@ import { badRequest } from 'boom'
 
 import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../contracts/personal-interest/src'
 
-import { getTransaction, getScriptHistory } from '../whatsonchain'
+import { fetchTransaction, getTransaction, getScriptHistory } from '../whatsonchain'
 
 import { publish } from 'rabbi'
 
 import config from '../config'
+
+import { detectInterestsFromTxHex as detect } from './get_script_hashes'
+
+export async function ingestInterest({ current_location }) {
+
+  return findOrImportPersonalInterests(current_location)
+
+}
 
 export async function findOrImportPersonalInterests(location: string, opts: {rescan:boolean}={rescan: false}):Promise<any[]> {
 
@@ -22,26 +30,68 @@ export async function findOrImportPersonalInterests(location: string, opts: {res
 
   if (records.length == 0){
 
-    let [interests, txhex] = await detectInterestsFromTxid(txid)
+    const txhex = await fetchTransaction({txid})
 
-    const tx = new bsv.Transaction(txhex)
+    let interests = await detect(txhex)
 
-    for (let interest of interests){
+    for (let _interest of interests) {
+
+      const { interest, script_hash, script } = _interest
+
+      const tx = new bsv.Transaction(txhex)
 
       let record = await models.PersonalInterest.create({
-        origin: txid,
-        location: txid,
+        origin: location,
+        location,
         topic: Buffer.from(interest.topic, 'hex').toString('utf8'),
         owner: new bsv.PublicKey(interest.owner).toAddress().toString(),
         weight: Number(interest.weight),
         value: tx.outputs[interest.from.outputIndex].satoshis,
-        active:true
+        active:true,
+        script_hash,
+        script
       })
 
       publishInterestCreated(record)
 
       records.push(record)
     }
+
+  } else {
+
+    for (let record of records) {
+
+      let [txid, _vout] = record.location.split("_")
+
+      if (!record.script_hash) {
+
+        console.log('NO SCRIPT HASH')
+
+        const txhex = await fetchTransaction({txid})
+
+        let interests = await detect(txhex)
+
+        console.log({interests})
+
+        for (let _interest of interests){
+
+          const { interest, script_hash, script, vout } = _interest
+
+          if (vout === _vout) {
+
+            record.script = script
+
+            record.script_hash = script_hash
+
+            await record.save()
+
+          }
+
+        }
+
+      }
+   }
+
 
   }
 
