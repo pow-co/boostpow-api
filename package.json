@@ -4,7 +4,6 @@
    "private": false,
    "description": "Boost Proof of Work Platform API at https://Pow.Co",
    "scripts": {
-      "build": "npm run build --workspace=personal-interest",
       "test": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 --file src/test/setupTests.ts src/test/**/*_test.ts --exit",
       "runtest": "NODE_ENV=test nyc --reporter=text --reporter=lcov mocha --require=ts-node/register --timeout=20000 --file src/test/setupTests.ts --exit $1",
       "start": "ts-node src/main.ts",
@@ -15,9 +14,6 @@
       "db:migrate": "sequelize db:migrate --url=$DATABASE_URL",
       "rabbi:init": "ts-node src/rabbi/init.ts"
    },
-   "workspaces":[
-      "contracts/personal-interest"
-   ],
    "nyc": {
       "check-coverage": false,
       "extension": [
@@ -83,7 +79,7 @@
       "redis": "^4.6.5",
       "require-all": "^3.0.0",
       "run-sdk": "^0.6.41",
-      "scrypt-ts": "^0.1.7",
+      "scrypt-ts": "^0.2.2-beta.5",
       "sequelize": "^6.26.0",
       "snarkdown": "^2.0.0",
       "socket.io": "^4.5.1",
