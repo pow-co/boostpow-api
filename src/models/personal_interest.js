@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   PersonalInterest.init({
+    contract_class_id: DataTypes.STRING,
     owner: DataTypes.STRING,
     origin: DataTypes.STRING,
     location: DataTypes.STRING,
@@ -22,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     topic: DataTypes.STRING,
     value: DataTypes.INTEGER,
     weight: DataTypes.INTEGER,
+    props: DataTypes.JSON,
     active: DataTypes.BOOLEAN,
     removal_location: DataTypes.STRING
   }, {
