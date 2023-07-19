@@ -19,7 +19,7 @@ const { createHash } = require('crypto');
 
 export async function main() {
 
-  const interests = await models.PersonalInterest.findAll({
+  const interests = await models.SmartContractInstance.findAll({
 
     where: {
 

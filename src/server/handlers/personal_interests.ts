@@ -56,7 +56,7 @@ export async function index(req, h) {
 
     const owner = req.params.owner
 
-    let personal_interests = await models.PersonalInterest.findAll({
+    let personal_interests = await models.SmartContractInstance.findAll({
       where: { owner },
       removal_location: { [Op.eq]: null }
     })

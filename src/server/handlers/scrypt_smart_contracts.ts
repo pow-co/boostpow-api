@@ -17,7 +17,6 @@ export async function index(req, h) {
 
 }
 
-
 export async function show(req, h) {
 
   try {

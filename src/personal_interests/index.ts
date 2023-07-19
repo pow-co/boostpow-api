@@ -26,7 +26,7 @@ export async function findOrImportPersonalInterests(location: string, opts: {res
 
   let [txid] = location.split('_')
 
-  let records = await models.PersonalInterest.findAll({where: { location }})
+  let records = await models.SmartContractInstance.findAll({where: { location }})
 
   if (records.length == 0){
 
@@ -40,7 +40,8 @@ export async function findOrImportPersonalInterests(location: string, opts: {res
 
       const tx = new bsv.Transaction(txhex)
 
-      let record = await models.PersonalInterest.create({
+      let record = await models.SmartContractInstance.create({
+        contract_class_id: 'personal-interest',
         origin: location,
         location,
         topic: Buffer.from(interest.topic, 'hex').toString('utf8'),
@@ -154,7 +155,7 @@ export async function getRemoval(args: { current_location: string }): Promise<[r
 
   const current_vout = parseInt(_current_vout)
 
-  const interest = await models.PersonalInterest.findOne({ where: { location: args.current_location }})
+  const interest = await models.SmartContractInstance.findOne({ where: { location: args.current_location }})
 
   if (interest.removal_location) {
     let { txid, vin } = interest.removal_location
