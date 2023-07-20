@@ -5,13 +5,7 @@ import models from '../models'
 
 import { getTransactionHex as fetch } from '../powco'
 
-import { detectInterestsFromTxid } from '../../contracts/personal-interest/src'
-
-import { PersonalInterest } from '../../contracts/personal-interest/dist/src/contracts/personalInterest'
-
-const abi = require('../../contracts/personal-interest/artifacts/src/contracts/personalInterest.json')
-
-PersonalInterest.loadArtifact(abi)
+import { PersonalInterest } from '@powco/smart-contracts'
 
 import * as bsv from 'bsv'
 
@@ -62,14 +56,6 @@ export async function main() {
       await interest.save()
 
     }
-
-    //const instances = await detectInterestsFromTxid(txid)
-
-    //for (let instance of instances) {
-
-     // console.log(instance)
-
-    //}
 
   }
 

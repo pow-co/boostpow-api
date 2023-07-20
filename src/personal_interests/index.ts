@@ -6,8 +6,6 @@ import models from '../models'
 
 import { badRequest } from 'boom'
 
-import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../contracts/personal-interest/src'
-
 import { fetchTransaction, getTransaction, getScriptHistory } from '../whatsonchain'
 
 import { publish } from 'rabbi'
@@ -15,6 +13,10 @@ import { publish } from 'rabbi'
 import config from '../config'
 
 import { detectInterestsFromTxHex as detect } from './get_script_hashes'
+
+import { detectInterestsFromTxHex  } from './get_script_hashes'
+
+export { detectInterestsFromTxHex }
 
 export async function ingestInterest({ current_location }) {
 
@@ -24,7 +26,7 @@ export async function ingestInterest({ current_location }) {
 
 export async function findOrImportPersonalInterests(location: string, opts: {rescan:boolean}={rescan: false}):Promise<any[]> {
 
-  let [txid] = location.split('_')
+  let [txid, vout] = location.split('_')
 
   let records = await models.SmartContractInstance.findAll({where: { location }})
 
@@ -32,9 +34,13 @@ export async function findOrImportPersonalInterests(location: string, opts: {res
 
     const txhex = await fetchTransaction({txid})
 
+    console.log(txhex)
+
     let interests = await detect(txhex)
 
     for (let _interest of interests) {
+
+      console.log({_interest})
 
       const { interest, script_hash, script } = _interest
 
