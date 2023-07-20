@@ -13,15 +13,19 @@ export async function show(req, h) {
 
   try {
 
-    const { location } = req.params
+    const { location, contract_id } = req.params
 
-    let instance = await findOrImportInstanceAtLocation({ location })
+    console.log('scrypt.instances.show', req.params)
+
+    let instance = await findOrImportInstanceAtLocation({ location, contract_id })
+
+    console.log('INSTANCE FOUND', instance)
 
     return { instance }
 
   } catch(error) {
 
-    console.error(error)
+    console.error('ERROR', error)
 
     return badRequest(error)
 
@@ -52,9 +56,9 @@ export async function index(req, h) {
 
   try {
 
-    const { location } = req.params
+    const { location, contract_id } = req.params
 
-    let instance = await findOrImportInstanceAtLocation({ location })
+    let instance = await findOrImportInstanceAtLocation({ location, contract_id })
 
     return { instance }
 

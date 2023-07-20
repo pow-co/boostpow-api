@@ -777,20 +777,21 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
-    path: '/api/v1/scrypt/smart-contracts/{contract_class_id}/instances/{location}',
+    path: '/api/v1/scrypt/smart-contracts/{contract_id}/instances/{location}',
     handler: handlers.ScryptInstances.show,
     options: {
       description: 'Show a smart contract instance object given a location on the blockchain',
       tags: ['api', 'scrypt'],
-      response: {
+      /*response: {
         failAction: 'log',
         schema: Joi.object({
           instance: SmartContractInstance
         })
       },
+      */
       validate: {
         params: Joi.object({
-          contract_class_id: Joi.string().required(),
+          contract_id: Joi.string().required(),
           location: Joi.string().required()
         })
       }
