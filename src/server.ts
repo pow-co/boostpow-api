@@ -401,6 +401,26 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/boost/proofs/{txid}',
+    handler: handlers.BoostWork.createByTxid,
+    options: {
+      description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
+      notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
+      tags: ['api', 'work'],
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        }).required()
+      },
+      response: {
+        failAction: 'log'
+      },
+    }
+  })
+
+
+  server.route({
     method: 'POST',
     path: '/api/v1/boost/proofs/{txid}',
     handler: handlers.BoostWork.createByTxid,
