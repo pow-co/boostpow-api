@@ -1,11 +1,11 @@
 
 require('dotenv').config()
 
-import models from './src/models'
+import models from '../models'
 
 import { Op } from 'sequelize'
 
-import { cacheContent } from './src/content'
+import { cacheContent } from '../content'
 
 async function main(){
 

@@ -1,5 +1,5 @@
 
-import models from './src/models'
+import models from '../models'
 
 import { fetch } from 'powco'
 

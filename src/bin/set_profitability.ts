@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-import models from './src/models'
+import models from '../models'
 
 import { Op } from 'sequelize'
 

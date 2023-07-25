@@ -15,4 +15,6 @@ export interface GetSpendingTransactionResult {
 
 export async function getSpendingTransaction(output: Script): Promise<GetSpendingTransactionResult | null> {
 
+  return null;
+
 }

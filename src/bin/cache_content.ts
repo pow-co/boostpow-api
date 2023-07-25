@@ -2,7 +2,7 @@
 
 require('dotenv').config()
 
-import { cacheContent } from './src/content'
+import { cacheContent } from '../content'
 
 export async function main() {
 
