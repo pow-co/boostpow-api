@@ -64,8 +64,6 @@ export async function fetch(txid: string): Promise<string> {
 
   let result = await http.get(url)
 
- // console.log(result)
-
   if (result.status === 200) {
 
     return result.text
@@ -79,8 +77,6 @@ export async function fetchWithRetry({txid, maxRetries, delayPeriod}: {txid: str
   var txhex;
 
   for (let i=0; i<maxRetries || 10; i++) {
-
-    console.log('fetch with retry', { attempt: i+1, txid })
 
     try {
 
@@ -314,7 +310,8 @@ export async function importBoostProof(proof: boost.BoostPowJobProof, tx_hex: st
 
   let proof_record = await models.BoostWork.findOne({
     where: {
-      job_txid: proof.spentTxid
+      job_txid: proof.spentTxid,
+      job_vout: proof.spentVout
     }
   })
 

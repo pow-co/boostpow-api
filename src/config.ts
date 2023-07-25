@@ -45,8 +45,6 @@ nconf.defaults({
   swagger_enabled: true,
   postgres_enabled: true,
   amqp_enabled: false,
-  planaria_token: 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxRlRyUWRaRjczd21tSFpVbzRhQzI1a0JWNUprWFRoeGl3IiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SHovaVkvTncvNmI0M1Q4WFZ0Ulk2SHdEMXQzOGM1RHJkVTFoTEYyLzhJeEhGZzJsSDQxeldzRG1vdUttemJPb2pJTXd4aVM5Qk9VNjFQNUhJK2x6bUxNPQ',
-  planaria_enabled: false,
   api_base: 'https://pow.co',
   notify_slack: false,
   node_env: 'development',

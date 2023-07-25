@@ -9,8 +9,6 @@ import { start as slack } from './actors/slack_boost_job_created/actor'
 
 import { start as bmap } from './actors/ingest_bmap_transactions/actor'
 
-import { startCrawler } from './crawlers';
-
 import startSPV from './bsv_spv/main'
 
 import config from './config';
@@ -44,16 +42,6 @@ export async function start(): Promise<void> {
   if (config.get('bsv_spv_enabled')) {
 
     startSPV()
-
-  }
-
-  if (config.get('planaria_enabled')) {
-
-    startCrawler({ name: 'boostpow_jobs_original' })
-
-    startCrawler({ name: 'boostpow_jobs_onchain' })
-
-    startCrawler({ name: 'boostpow_proofs_onchain' })
 
   }
 

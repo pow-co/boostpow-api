@@ -76,7 +76,7 @@ program
 
     try {
 
-      const interests = await models.PersonalInterest.findAll()
+      const interests = await models.SmartContractInstance.findAll()
 
       for (let interest of interests) {
 

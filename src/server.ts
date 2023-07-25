@@ -401,6 +401,26 @@ export async function buildServer(): Server {
   })
 
   server.route({
+    method: 'GET',
+    path: '/api/v1/boost/proofs/{txid}',
+    handler: handlers.BoostWork.createByTxid,
+    options: {
+      description: 'Submit Bitcoin Transactions Containing Proof of Work for a Job',
+      notes: 'When work is completed submit it here to be indexed. Accepts valid transactions which spend the work. The transaction may or may not be already broadcast to the Bitcoin network',
+      tags: ['api', 'work'],
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        }).required()
+      },
+      response: {
+        failAction: 'log'
+      },
+    }
+  })
+
+
+  server.route({
     method: 'POST',
     path: '/api/v1/boost/proofs/{txid}',
     handler: handlers.BoostWork.createByTxid,
@@ -694,6 +714,129 @@ export async function buildServer(): Server {
         }).label('PaymentAck')
       }
 
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/scrypt/smart-contracts',
+    handler: handlers.ScryptSmartContracts.index,
+    options: {
+      description: 'List known Scrypt Smart Contract classes', 
+      tags: ['api', 'scrypt'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          smart_contracts: Joi.array().items(Joi.object())
+        })
+      }
+    }
+  })
+
+
+  const SmartContractInstance = Joi.object({
+    owner: Joi.string(),
+    origin: Joi.string(),
+    location: Joi.string(),
+    contract_class_id: Joi.string(),
+    value: Joi.number(),
+    props: Joi.object(),
+    locking_script: Joi.string().description('Hex string of the full locking script'),
+    locking_script_hash: Joi.string().description('Hex string of the full locking script'),
+    state_part_script: Joi.string().description('Hex string of dynamic state part of the locking script'),
+    code_part_script: Joi.string().description('Hex string of static code part of the locking script'),
+    createdAt: Joi.date(),
+    updatedAt: Joi.date()
+  })
+  .label('SmartContractInstance')
+  .description('Transout output locking script containing an instance of an scrypt smart contract. May be spent or unspent')
+
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/scrypt/smart-contracts/{contract_class_id}',
+    handler: handlers.ScryptSmartContracts.show,
+    options: {
+      description: 'Show details of an scrypt smart contract class', 
+      tags: ['api', 'scrypt'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          smart_contract: Joi.object()
+        })
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/scrypt/smart-contracts/{contract_class_id}/instances',
+    handler: handlers.ScryptInstances.show,
+    options: {
+      description: 'Show details of an scrypt smart contract class', 
+      tags: ['api', 'scrypt'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          smart_contract: Joi.object(),
+          instnaces: Joi.array().items(SmartContractInstance)
+        })
+      },
+      validate: {
+        params: Joi.object({
+          txid: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/scrypt/smart-contracts/{contract_id}/instances/{location}',
+    handler: handlers.ScryptInstances.show,
+    options: {
+      description: 'Show a smart contract instance object given a location on the blockchain',
+      tags: ['api', 'scrypt'],
+      /*response: {
+        failAction: 'log',
+        schema: Joi.object({
+          instance: SmartContractInstance
+        })
+      },
+      */
+      validate: {
+        params: Joi.object({
+          contract_id: Joi.string().required(),
+          location: Joi.string().required()
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/scrypt/smart-contracts/{contract_class_id}/instances/{location}/unlock',
+    handler: handlers.ScryptInstances.unlock,
+    options: {
+      description: 'Search for the unlocking script for this smart contract if it has been spent. Updates the instance record and returns it if found',
+      tags: ['api', 'scrypt'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          instance: SmartContractInstance
+        })
+      },
+      validate: {
+        params: Joi.object({
+          contract_class_id: Joi.string().required(),
+          location: Joi.string().required()
+        })
+      }
     }
   })
 

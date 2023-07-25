@@ -6,8 +6,6 @@ import models from '../models'
 
 import { badRequest } from 'boom'
 
-import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../contracts/personal-interest/src'
-
 import { fetchTransaction, getTransaction, getScriptHistory } from '../whatsonchain'
 
 import { publish } from 'rabbi'
@@ -15,6 +13,10 @@ import { publish } from 'rabbi'
 import config from '../config'
 
 import { detectInterestsFromTxHex as detect } from './get_script_hashes'
+
+import { detectInterestsFromTxHex  } from './get_script_hashes'
+
+export { detectInterestsFromTxHex }
 
 export async function ingestInterest({ current_location }) {
 
@@ -24,23 +26,28 @@ export async function ingestInterest({ current_location }) {
 
 export async function findOrImportPersonalInterests(location: string, opts: {rescan:boolean}={rescan: false}):Promise<any[]> {
 
-  let [txid] = location.split('_')
+  let [txid, vout] = location.split('_')
 
-  let records = await models.PersonalInterest.findAll({where: { location }})
+  let records = await models.SmartContractInstance.findAll({where: { location }})
 
   if (records.length == 0){
 
     const txhex = await fetchTransaction({txid})
 
+    console.log(txhex)
+
     let interests = await detect(txhex)
 
     for (let _interest of interests) {
+
+      console.log({_interest})
 
       const { interest, script_hash, script } = _interest
 
       const tx = new bsv.Transaction(txhex)
 
-      let record = await models.PersonalInterest.create({
+      let record = await models.SmartContractInstance.create({
+        contract_class_id: 'personal-interest',
         origin: location,
         location,
         topic: Buffer.from(interest.topic, 'hex').toString('utf8'),
@@ -154,7 +161,7 @@ export async function getRemoval(args: { current_location: string }): Promise<[r
 
   const current_vout = parseInt(_current_vout)
 
-  const interest = await models.PersonalInterest.findOne({ where: { location: args.current_location }})
+  const interest = await models.SmartContractInstance.findOne({ where: { location: args.current_location }})
 
   if (interest.removal_location) {
     let { txid, vin } = interest.removal_location

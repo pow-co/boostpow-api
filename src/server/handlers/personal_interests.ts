@@ -7,9 +7,7 @@ import { Op } from 'sequelize'
 
 import { badRequest } from 'boom'
 
-import { detectInterestsFromTxid, detectInterestsFromTxHex } from '../../../contracts/personal-interest/src'
-
-import { removeInterest, findOrImportPersonalInterests }from '../../personal_interests'
+import { removeInterest, findOrImportPersonalInterests, detectInterestsFromTxHex }from '../../personal_interests'
 
 export async function show(req, h) {
 
@@ -32,31 +30,13 @@ export async function show(req, h) {
 }
 
 
-export async function create(req, h) {
-
-  try {
-
-      let personal_interests = await detectInterestsFromTxHex(req.params.txid)
-
-      return { personal_interests }
-
-  } catch(error) {
-
-    return badRequest(error)
-
-  }
-
-}
-
-
-
 export async function index(req, h) {
 
   try {
 
     const owner = req.params.owner
 
-    let personal_interests = await models.PersonalInterest.findAll({
+    let personal_interests = await models.SmartContractInstance.findAll({
       where: { owner },
       removal_location: { [Op.eq]: null }
     })

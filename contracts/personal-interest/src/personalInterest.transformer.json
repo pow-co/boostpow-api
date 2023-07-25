@@ -1,9 +1,0 @@
-{
-  "success": true,
-  "errors": [],
-  "scryptfile": "src/contracts/personalInterest.scrypt",
-  "sourceMapFile": "src/contracts/personalInterest.scrypt.map",
-  "ctxMethods": [
-    "setWeight"
-  ]
-}
