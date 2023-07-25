@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class PersonalInterest extends Model {
+  class SmartContractInstance extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,7 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  PersonalInterest.init({
+  SmartContractInstance.init({
+    contract_class_id: DataTypes.STRING,
     owner: DataTypes.STRING,
     origin: DataTypes.STRING,
     location: DataTypes.STRING,
@@ -22,11 +23,13 @@ module.exports = (sequelize, DataTypes) => {
     topic: DataTypes.STRING,
     value: DataTypes.INTEGER,
     weight: DataTypes.INTEGER,
+    props: DataTypes.JSON,
     active: DataTypes.BOOLEAN,
     removal_location: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'PersonalInterest',
+    modelName: 'SmartContractInstance',
+    tableName: 'PersonalInterests'
   });
-  return PersonalInterest;
+  return SmartContractInstance;
 };
