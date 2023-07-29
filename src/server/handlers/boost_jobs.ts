@@ -98,11 +98,21 @@ export async function show(request, hapi) {
 
     }
 
-    const [job] = jobs
+    let [job] = jobs
 
     if (!job) {
 
       return notFound()
+
+    }
+
+    if (!vout && job.spent) {
+
+      where['spent'] = false
+
+      let unspent = await models.BoostJob.findOne({ where })
+
+      if (unspent) { job = unspent }
 
     }
 
