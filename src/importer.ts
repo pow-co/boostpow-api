@@ -1,5 +1,6 @@
 
-import { BoostPowJob, BoostPowJobProof, bsv } from "boostpow";
+import { BoostPowJob, BoostPowJobProof} from "boostpow"
+import bsv from "bsv"
 import delay = require("delay");
 import { importBoostProof } from "./boost";
 import { log } from "./log";
