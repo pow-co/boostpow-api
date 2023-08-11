@@ -14,6 +14,9 @@
       "db:migrate": "sequelize db:migrate --url=$DATABASE_URL",
       "rabbi:init": "ts-node src/rabbi/init.ts"
    },
+   "workspaces": [
+      "contracts/personal-interest"
+   ],
    "nyc": {
       "check-coverage": false,
       "extension": [
@@ -37,11 +40,14 @@
    "author": "POWCO",
    "license": "BSV",
    "dependencies": {
+      "@aws-sdk/s3-presigned-post": "^3.388.0",
+      "@aws-sdk/s3-request-presigner": "^3.388.0",
+      "@aws-sdk/util-format-url": "^3.387.0",
       "@hapi/hapi": "^20.2.2",
       "@hapi/inert": "^6.0.5",
       "@hapi/vision": "^6.1.0",
       "@koa/cors": "^3.1.0",
-      "@powco/smart-contracts": "^0.0.12",
+      "@powco/smart-contracts": "^0.0.13",
       "@runonbitcoin/easy-b": "^0.2.2",
       "@runonbitcoin/tokenkit": "^1.1.0",
       "@twetch/sdk": "^0.2.12",

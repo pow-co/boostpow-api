@@ -30,6 +30,8 @@ import { plugin as websockets } from './ws/plugin'
 
 const handlers = load(join(__dirname, './server/handlers'))
 
+import attachVideos from './server/handlers/videos'
+
 export async function buildServer(): Server {
 
   const server = new Server({
@@ -45,6 +47,8 @@ export async function buildServer(): Server {
     }
   });
 
+  
+
   await server.register(socketio);
 
   if (config.get('websockets_enabled') || process.env.websockets_enabled) {
@@ -52,6 +56,8 @@ export async function buildServer(): Server {
     await server.register(websockets);
 
   }
+
+  await attachVideos(server)
 
   server.route({
     method: 'GET',
