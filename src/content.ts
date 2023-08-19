@@ -66,6 +66,7 @@ import * as Txo from 'txo'
 const isJSON = require('is-json');
 
 import * as bsv from 'bsv-2'
+import axios from 'axios'
 
 interface Event {
   app: string;
@@ -307,6 +308,34 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
     }
 
+  }
+
+  if (!content) {
+
+    try {
+
+        const { data } = await axios.get(`https://pow.co/api/v1/meetings/${txid}`)
+
+        const { meeting } = data
+
+        if (meeting) {
+
+          content = await create<Content>(Content, {
+      
+            txid,
+      
+            content_type: 'text/calendar',
+      
+            content_json:  meeting
+      
+          })
+        }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
   }
 
   if (!content) {
