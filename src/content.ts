@@ -310,6 +310,35 @@ export async function cacheContent(txid: string): Promise<[Content, boolean]> {
 
   }
 
+    if (!content) {
+
+    try {
+
+        const { data } = await axios.get(`https://pow.co/api/v1/videos/${txid}`)
+
+        const { video } = data
+
+        if (video) {
+
+          content = await create<Content>(Content, {
+      
+            txid,
+      
+            content_type: 'video',
+      
+            content_json:  video
+      
+          })
+        }
+
+    } catch(error) {
+
+      console.error(error)
+
+    }
+  }
+
+
   if (!content) {
 
     try {
