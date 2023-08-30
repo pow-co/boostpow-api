@@ -138,6 +138,52 @@ export async function buildServer(): Server {
 
   server.route({
     method: 'GET',
+    path: '/api/v1/boost/rankings/meetings',
+    handler: handlers.Rankings.meetings,
+    options: {
+      description: 'Rank Meeting smart contracts by proof of work',
+      tags: ['api', 'rankings', 'meetings'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp'),
+          tag: Joi.string().optional()
+        }).optional()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/boost/rankings/issues',
+    handler: handlers.Rankings.issues,
+    options: {
+      description: 'Rank Issue smart contracts by proof of work',
+      tags: ['api', 'rankings', 'issues'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          rankings: Joi.any().required()
+        })
+      },
+      validate: {
+        query: Joi.object({
+          start_date: Joi.number().optional().description('unix timestamp'),
+          end_date: Joi.number().optional().description('unix timestamp'),
+          tag: Joi.string().optional()
+        }).optional()
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/api/v1/boost/rankings/images',
     handler: handlers.Rankings.images,
     options: {

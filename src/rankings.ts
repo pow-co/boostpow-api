@@ -1,10 +1,10 @@
 
 require('dotenv').config()
 
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 import { log } from './log';
 
-import models from './models'
+import models, { sequelize } from './models'
 
 import redis from './redis'
 
@@ -27,6 +27,42 @@ export interface RankedContent {
     difficulty: number;
     rank: number;
     tag: number;
+}
+
+export async function rankIssues(startDate: Date, endDate: Date) {
+
+  return rankSmartContractsByCumulativeDifficulty(
+    'Issue',
+    startDate,
+    endDate
+  )
+}
+
+export async function rankMeetings(startDate: Date, endDate: Date) {
+
+  return rankSmartContractsByCumulativeDifficulty(
+    'Meeting',
+    startDate,
+    endDate
+  )
+}
+
+async function rankSmartContractsByCumulativeDifficulty(contractType: string, startDate: Date, endDate: Date) {
+  const query = `
+    SELECT s.origin, SUM(p.difficulty) AS totalDifficulty
+    FROM "SmartContracts" AS s
+    INNER JOIN boost_job_proofs AS p ON p.content LIKE CONCAT(s.origin, '%')
+    
+    AND s.class_name = :contractType
+    GROUP BY s.origin
+    ORDER BY totalDifficulty DESC;
+  `
+
+  const result = await sequelize.query(query, {
+    replacements: { startDate, endDate, contractType }
+  });
+
+  return result[0];
 }
 
 export async function rankContent (params: RankContent = {}): Promise<RankedContent[]> {
