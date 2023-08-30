@@ -24,11 +24,15 @@ export interface Database {
   Content: any;
   Sequelize: any;
   Block: any;
+  WebhookReceived: any;
+  Video: any;
 };
 
 var db: Database | any = {};
 
 const sequelize = new Sequelize(process.env[config.use_env_variable], config);
+
+export { sequelize }
 
 fs
   .readdirSync(__dirname)

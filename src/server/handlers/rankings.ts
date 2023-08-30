@@ -1,5 +1,5 @@
 
-import { rankContent, rankTags, rankContentWithCache, RankedContent } from '../../rankings'
+import { rankContent, rankIssues, rankMeetings, rankTags, rankContentWithCache, RankedContent } from '../../rankings'
 
 export async function index(req) {
 
@@ -57,6 +57,54 @@ export async function images(req) {
     }
 
     const rankings = await rankContent(params)
+
+    return { rankings }
+
+}
+
+export async function issues(req) {
+
+    let { start_date, end_date, tag } = req.query
+
+    if (start_date) {
+        start_date = new Date(start_date * 1000)
+    }
+
+    if (end_date) {
+        end_date = new Date(end_date * 1000)
+    }
+
+    const params = {
+        start_date,
+        end_date,
+        tag
+    }
+
+    const rankings = await rankIssues(start_date, end_date)
+
+    return { rankings }
+
+}
+
+export async function meetings(req) {
+
+    let { start_date, end_date, tag } = req.query
+
+    if (start_date) {
+        start_date = new Date(start_date * 1000)
+    }
+
+    if (end_date) {
+        end_date = new Date(end_date * 1000)
+    }
+
+    const params = {
+        start_date,
+        end_date,
+        tag
+    }
+
+    const rankings = await rankMeetings(start_date, end_date)
 
     return { rankings }
 
