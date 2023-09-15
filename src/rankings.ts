@@ -51,7 +51,7 @@ async function rankSmartContractsByCumulativeDifficulty(contractType: string, st
   const query = `
     SELECT s.origin, SUM(p.difficulty) AS totalDifficulty
     FROM "SmartContracts" AS s
-    INNER JOIN boost_job_proofs AS p ON p.content LIKE CONCAT(s.origin, '%')
+    INNER JOIN boost_job_proofs AS p ON p.content = SUBSTRING(s.origin FOR LENGTH(p.content))
     
     AND s.class_name = :contractType
     GROUP BY s.origin
