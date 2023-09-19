@@ -35,7 +35,9 @@ module.exports = (sequelize, DataTypes) => {
     bmap: DataTypes.JSON,
     bitchat_channel: DataTypes.STRING,
     chain: DataTypes.STRING,
-    context_txid: DataTypes.STRING
+    context_txid: DataTypes.STRING,
+    author_paymail: DataTypes.STRING,
+    author_pubkey: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Content',

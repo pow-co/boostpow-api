@@ -277,6 +277,32 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/api/v1/authors/{identity}/contents',
+    handler: handlers.Authors.listContent,
+    options: {
+      description: 'List Content Signed By a Given Author',
+      notes: 'Returns most recent results first',
+      tags: ['api', 'authors'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          job: schema.Job
+        })
+      },
+      validate: {
+        params: Joi.object({
+          identity: Joi.string().required()
+        }),
+        query: Joi.object({
+          limit: Joi.number().optional(),
+          offset: Joi.number().optional(),
+        })
+      }
+    }
+  })
+
 
   server.route({
     method: 'GET',
