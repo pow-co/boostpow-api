@@ -960,6 +960,69 @@ export async function buildServer(): Server {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/api/v1/lockups/ranking',
+    handler: handlers.Lockups.index,
+    options: {
+      description: 'Rank content by lockups',
+      tags: ['api', 'lockups'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          txid: Joi.string().required(),
+          lockups: Joi.array().items(Joi.object({
+            origin: Joi.string(),
+            location: Joi.string(),
+            props: Joi.object({
+              pkhash: Joi.string(),
+              lockUntilHeight: Joi.number()
+            }),
+            txid: Joi.string(),
+            vout: Joi.number(),
+            balance: Joi.number(),
+            timestamp: Joi.date(),
+            vibes: Joi.number()
+          }))
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/api/v1/lockups/ranking/{address}',
+    handler: handlers.Lockups.byAddress,
+    options: {
+      description: 'Rank content by lockups',
+      tags: ['api', 'lockups'],
+      response: {
+        failAction: 'log',
+        schema: Joi.object({
+          txid: Joi.string().required(),
+          lockups: Joi.array().items(Joi.object({
+            origin: Joi.string(),
+            location: Joi.string(),
+            props: Joi.object({
+              pkhash: Joi.string(),
+              lockUntilHeight: Joi.number()
+            }),
+            txid: Joi.string(),
+            vout: Joi.number(),
+            balance: Joi.number(),
+            timestamp: Joi.date(),
+            vibes: Joi.number()
+          }))
+        }),
+        validate: {
+          params: Joi.object({
+            address: Joi.string().required()
+          })
+        }
+      }
+    }
+  })
+
   const swaggerOptions = {
     info: {
       title: 'Powco API Docs',
