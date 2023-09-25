@@ -26,6 +26,7 @@ export interface Database {
   Block: any;
   WebhookReceived: any;
   Video: any;
+  SmartContracts: any;
 };
 
 var db: Database | any = {};
