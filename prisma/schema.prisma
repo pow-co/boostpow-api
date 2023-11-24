@@ -456,43 +456,6 @@ model jaas_8x8_vc_events {
   updatedAt DateTime @db.Timestamptz(6)
 }
 
-model planaria_queries {
-  id        Int      @id @default(autoincrement())
-  query     Json?    @db.Json
-  block     Int?
-  createdAt DateTime @db.Timestamptz(6)
-  updatedAt DateTime @db.Timestamptz(6)
-
-  @@map("planaria-queries")
-}
-
-model planaria_records {
-  id           BigInt   @id @default(autoincrement())
-  id           String?  @unique(map: "planaria_records__id_index") @map("_id") @db.VarChar(255)
-  txid         String?  @unique(map: "planaria_records_txid_index") @db.VarChar(255)
-  block_hash   String?  @db.VarChar(255)
-  block_height Int?
-  time         Int?
-  tx           Json?
-  inserted_at  DateTime @db.Timestamp(0)
-  updated_at   DateTime @db.Timestamp(0)
-  content      String?  @db.VarChar(255)
-  difficulty   Decimal? @db.Decimal
-  rawtx        Bytes?
-}
-
-model planaria_syncs {
-  id             Int       @id @default(autoincrement())
-  name           String?   @db.VarChar(255)
-  query          Json?     @db.Json
-  timestamp      DateTime? @db.Timestamptz(6)
-  block_index    Int?
-  block_hash     String?   @db.VarChar(255)
-  block_tx_index Int?
-  createdAt      DateTime  @db.Timestamptz(6)
-  updatedAt      DateTime  @db.Timestamptz(6)
-}
-
 model schema_migrations {
   version     BigInt    @id
   inserted_at DateTime? @db.Timestamp(0)
