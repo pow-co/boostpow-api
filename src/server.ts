@@ -988,6 +988,7 @@ export async function buildServer(): Server {
       }
     }
   })
+  /*
 
   server.route({
     method: 'GET',
@@ -1023,6 +1024,7 @@ export async function buildServer(): Server {
       }
     }
   })
+  */
 
   const swaggerOptions = {
     info: {
