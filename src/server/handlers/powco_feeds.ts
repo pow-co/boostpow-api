@@ -5,13 +5,13 @@ export async function multiDay(req) {
 
   const days = await getCachedMultiDayFeed()
 
-  const rankings = days.flat()
+  const rankings = days[0]
 
   return {
 
     rankings,
 
-    days
+    days.slice(1)
 
   }
 
