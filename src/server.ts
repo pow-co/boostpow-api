@@ -1014,11 +1014,12 @@ export async function buildServer(): Server {
             vibes: Joi.number()
           }))
         }),
-        validate: {
-          params: Joi.object({
-            address: Joi.string().required()
-          })
-        }
+
+      },
+      validate: {
+        params: Joi.object({
+          address: Joi.string().required()
+        })
       }
     }
   })
