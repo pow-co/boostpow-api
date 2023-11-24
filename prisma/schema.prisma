@@ -1,0 +1,490 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BTransactions {
+  id          Int      @id @default(autoincrement())
+  txid        String?  @db.VarChar(255)
+  contentType String?  @db.VarChar(255)
+  encoding    String?  @db.VarChar(255)
+  fileName    String?  @db.VarChar(255)
+  content     String?
+  txo         Json?    @db.Json
+  createdAt   DateTime @db.Timestamptz(6)
+  updatedAt   DateTime @db.Timestamptz(6)
+
+  @@index([txid], map: "b_transactions_txid")
+}
+
+model BmapTransactions {
+  id        Int      @id @default(autoincrement())
+  bmap      Json?    @db.Json
+  bob       Json?    @db.Json
+  hex       String?
+  txid      String?  @db.VarChar(255)
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model BoostPowProofs {
+  id            Int       @id @default(autoincrement())
+  txid          String?   @db.VarChar(255)
+  vin           Int?
+  job_txid      String?   @db.VarChar(255)
+  job_vout      Int?
+  value         Int?
+  profitability Decimal?  @db.Decimal
+  signature     String?   @db.VarChar(255)
+  content       String?   @db.VarChar(255)
+  timestamp     DateTime? @db.Timestamptz(6)
+  difficulty    Decimal?  @db.Decimal
+  tag           String?   @db.VarChar(255)
+  category      String?   @db.VarChar(255)
+  tx_hex        String?
+  createdAt     DateTime  @db.Timestamptz(6)
+  updatedAt     DateTime  @db.Timestamptz(6)
+}
+
+model CalendarEvents {
+  id        Int      @id @default(autoincrement())
+  props     Json?    @db.Json
+  origin    String?  @db.VarChar(255)
+  location  String?  @db.VarChar(255)
+  timestamp Int?
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model ChatChannels {
+  id                     Int       @id @default(autoincrement())
+  channel                String?   @db.VarChar(255)
+  last_message_bmap      Json?     @db.Json
+  last_message_timestamp DateTime? @db.Timestamptz(6)
+  createdAt              DateTime  @db.Timestamptz(6)
+  updatedAt              DateTime  @db.Timestamptz(6)
+}
+
+model Contents {
+  id              Int      @id @default(autoincrement())
+  txid            String?  @unique(map: "unique_contents_txid") @db.VarChar(255)
+  content_type    String?  @db.VarChar(255)
+  createdAt       DateTime @db.Timestamptz(6)
+  updatedAt       DateTime @db.Timestamptz(6)
+  locked_value    Int?
+  unlocked_value  Int?
+  work_ordered    Decimal? @db.Decimal
+  work_performed  Decimal? @db.Decimal
+  content_json    Json?    @db.Json
+  content_text    String?
+  content_bytes   Bytes?
+  map             Json?    @db.Json
+  context_txid    String?  @db.VarChar(255)
+  bmap            Json?    @db.Json
+  bitchat_channel String?  @db.VarChar(255)
+  chain           String?  @db.VarChar(255)
+  twetch          Boolean?
+  my2cents        Boolean?
+  ordinal         Boolean?
+  orderlock       Boolean?
+  author_paymail  String?  @db.VarChar(255)
+  author_pubkey   String?  @db.VarChar(255)
+
+  @@index([bitchat_channel], map: "contents_bitchat_channel")
+}
+
+model ContractMethodCalls {
+  id            Int      @id @default(autoincrement())
+  arguments     Json?    @db.Json
+  contractClass String?  @db.VarChar(255)
+  method        String?  @db.VarChar(255)
+  origin        String?  @db.VarChar(255)
+  inpoint       String?  @db.VarChar(255)
+  outpoint      String?  @db.VarChar(255)
+  state         Json?    @db.Json
+  createdAt     DateTime @db.Timestamptz(6)
+  updatedAt     DateTime @db.Timestamptz(6)
+}
+
+model Events {
+  id        Int      @id @default(autoincrement())
+  key       String?  @db.VarChar(255)
+  value     Json?    @db.Json
+  namespace String?  @db.VarChar(255)
+  error     Boolean?
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model JobsListItems {
+  id           Int      @id @default(autoincrement())
+  jobs_list_id Int?
+  txid         String?  @db.VarChar(255)
+  vout         Int?
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+}
+
+model JobsLists {
+  id            Int      @id @default(autoincrement())
+  owner_pubkey  String?  @db.VarChar(255)
+  owner_address String?  @db.VarChar(255)
+  label         String?  @db.VarChar(255)
+  createdAt     DateTime @db.Timestamptz(6)
+  updatedAt     DateTime @db.Timestamptz(6)
+}
+
+model KeyValues {
+  id        Int      @id @default(autoincrement())
+  key       String?  @db.VarChar(255)
+  value     Json?    @db.Json
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model PersonalInterests {
+  id                Int      @id @default(autoincrement())
+  owner             String?  @db.VarChar(255)
+  origin            String?  @db.VarChar(255)
+  location          String?  @db.VarChar(255)
+  topic             String?  @db.VarChar(255)
+  value             Int?
+  weight            Int?
+  active            Boolean?
+  createdAt         DateTime @db.Timestamptz(6)
+  updatedAt         DateTime @db.Timestamptz(6)
+  removal_location  String?  @db.VarChar(255)
+  script_hash       String?  @db.VarChar(255)
+  script            String?
+  contract_class_id String?  @db.VarChar(255)
+  unlock_location   String?  @db.VarChar(255)
+  props             Json?    @db.Json
+  code_part_script  String?
+  data_part_script  String?
+}
+
+model RabbiEvents {
+  id        Int      @id @default(autoincrement())
+  event     String?  @db.VarChar(255)
+  payload   Json?    @db.Json
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+
+  @@index([createdAt], map: "rabbi_events_created_at")
+  @@index([event], map: "rabbi_events_event")
+}
+
+model ScriptShortcodes {
+  id        Int      @id @default(autoincrement())
+  script    String?
+  uid       String?  @db.VarChar(255)
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model SequelizeMeta {
+  name String @id @db.VarChar(255)
+}
+
+model SmartContracts {
+  id         Int      @id @default(autoincrement())
+  class_name String?  @db.VarChar(255)
+  class_id   String?  @db.VarChar(255)
+  origin     String?  @db.VarChar(255)
+  location   String?  @db.VarChar(255)
+  props      Json?    @db.Json
+  timestamp  Int?
+  createdAt  DateTime @db.Timestamptz(6)
+  updatedAt  DateTime @db.Timestamptz(6)
+  txid       String?  @db.VarChar(255)
+  vout       Int?
+
+  @@index([location], map: "smart_contracts_location")
+}
+
+model Thresholds {
+  id          Int      @id @default(autoincrement())
+  paymail     String?  @db.VarChar(255)
+  telegram_id Int?
+  value       Decimal? @db.Decimal
+  createdAt   DateTime @db.Timestamptz(6)
+  updatedAt   DateTime @db.Timestamptz(6)
+}
+
+model TransactionInputs {
+  id           Int      @id @default(autoincrement())
+  txid         String?  @db.VarChar(255)
+  input_txid   String?  @db.VarChar(255)
+  input_index  Int?
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+  block_hash   String?  @db.VarChar(255)
+  block_height Int?
+
+  @@index([input_txid, input_index], map: "transaction_inputs_input_txid_input_index")
+}
+
+model Transactions {
+  id           Int      @id @default(autoincrement())
+  txid         String?  @db.VarChar(255)
+  time         Int?
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+  blockhash    String?  @db.VarChar(255)
+  block_height Int?
+
+  @@index([txid], map: "transactions_txid")
+}
+
+model Urls {
+  id               Int      @id @default(autoincrement())
+  url              String?  @db.VarChar(255)
+  txid             String?  @db.VarChar(255)
+  vout             Int?
+  contract_id      String?  @db.VarChar(255)
+  contract_version String?  @db.VarChar(255)
+  script           String?  @db.VarChar(255)
+  script_hash      String?  @db.VarChar(255)
+  createdAt        DateTime @db.Timestamptz(6)
+  updatedAt        DateTime @db.Timestamptz(6)
+}
+
+model VideoSegments {
+  id             Int      @id @default(autoincrement())
+  video_id       Int?
+  sha256_hash    String?  @db.VarChar(255)
+  content_length BigInt?
+  duration       Decimal? @db.Decimal
+  index          Int?
+  location       String?  @db.VarChar(255)
+  createdAt      DateTime @db.Timestamptz(6)
+  updatedAt      DateTime @db.Timestamptz(6)
+}
+
+model Videos {
+  id                Int       @id @default(autoincrement())
+  sha256_hash       String?   @db.VarChar(255)
+  content_length    BigInt?
+  origin            String?   @db.VarChar(255)
+  location          String?   @db.VarChar(255)
+  props             Json?     @db.Json
+  state             String    @default("funded") @db.VarChar(255)
+  createdAt         DateTime  @db.Timestamptz(6)
+  updatedAt         DateTime  @db.Timestamptz(6)
+  mp4_uploaded_at   DateTime? @db.Timestamptz(6)
+  accepted_location String?   @db.VarChar(255)
+  manifest          String?
+}
+
+model WebhookReceiveds {
+  id            Int      @id @default(autoincrement())
+  url           String?  @db.VarChar(255)
+  payload       Json?    @db.Json
+  authenticated Boolean?
+  createdAt     DateTime @db.Timestamptz(6)
+  updatedAt     DateTime @db.Timestamptz(6)
+}
+
+model WebhookRecords {
+  id            Int       @id @default(autoincrement())
+  started_at    DateTime? @db.Timestamptz(6)
+  ended_at      DateTime? @db.Timestamptz(6)
+  job_txid      String?   @db.VarChar(255)
+  type          String?   @db.VarChar(255)
+  response_code Int?
+  response_body String?
+  error         String?
+  url           String?
+  createdAt     DateTime  @db.Timestamptz(6)
+  updatedAt     DateTime  @db.Timestamptz(6)
+}
+
+model Webhooks {
+  id           Int      @id @default(autoincrement())
+  url          String?
+  content_txid String?  @db.VarChar(255)
+  category     String?  @db.VarChar(255)
+  paymail      String?  @db.VarChar(255)
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+}
+
+model best_hashes {
+  id          BigInt   @id @default(autoincrement())
+  publickey   String?  @db.VarChar(255)
+  besthash    String?  @db.VarChar(255)
+  os          Json?
+  hashes      Int?
+  difficulty  Decimal? @db.Decimal
+  content     String?  @db.VarChar(255)
+  inserted_at DateTime @db.Timestamp(0)
+  updated_at  DateTime @db.Timestamp(0)
+  ipv4        String?  @db.VarChar(255)
+
+  @@index([content], map: "best_hashes_content_index")
+  @@index([publickey], map: "best_hashes_publickey_index")
+}
+
+model blocks {
+  id                Int      @id @default(autoincrement())
+  hash              String?  @db.VarChar(255)
+  height            Int?
+  size              Int?
+  txcount           Int?
+  processed         Boolean?
+  boost_jobs        Json?    @db.Json
+  boost_proofs      Json?    @db.Json
+  createdAt         DateTime @db.Timestamptz(6)
+  updatedAt         DateTime @db.Timestamptz(6)
+  txcount_processed Int?     @default(0)
+}
+
+model boost_job {
+  txid                       String @db.VarChar
+  vout                       Int
+  scripthash                 String @db.VarChar
+  boosthash                  String @db.VarChar
+  rawtx                      String @db.VarChar
+  diff                       Int
+  value                      Int
+  spenttxid                  String @db.VarChar
+  spentvout                  Int
+  spentscripthash            String @db.VarChar
+  spends_parenttxid          String @db.VarChar
+  spends_parentvout          Int
+  job_was_spent_before_error Int
+  spentrawtx                 String @db.VarChar
+  powstring                  String @db.VarChar
+  powmetadata                String @db.VarChar
+  content                    String @db.VarChar
+  contentutf8                String @db.VarChar
+  category                   String @db.VarChar
+  categoryutf8               String @db.VarChar
+  tag                        String @db.VarChar
+  tagutf8                    String @db.VarChar
+  additionaldata             String @db.VarChar
+  additionaldatautf8         String @db.VarChar
+  usernonce                  String @db.VarChar
+  time                       Int
+  inserted_at                Int
+
+  @@id([txid, vout], map: "PK_4ace540270b3a06633451d028ba")
+}
+
+model boost_job_proofs {
+  id            BigInt   @id @default(autoincrement())
+  spend_txid    String?  @db.VarChar(255)
+  spend_vout    Int?
+  job_txid      String?  @db.VarChar(255)
+  job_vout      Int?
+  signature     String?  @db.VarChar(255)
+  content       String?  @db.VarChar(255)
+  timestamp     DateTime @db.Timestamptz(6)
+  createdAt     DateTime @db.Timestamp(0)
+  updatedAt     DateTime @db.Timestamp(0)
+  difficulty    Decimal? @db.Decimal
+  value         Int?
+  tag           String?  @db.VarChar(255)
+  profitability Decimal? @db.Decimal
+  tx_hex        String
+  miner         String?  @db.VarChar(255)
+  minerPubKey   String?  @db.VarChar(255)
+
+  @@index([content], map: "boost_job_proofs_content")
+  @@index([tag], map: "boost_job_proofs_tag")
+}
+
+model boost_jobs {
+  id                               BigInt   @id @default(autoincrement())
+  content                          String   @db.VarChar(255)
+  difficulty                       Decimal  @db.Decimal
+  category                         String?  @db.VarChar(255)
+  tag                              String?
+  additionalData                   String?
+  userNonce                        String?  @db.VarChar(255)
+  txid                             String   @db.VarChar(255)
+  vout                             Int
+  value                            Int
+  timestamp                        DateTime @db.Timestamp(0)
+  createdAt                        DateTime @db.Timestamp(0)
+  updatedAt                        DateTime @db.Timestamp(0)
+  spent                            Boolean  @default(false)
+  spend_txid                       String?  @db.VarChar(255)
+  script                           String?
+  spent_txid                       String?  @db.VarChar(255)
+  spent_vout                       Int?
+  profitability                    Decimal? @db.Decimal
+  tx_hex                           String?
+  miner                            String?  @db.VarChar(255)
+  minerPubKeyHash                  String?  @db.VarChar(255)
+  bitcoin_signed_message_address   String?  @db.VarChar(255)
+  bitcoin_signed_message_signature String?  @unique(map: "valid_unique_signatures_for_boost_jobs")
+
+  @@unique([txid, vout], map: "unique_boost_job_outpoints")
+  @@index([bitcoin_signed_message_address], map: "boost_jobs_bitcoin_signed_message_address")
+  @@index([bitcoin_signed_message_address, timestamp], map: "boost_jobs_bitcoin_signed_message_address_timestamp")
+  @@index([category], map: "boost_jobs_category_index")
+  @@index([txid, spent], map: "boost_jobs_txid_spent_index")
+  @@index([txid, vout], map: "boost_jobs_txid_vout")
+}
+
+model hashrates {
+  id          BigInt   @id @default(autoincrement())
+  hashrate    Decimal? @db.Decimal
+  ipv4        String?  @db.VarChar(255)
+  publickey   String?  @db.VarChar(255)
+  content     String?  @db.VarChar(255)
+  difficulty  Decimal? @db.Decimal
+  inserted_at DateTime @db.Timestamp(0)
+  updated_at  DateTime @db.Timestamp(0)
+
+  @@index([content], map: "hashrates_content_index")
+  @@index([publickey], map: "hashrates_publickey_index")
+}
+
+model jaas_8x8_vc_events {
+  id        Int      @id @default(autoincrement())
+  namespace String   @db.VarChar(255)
+  type      String   @db.VarChar(255)
+  payload   Json     @db.Json
+  error     Boolean? @default(false)
+  createdAt DateTime @db.Timestamptz(6)
+  updatedAt DateTime @db.Timestamptz(6)
+}
+
+model schema_migrations {
+  version     BigInt    @id
+  inserted_at DateTime? @db.Timestamp(0)
+}
+
+model solutions {
+  id          BigInt   @id @default(autoincrement())
+  content     String?  @db.VarChar(255)
+  solution    String?  @db.VarChar(255)
+  difficulty  Decimal? @db.Decimal
+  os          Json?
+  publickey   String?  @db.VarChar(255)
+  ipv4        String?  @db.VarChar(255)
+  inserted_at DateTime @db.Timestamp(0)
+  updated_at  DateTime @db.Timestamp(0)
+}
+
+model stagwallet_address_history_items {
+  id           Int      @id @default(autoincrement())
+  address      String   @db.VarChar(255)
+  tx_hash      String   @db.VarChar(255)
+  block_height Int?
+  value        BigInt
+  received     Boolean
+  txo          Json     @db.Json
+  txhex        String
+  time         Int?
+  blocktime    Int?
+  blockhash    String?  @db.VarChar(255)
+  createdAt    DateTime @db.Timestamptz(6)
+  updatedAt    DateTime @db.Timestamptz(6)
+}

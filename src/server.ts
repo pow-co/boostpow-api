@@ -988,6 +988,7 @@ export async function buildServer(): Server {
       }
     }
   })
+  /*
 
   server.route({
     method: 'GET',
@@ -1014,14 +1015,16 @@ export async function buildServer(): Server {
             vibes: Joi.number()
           }))
         }),
-        validate: {
-          params: Joi.object({
-            address: Joi.string().required()
-          })
-        }
+
+      },
+      validate: {
+        params: Joi.object({
+          address: Joi.string().required()
+        })
       }
     }
   })
+  */
 
   const swaggerOptions = {
     info: {
