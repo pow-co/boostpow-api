@@ -54,7 +54,7 @@
       "@twetch/sdk": "^0.2.12",
       "@types/axios": "^0.14.0",
       "ascii-art": "^2.8.5",
-      "axios": "^1.2.1",
+      "axios": "^1.6.0",
       "bignumber.js": "^9.1.0",
       "bitcoinjs-message": "^2.2.0",
       "bmapjs": "^0.4.0-beta.21",
