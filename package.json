@@ -47,7 +47,7 @@
       "@hapi/hapi": "^20.2.2",
       "@hapi/inert": "^6.0.5",
       "@hapi/vision": "^6.1.0",
-      "@koa/cors": "^3.1.0",
+      "@koa/cors": "^5.0.0",
       "@powco/smart-contracts": "^0.0.13",
       "@runonbitcoin/easy-b": "^0.2.2",
       "@runonbitcoin/tokenkit": "^1.1.0",
